@@ -72,8 +72,8 @@ export function PlanSelector({
   return (
     <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary" />
+        <CardTitle as="h2" className="flex items-center gap-2">
+          <Zap className="h-5 w-5 text-primary" aria-hidden />
           Plan selector
         </CardTitle>
         <CardDescription>
@@ -91,15 +91,19 @@ export function PlanSelector({
           <div
             role="status"
             aria-live="polite"
-            className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border bg-muted/30 p-8 py-12 text-center animate-fade-in"
+            aria-label="No plans available"
+            className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border bg-muted/30 p-6 py-12 sm:p-8 text-center animate-fade-in"
           >
             <div className="flex h-14 w-14 min-w-[3.5rem] items-center justify-center rounded-full bg-primary/10">
               <LayoutGrid className="h-7 w-7 text-primary" aria-hidden />
             </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-foreground">No plans available</h3>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-foreground">No plans available</h3>
               <p className="max-w-sm text-sm text-muted-foreground">
-                Plans are not available at the moment. Please check back later or contact support for assistance.
+                No subscription plans are available at the moment.{' '}
+                {onRefresh
+                  ? 'Click Refresh below to retry loading plans, or contact support if the issue persists.'
+                  : 'Please check back later or contact support for assistance.'}
               </p>
             </div>
             {onRefresh && (
@@ -108,7 +112,7 @@ export function PlanSelector({
                 size="sm"
                 onClick={onRefresh}
                 aria-label="Refresh plans"
-                className="hover:scale-[1.02] active:scale-[0.98] transition-transform"
+                className="hover:scale-[1.02] active:scale-[0.98] transition-transform min-h-[44px]"
               >
                 <RefreshCw className="h-4 w-4 mr-2" aria-hidden />
                 Refresh
