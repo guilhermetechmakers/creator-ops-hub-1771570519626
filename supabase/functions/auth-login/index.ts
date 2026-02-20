@@ -67,6 +67,19 @@ serve(async (req) => {
       )
     }
 
+    const userId = data.user?.id
+    if (userId) {
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+      if (serviceRoleKey) {
+        const adminClient = createClient(supabaseUrl, serviceRoleKey)
+        await adminClient.from('login_signup').insert({
+          user_id: userId,
+          title: 'login',
+          status: 'active',
+        }).single().catch(() => null)
+      }
+    }
+
     return new Response(
       JSON.stringify({
         access_token: session.access_token,
