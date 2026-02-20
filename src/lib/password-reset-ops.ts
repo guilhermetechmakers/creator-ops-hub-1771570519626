@@ -43,6 +43,28 @@ async function requestPasswordResetFallback(email: string): Promise<RequestReset
   }
 }
 
+/**
+ * Exchange token_hash (from Supabase server-side redirect) for a session.
+ * Returns access_token and refresh_token for use with updatePasswordWithToken.
+ */
+export async function exchangeTokenHashForSession(
+  tokenHash: string
+): Promise<{ accessToken: string; refreshToken: string } | null> {
+  try {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: 'recovery',
+    })
+    if (error || !data.session) return null
+    return {
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token ?? '',
+    }
+  } catch {
+    return null
+  }
+}
+
 export async function updatePasswordWithToken(
   accessToken: string,
   password: string,

@@ -98,14 +98,25 @@ export function ForgotPasswordPage() {
             </CardTitle>
             <CardDescription className="text-body">
               We&apos;ve sent a password reset link to your email address. The link will expire in 1 hour.
+              <span className="mt-2 block text-muted-foreground">
+                Didn&apos;t receive it? Check your spam folder or try again in a few minutes.
+              </span>
             </CardDescription>
           </CardHeader>
-          <CardContent className="relative">
+          <CardContent className="relative space-y-3">
             <Link to="/login-/-signup">
               <Button className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
                 Back to sign in
               </Button>
             </Link>
+            <button
+              type="button"
+              onClick={() => setEmailSent(false)}
+              className="block w-full text-center text-small text-muted-foreground hover:text-primary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded py-2 min-h-[44px]"
+              aria-label="Request another password reset link"
+            >
+              Request another link
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -195,3 +206,5 @@ export function ForgotPasswordPage() {
     </div>
   )
 }
+
+export default ForgotPasswordPage

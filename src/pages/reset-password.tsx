@@ -14,7 +14,10 @@ import {
   PasswordStrengthIndicator,
   getPasswordStrength,
 } from '@/components/login-signup/password-strength-indicator'
-import { updatePasswordWithToken } from '@/lib/password-reset-ops'
+import {
+  updatePasswordWithToken,
+  exchangeTokenHashForSession,
+} from '@/lib/password-reset-ops'
 import { cn } from '@/lib/utils'
 
 const schema = z
@@ -91,13 +94,29 @@ export function ResetPasswordPage() {
     const token = hashParams.access_token ?? queryParams.access_token
     const refresh = hashParams.refresh_token ?? queryParams.refresh_token
     const type = hashParams.type ?? queryParams.type
+    const tokenHash = queryParams.token_hash
 
     if (type === 'recovery' && token) {
       setAccessToken(token)
       setRefreshToken(refresh ?? null)
-    } else {
-      setTokenError('Invalid or expired reset link. Please request a new one.')
+      setIsValidating(false)
+      return
     }
+
+    if (tokenHash) {
+      exchangeTokenHashForSession(tokenHash).then((session) => {
+        if (session) {
+          setAccessToken(session.accessToken)
+          setRefreshToken(session.refreshToken)
+        } else {
+          setTokenError('Invalid or expired reset link. Please request a new one.')
+        }
+        setIsValidating(false)
+      })
+      return
+    }
+
+    setTokenError('Invalid or expired reset link. Please request a new one.')
     setIsValidating(false)
   }, [searchParams])
 
@@ -374,3 +393,5 @@ export function ResetPasswordPage() {
     </div>
   )
 }
+
+export default ResetPasswordPage
