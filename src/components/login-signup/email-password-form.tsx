@@ -42,7 +42,7 @@ function FieldError({ id, message }: { id: string; message: string }) {
       id={id}
       role="alert"
       aria-live="polite"
-      className="flex items-center gap-1.5 text-small text-destructive mt-1 min-h-[1.25rem] animate-fade-in"
+      className="flex items-center gap-1.5 text-small text-destructive animate-fade-in"
     >
       <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
       <span>{message}</span>
@@ -50,7 +50,7 @@ function FieldError({ id, message }: { id: string; message: string }) {
   )
 }
 
-/** Renders inline error message slot for consistent field-level error display. */
+/** Renders inline error message slot for consistent field-level error display. Always reserves space to prevent layout shift. */
 function FieldErrorSlot({
   id,
   error,
@@ -58,8 +58,11 @@ function FieldErrorSlot({
   id: string
   error?: { message?: string }
 }) {
-  if (!error?.message) return null
-  return <FieldError id={id} message={error.message} />
+  return (
+    <div className="min-h-[1.5rem] mt-1" aria-live="polite" aria-atomic="true">
+      {error?.message ? <FieldError id={id} message={error.message} /> : null}
+    </div>
+  )
 }
 
 export function EmailPasswordForm({
@@ -107,16 +110,23 @@ export function EmailPasswordForm({
     if (!hasErrors) prevHasErrors.current = false
   }, [hasErrors])
 
+  const formHeadingId = 'email-form-heading'
+  const formTitle = mode === 'login' ? 'Sign in with email' : 'Create account with email'
+
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
       className={cn('space-y-4', shouldShake && 'animate-shake')}
       id={mode === 'login' ? 'login-panel' : 'signup-panel'}
-      aria-labelledby={mode === 'login' ? 'login-tab' : 'signup-tab'}
+      aria-labelledby={formHeadingId}
       noValidate
     >
+      <h2 id={formHeadingId} className="sr-only">
+        {formTitle}
+      </h2>
+
       <div className="space-y-2">
-        <Label htmlFor="email">
+        <Label htmlFor="email" id="email-label">
           Email address
         </Label>
         <Input
@@ -124,7 +134,7 @@ export function EmailPasswordForm({
           type="email"
           placeholder="you@example.com"
           autoComplete="email"
-          aria-label="Email address"
+          aria-labelledby="email-label"
           aria-required="true"
           {...register('email')}
           className={cn(
@@ -139,7 +149,7 @@ export function EmailPasswordForm({
 
       <div className="space-y-2">
         <div className="flex justify-between items-center">
-          <Label htmlFor="password">
+          <Label htmlFor="password" id="password-label">
             Password
           </Label>
           {mode === 'signup' && (
@@ -153,7 +163,7 @@ export function EmailPasswordForm({
           type="password"
           placeholder="••••••••"
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          aria-label="Password"
+          aria-labelledby="password-label"
           aria-required="true"
           {...register('password')}
           className={cn(
@@ -173,7 +183,7 @@ export function EmailPasswordForm({
 
       {mode === 'signup' && (
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">
+          <Label htmlFor="confirmPassword" id="confirm-password-label">
             Confirm password
           </Label>
           <Input
@@ -181,7 +191,7 @@ export function EmailPasswordForm({
             type="password"
             placeholder="••••••••"
             autoComplete="new-password"
-            aria-label="Confirm password"
+            aria-labelledby="confirm-password-label"
             aria-required="true"
             {...register('confirmPassword')}
             className={cn(
@@ -197,14 +207,18 @@ export function EmailPasswordForm({
 
       <Button
         type="submit"
-        className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+        className={cn(
+          'w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+          isSubmitting &&
+            'animate-pulse cursor-wait ring-2 ring-primary/40 ring-offset-2 disabled:opacity-90'
+        )}
         disabled={isSubmitting}
         aria-busy={isSubmitting}
         aria-label={mode === 'login' ? 'Sign in with email and password' : 'Create account with email and password'}
       >
         {isSubmitting ? (
           <>
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            <Loader2 className="h-5 w-5 animate-spin shrink-0" aria-hidden />
             <span>{mode === 'login' ? 'Signing in...' : 'Creating account...'}</span>
           </>
         ) : (
