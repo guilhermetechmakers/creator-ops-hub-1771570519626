@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ArrowLeft } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import {
   ToggleLoginSignupSwitch,
   EmailPasswordForm,
@@ -67,22 +67,28 @@ export function LoginSignupPage() {
     setIsSubmitting(true)
     try {
       if (mode === 'login') {
-        await login(data as LoginFormData)
-        toast.success('Welcome back!')
+        await toast.promise(login(data as LoginFormData), {
+          loading: 'Signing in...',
+          success: 'Welcome back!',
+          error: (err) => (err instanceof Error ? err.message : 'Something went wrong'),
+        })
         navigate(getPostLoginRedirect(), { replace: true })
       } else {
-        await signup(data as SignupFormData)
+        await toast.promise(signup(data as SignupFormData), {
+          loading: 'Creating account...',
+          success: 'Account created! Please verify your email.',
+          error: (err) => (err instanceof Error ? err.message : 'Something went wrong'),
+        })
         const signupEmail = (data as SignupFormData).email
         try {
           sessionStorage.setItem('verify_email', signupEmail)
         } catch {
           /* ignore */
         }
-        toast.success('Account created! Please verify your email.')
         navigate('/verify-email', { replace: true, state: { email: signupEmail } })
       }
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+    } catch {
+      /* Error handled by toast.promise */
     } finally {
       setIsSubmitting(false)
     }
@@ -96,15 +102,20 @@ export function LoginSignupPage() {
       /* ignore */
     }
     setIsSubmitting(true)
+    const loadingToastId = toast.loading('Connecting with Google...', {
+      description: 'You may be redirected to sign in',
+    })
     try {
       await signInWithGoogle([
         'email',
         'https://www.googleapis.com/auth/gmail.readonly',
         'https://www.googleapis.com/auth/calendar',
       ])
+      toast.dismiss(loadingToastId)
       toast.success('Signed in with Google')
       navigate(redirectTo, { replace: true })
     } catch (err) {
+      toast.dismiss(loadingToastId)
       toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
     } finally {
       setIsSubmitting(false)
@@ -150,9 +161,9 @@ export function LoginSignupPage() {
       <Card className="relative w-full max-w-md animate-fade-in shadow-card border-2 border-primary/10 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:shadow-lg hover:border-primary/20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-50" />
         <CardHeader className="relative text-center space-y-4">
-          <CardTitle className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <h1 className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Creator Ops Hub
-          </CardTitle>
+          </h1>
           <CardDescription className="text-body">
             {mode === 'login'
               ? 'Sign in to your account to continue'
@@ -192,7 +203,7 @@ export function LoginSignupPage() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
             </div>
-            <div className="relative flex justify-center text-micro uppercase tracking-wider text-muted-foreground">
+            <div className="relative flex justify-center text-micro uppercase tracking-wider text-muted-foreground" role="separator" aria-label="Or continue with social sign-in">
               or continue with
             </div>
           </div>

@@ -200,6 +200,7 @@ export function EmailPasswordForm({
         className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         disabled={isSubmitting}
         aria-busy={isSubmitting}
+        aria-label={mode === 'login' ? 'Sign in with email and password' : 'Create account with email and password'}
       >
         {isSubmitting ? (
           <>

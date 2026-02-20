@@ -30,6 +30,7 @@ export function ToggleLoginSignupSwitch({
         aria-selected={mode === 'login'}
         aria-controls="login-panel"
         id="login-tab"
+        aria-label="Switch to log in"
         onClick={() => onModeChange('login')}
         className={cn(
           'rounded-lg px-6 py-2.5 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
@@ -47,6 +48,7 @@ export function ToggleLoginSignupSwitch({
         aria-selected={mode === 'signup'}
         aria-controls="signup-panel"
         id="signup-tab"
+        aria-label="Switch to sign up"
         onClick={() => onModeChange('signup')}
         className={cn(
           'rounded-lg px-6 py-2.5 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',

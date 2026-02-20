@@ -64,10 +64,13 @@ export function ContinueWithGoogle({
         className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary/50 hover:bg-primary/5 border-2"
         onClick={handleClick}
         disabled={disabled || isLoading}
+        aria-busy={isLoading}
         aria-label={
-          showConsent
-            ? 'Confirm and continue with Google (Gmail + Calendar)'
-            : 'Continue with Google (Gmail + Calendar)'
+          isLoading
+            ? 'Connecting with Google'
+            : showConsent
+              ? 'Confirm and continue with Google (Gmail + Calendar)'
+              : 'Continue with Google (Gmail + Calendar)'
         }
       >
         {isLoading ? (
