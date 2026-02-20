@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
-import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
+import { Menu, User, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { GlobalSearch } from '@/components/dashboard/global-search'
+import { NotificationsDropdown } from '@/components/dashboard/notifications-dropdown'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,18 +42,7 @@ export function DashboardTopbar({ onMobileMenuOpen, className }: DashboardTopbar
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Notifications"
-          className="relative hover:bg-muted transition-colors duration-200 hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Bell className="h-5 w-5" />
-          <span
-            className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent"
-            aria-hidden
-          />
-        </Button>
+        <NotificationsDropdown />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
