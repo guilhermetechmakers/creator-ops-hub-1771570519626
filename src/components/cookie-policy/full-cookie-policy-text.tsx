@@ -61,7 +61,7 @@ export function FullCookiePolicyText({ className }: FullCookiePolicyTextProps) {
   return (
     <article
       className={cn(
-        'prose prose-slate dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:text-muted-foreground prose-p:leading-relaxed',
+        'prose dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-links:text-primary',
         className
       )}
     >
