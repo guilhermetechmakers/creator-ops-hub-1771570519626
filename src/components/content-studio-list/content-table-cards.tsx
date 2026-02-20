@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { ContentEditor } from '@/types/content-editor'
 import { highlightSearchText } from '@/hooks/use-content-studio-list'
 import { QuickPreview } from './quick-preview'
+import { QuickPreviewHover } from './quick-preview-hover'
 import { cn } from '@/lib/utils'
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'success' | 'warning' | 'outline'> = {
@@ -195,16 +196,18 @@ export function ContentTableCards({
               Due: {formatDueDate(item.due_date)} · {item.assignee_id ? 'Assigned' : 'Unassigned'}
             </p>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={(e) => handlePreviewClick(e, item)}
-            className="shrink-0"
-            aria-label="Quick preview"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
+          <QuickPreviewHover item={item} searchQuery={searchQuery} side="left">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={(e) => handlePreviewClick(e, item)}
+              className="shrink-0"
+              aria-label="Quick preview (hover or click)"
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+          </QuickPreviewHover>
         </div>
       </CardContent>
     </Card>
@@ -321,18 +324,20 @@ export function ContentTableCards({
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handlePreviewClick(e, item)
-                            }}
-                            aria-label="Quick preview"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                          <QuickPreviewHover item={item} searchQuery={searchQuery} side="left">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon-sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handlePreviewClick(e, item)
+                              }}
+                              aria-label="Quick preview (hover or click)"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </QuickPreviewHover>
                           {item.is_ai_generated && (
                             <Badge
                               variant="outline"

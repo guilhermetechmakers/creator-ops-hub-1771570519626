@@ -127,6 +127,78 @@ export function useContentStudioList(
   }
 }
 
+export interface ContentStudioListInfiniteResult {
+  items: ContentEditor[]
+  loading: boolean
+  loadingMore: boolean
+  error: string | null
+  refetch: () => Promise<void>
+  loadMore: () => void
+  totalCount: number
+  page: number
+  totalPages: number
+  hasMore: boolean
+}
+
+/** Infinite scroll variant: accumulates items across pages */
+export function useContentStudioListInfinite(
+  filters: Omit<ContentStudioListFilters, 'page'> & { page?: number }
+): ContentStudioListInfiniteResult {
+  const [page, setPage] = useState(1)
+  const [accumulatedItems, setAccumulatedItems] = useState<ContentEditor[]>([])
+
+  const { items, loading, error, refetch: baseRefetch, totalCount, totalPages, hasMore } = useContentStudioList({
+    ...filters,
+    page,
+    limit: filters.limit ?? DEFAULT_PAGE_SIZE,
+  })
+
+  useEffect(() => {
+    setAccumulatedItems((prev) => {
+      if (page === 1) return items
+      const seen = new Set(prev.map((i) => i.id))
+      const newItems = items.filter((i) => !seen.has(i.id))
+      return [...prev, ...newItems]
+    })
+  }, [items, page])
+
+  const filterKey = [
+    filters.status,
+    filters.channel,
+    filters.assignee,
+    filters.search,
+    filters.tags?.join(','),
+  ].join('|')
+
+  useEffect(() => {
+    setPage(1)
+    setAccumulatedItems([])
+  }, [filterKey])
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loading) return
+    setPage((p) => p + 1)
+  }, [hasMore, loading])
+
+  const refetch = useCallback(async () => {
+    setPage(1)
+    await baseRefetch()
+  }, [baseRefetch])
+
+  return {
+    items: accumulatedItems,
+    loading,
+    loadingMore: loading && page > 1,
+    error,
+    refetch,
+    loadMore,
+    totalCount,
+    page,
+    totalPages,
+    hasMore,
+  }
+}
+
 export function highlightSearchText(text: string, search: string): string {
   if (!search?.trim()) return text
   const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -188,4 +260,15 @@ export function useContentStudioStats(): {
   }, [fetchStats])
 
   return { stats, loading, refetch: fetchStats }
+}
+
+/** Extract unique tags from content items for filter suggestions */
+export function getUniqueTagsFromItems(items: ContentEditor[]): string[] {
+  const tags = new Set<string>()
+  for (const item of items) {
+    for (const t of item.tags ?? []) {
+      if (t?.trim()) tags.add(t.trim().toLowerCase())
+    }
+  }
+  return Array.from(tags).sort()
 }

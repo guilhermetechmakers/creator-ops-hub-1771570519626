@@ -8,6 +8,7 @@ import {
   ChevronRight,
   FileText,
   LayoutTemplate,
+  LayoutList,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -333,6 +334,12 @@ export function DashboardMainWidgets({
                 <Link to="/dashboard/research/new">
                   <Search className="h-4 w-4 mr-2" />
                   New Research
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform duration-200">
+                <Link to="/dashboard/content-studio">
+                  <LayoutList className="h-4 w-4 mr-2" />
+                  Content Studio
                 </Link>
               </Button>
             </CardContent>

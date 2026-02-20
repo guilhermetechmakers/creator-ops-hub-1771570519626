@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, type SelectOption } from '@/components/ui/select'
+import { ContentSearch } from '@/components/content-studio-list/content-search'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,13 @@ const CHANNEL_OPTIONS: SelectOption[] = [
   { value: 'linkedin', label: 'LinkedIn' },
 ]
 
+function parseTagsInput(value: string): string[] {
+  return value
+    .split(/[,\s]+/)
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean)
+}
+
 export interface ContentStudioToolbarProps {
   filters: ContentStudioListFilters
   onFiltersChange: (filters: ContentStudioListFilters) => void
@@ -41,6 +49,8 @@ export interface ContentStudioToolbarProps {
   onNewContent?: () => void
   searchValue?: string
   onSearchChange?: (value: string) => void
+  /** Unique tags from content for quick filter suggestions */
+  suggestedTags?: string[]
   className?: string
 }
 
@@ -53,6 +63,7 @@ export function ContentStudioToolbar({
   isBulkUpdating = false,
   searchValue = '',
   onSearchChange,
+  suggestedTags = [],
   className,
 }: ContentStudioToolbarProps) {
   const handleStatusChange = (value: string) => {
@@ -76,12 +87,40 @@ export function ContentStudioToolbar({
     })
   }
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
+  const tagsInputValue = filters.tags?.join(', ') ?? ''
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const tags = parseTagsInput(e.target.value)
+    onFiltersChange({
+      ...filters,
+      tags: tags.length > 0 ? tags : undefined,
+      page: 1,
+    })
+  }
+
+  const handleSearchChange = (value: string) => {
     onSearchChange?.(value)
     onFiltersChange({
       ...filters,
       search: value || undefined,
+      page: 1,
+    })
+  }
+
+  const handleTagRemove = (tag: string) => {
+    const next = filters.tags?.filter((t) => t !== tag) ?? []
+    onFiltersChange({
+      ...filters,
+      tags: next.length > 0 ? next : undefined,
+      page: 1,
+    })
+  }
+
+  const handleTagAdd = (tag: string) => {
+    const current = filters.tags ?? []
+    if (current.includes(tag)) return
+    onFiltersChange({
+      ...filters,
+      tags: [...current, tag],
       page: 1,
     })
   }
@@ -153,18 +192,19 @@ export function ContentStudioToolbar({
           <span className="text-sm font-medium">Filters</span>
         </button>
         {filtersExpanded && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-slide-up">
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 animate-slide-up">
+            <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="filter-search" className="text-micro">
-                Search
+                Search (title & tags)
               </Label>
-              <Input
-                id="filter-search"
-                placeholder="Search title, tags..."
+              <ContentSearch
                 value={(searchValue || filters.search) ?? ''}
                 onChange={handleSearchChange}
-                className="transition-colors duration-200 focus:border-primary/50"
-                aria-label="Search content"
+                placeholder="Full-text and tag search..."
+                suggestedTags={suggestedTags}
+                activeTags={filters.tags ?? []}
+                onTagRemove={handleTagRemove}
+                onTagAdd={handleTagAdd}
               />
             </div>
             <div className="space-y-2">
@@ -201,6 +241,19 @@ export function ContentStudioToolbar({
                 value={filters.assignee ?? 'all'}
                 onChange={(e) => handleAssigneeChange(e.target.value)}
                 aria-label="Filter by assignee"
+              />
+            </div>
+            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="filter-tags" className="text-micro">
+                Tags
+              </Label>
+              <Input
+                id="filter-tags"
+                placeholder="e.g. campaign, launch"
+                value={tagsInputValue}
+                onChange={handleTagsChange}
+                className="transition-colors duration-200 focus:border-primary/50"
+                aria-label="Filter by tags (comma-separated)"
               />
             </div>
           </div>

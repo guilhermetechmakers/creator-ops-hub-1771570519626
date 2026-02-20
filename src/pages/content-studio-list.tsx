@@ -4,7 +4,9 @@ import { toast } from 'sonner'
 import { FileEdit, ClipboardCheck, Clock, BarChart3 } from 'lucide-react'
 import {
   useContentStudioList,
+  useContentStudioListInfinite,
   useContentStudioStats,
+  getUniqueTagsFromItems,
 } from '@/hooks/use-content-studio-list'
 import {
   deleteContentEditor,
@@ -39,9 +41,28 @@ export function ContentStudioListPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkUpdating, setIsBulkUpdating] = useState(false)
+  const [useInfiniteScroll, setUseInfiniteScroll] = useState(false)
 
-  const { items, loading, error, refetch, totalCount, page, totalPages } =
-    useContentStudioList(filters)
+  const baseFilters = {
+    status: filters.status,
+    channel: filters.channel,
+    assignee: filters.assignee,
+    tags: filters.tags,
+    search: filters.search,
+    limit: filters.limit,
+  }
+
+  const paginated = useContentStudioList(filters)
+  const infinite = useContentStudioListInfinite(baseFilters)
+
+  const items = useInfiniteScroll ? infinite.items : paginated.items
+  const loading = useInfiniteScroll ? infinite.loading : paginated.loading
+  const error = useInfiniteScroll ? infinite.error : paginated.error
+  const refetch = useInfiniteScroll ? infinite.refetch : paginated.refetch
+  const totalCount = useInfiniteScroll ? infinite.totalCount : paginated.totalCount
+  const page = useInfiniteScroll ? infinite.page : paginated.page
+  const totalPages = useInfiniteScroll ? infinite.totalPages : paginated.totalPages
+
   const { stats, refetch: refetchStats } = useContentStudioStats()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
@@ -61,6 +82,10 @@ export function ContentStudioListPage() {
   const handlePageSizeChange = useCallback((limit: number) => {
     setFilters((prev) => ({ ...prev, limit, page: 1 }))
   }, [])
+
+  const handleLoadMore = useCallback(() => {
+    infinite.loadMore()
+  }, [infinite])
 
   const handleBulkDelete = useCallback(() => {
     setDeleteConfirmOpen(true)
@@ -181,6 +206,7 @@ export function ContentStudioListPage() {
         isBulkUpdating={isBulkUpdating}
         searchValue={filters.search ?? ''}
         onSearchChange={handleSearchChange}
+        suggestedTags={getUniqueTagsFromItems(items)}
       />
 
       {error && (
@@ -215,6 +241,11 @@ export function ContentStudioListPage() {
         pageSize={filters.limit ?? DEFAULT_PAGE_SIZE}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
+        useInfiniteScroll={useInfiniteScroll}
+        onLoadMore={handleLoadMore}
+        isLoading={loading}
+        hasMore={page < totalPages}
+        onViewModeChange={setUseInfiniteScroll}
       />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
