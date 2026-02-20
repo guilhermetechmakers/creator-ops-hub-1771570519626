@@ -57,8 +57,10 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
     if (!promoCode.trim()) return
     setPromoStatus('applying')
     setPromoMessage('')
+    const toastId = toast.loading('Applying promo code...')
     try {
       const success = await onPromoApply?.(promoCode.trim())
+      toast.dismiss(toastId)
       setPromoStatus(success ? 'success' : 'error')
       setPromoMessage(success ? 'Promo code applied' : 'Invalid or expired promo code')
       if (success) {
@@ -67,6 +69,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         toast.error('Invalid promo code', { description: 'The code may be expired or incorrect. Please check and try again.' })
       }
     } catch {
+      toast.dismiss(toastId)
       setPromoStatus('error')
       setPromoMessage('Failed to apply promo code')
       toast.error('Failed to apply promo code', { description: 'Something went wrong. Please try again.' })
@@ -74,10 +77,14 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
   }
 
   return (
-    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+    <Card
+      className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20"
+      role="region"
+      aria-labelledby="payment-details-heading"
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-primary" />
+        <CardTitle id="payment-details-heading" as="h2" className="flex items-center gap-2">
+          <CreditCard className="h-5 w-5 text-primary" aria-hidden />
           Payment details
         </CardTitle>
         <CardDescription>
@@ -89,6 +96,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         {Object.keys(errors).length > 0 && (
           <div
             role="alert"
+            aria-live="polite"
             className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive"
           >
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" aria-hidden />
@@ -108,10 +116,10 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         )}
 
         {/* Card entry - Stripe Elements style container */}
-        <div className="space-y-4" role="group" aria-labelledby="card-info-label">
-          <Label id="card-info-label" className="text-base font-medium">
+        <section className="space-y-4" aria-labelledby="card-info-label">
+          <h3 id="card-info-label" className="text-base font-medium text-foreground">
             Card information
-          </Label>
+          </h3>
           <div
             id="card-element"
             className={cn(
@@ -194,17 +202,17 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
             </div>
           </div>
           <p className="text-micro text-muted-foreground flex items-center gap-1.5">
-            <Lock className="h-3.5 w-3.5" />
+            <Lock className="h-3.5 w-3.5" aria-hidden />
             Your payment information is encrypted and secure. We use Stripe for payment processing.
           </p>
-        </div>
+        </section>
 
         {/* Billing info */}
-        <div className="space-y-4" role="group" aria-labelledby="billing-address-label">
-          <Label id="billing-address-label" className="flex items-center gap-2">
+        <section className="space-y-4" aria-labelledby="billing-address-label">
+          <h3 id="billing-address-label" className="flex items-center gap-2 text-base font-medium text-foreground">
             <MapPin className="h-4 w-4 text-primary" aria-hidden />
             Billing address
-          </Label>
+          </h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="billing-name">Full name</Label>
@@ -215,6 +223,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 className={cn(errors.fullName && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.fullName}
                 aria-describedby={errors.fullName ? 'fullName-error' : undefined}
+                aria-label="Full name for billing"
               />
               {errors.fullName && (
                 <p id="fullName-error" className="text-micro text-destructive" role="alert">
@@ -232,6 +241,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 className={cn(errors.email && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'email-error' : undefined}
+                aria-label="Email address for billing"
               />
               {errors.email && (
                 <p id="email-error" className="text-micro text-destructive" role="alert">
@@ -249,6 +259,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               aria-describedby={errors.address ? 'address-error' : undefined}
               className={cn(errors.address && 'border-destructive focus-visible:ring-destructive animate-shake')}
               aria-invalid={!!errors.address}
+              aria-label="Street address for billing"
             />
             {errors.address && (
               <p id="address-error" className="text-micro text-destructive" role="alert">
@@ -266,6 +277,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 aria-describedby={errors.city ? 'city-error' : undefined}
                 className={cn(errors.city && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.city}
+                aria-label="City for billing"
               />
               {errors.city && (
                 <p id="city-error" className="text-micro text-destructive" role="alert">
@@ -282,6 +294,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 aria-describedby={errors.state ? 'state-error' : undefined}
                 className={cn(errors.state && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.state}
+                aria-label="State or province for billing"
               />
               {errors.state && (
                 <p id="state-error" className="text-micro text-destructive" role="alert">
@@ -298,6 +311,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 aria-describedby={errors.zip ? 'zip-error' : undefined}
                 className={cn(errors.zip && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.zip}
+                aria-label="ZIP or postal code for billing"
               />
               {errors.zip && (
                 <p id="zip-error" className="text-micro text-destructive" role="alert">
@@ -306,11 +320,11 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               )}
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Promo code */}
-        <div className="space-y-2" role="group" aria-labelledby="promo-code-label">
-          <Label id="promo-code-label" htmlFor="promo-code" className="flex items-center gap-2">
+        <section className="space-y-2" aria-labelledby="promo-code-label">
+          <Label id="promo-code-label" htmlFor="promo-code" className="flex items-center gap-2 text-base font-medium">
             <Tag className="h-4 w-4 text-primary" aria-hidden />
             Promo code
           </Label>
@@ -337,14 +351,17 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               variant="outline"
               onClick={handlePromoApply}
               disabled={isLoading || !promoCode.trim() || promoStatus === 'applying'}
-              className="shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              aria-label={promoStatus === 'applying' ? 'Applying promo code' : 'Apply promo code'}
+              className={cn(
+                'shrink-0 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+                promoStatus === 'applying' && 'cursor-wait'
+              )}
+              aria-label={promoStatus === 'applying' ? 'Applying promo code, please wait' : 'Apply promo code'}
               aria-busy={promoStatus === 'applying'}
             >
               {promoStatus === 'applying' ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  Applying...
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                  <span role="status">Applying...</span>
                 </>
               ) : (
                 'Apply'
@@ -363,7 +380,7 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               {promoMessage}
             </p>
           )}
-        </div>
+        </section>
       </CardContent>
     </Card>
   )
