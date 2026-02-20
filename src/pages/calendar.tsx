@@ -1,4 +1,5 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -18,13 +19,19 @@ export function CalendarPage() {
           <p className="text-muted-foreground mt-1">Plan and schedule Instagram, X, and YouTube</p>
         </div>
         <div className="flex gap-2">
+          <Button asChild>
+            <Link to="/dashboard/content-editor/new">
+              <Plus className="h-4 w-4 mr-2" />
+              New post
+            </Link>
+          </Button>
           <Button variant="outline" size="icon">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon">
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button>Month</Button>
+          <Button variant="outline">Month</Button>
         </div>
       </div>
 

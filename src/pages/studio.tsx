@@ -21,7 +21,7 @@ export function StudioPage() {
           <p className="text-muted-foreground mt-1">Manage content items and briefs</p>
         </div>
         <Button asChild>
-          <Link to="/dashboard/studio/new">
+          <Link to="/dashboard/content-editor/new">
             <Plus className="h-4 w-4 mr-2" />
             New Content
           </Link>
@@ -64,7 +64,7 @@ export function StudioPage() {
                     className="border-b hover:bg-muted/30 transition-colors cursor-pointer"
                   >
                     <td className="p-4">
-                      <Link to={`/dashboard/studio/${i + 1}`} className="font-medium hover:text-primary">
+                      <Link to={`/dashboard/content-editor/${i + 1}`} className="font-medium hover:text-primary">
                         {item.title}
                       </Link>
                     </td>

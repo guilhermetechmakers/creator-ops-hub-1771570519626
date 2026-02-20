@@ -20,6 +20,7 @@ import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { EmailVerificationPage } from '@/pages/email-verification'
 import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
 import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
+import { ContentEditorPage } from '@/pages/content-editor'
 
 function App() {
   return (
@@ -45,6 +46,9 @@ function App() {
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="publishing-queue-logs" element={<PublishingQueueLogsPage />} />
+            <Route path="content-editor" element={<ContentEditorPage />} />
+            <Route path="content-editor/new" element={<ContentEditorPage />} />
+            <Route path="content-editor/:id" element={<ContentEditorPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="/privacy" element={<PrivacyPage />} />
