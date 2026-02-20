@@ -163,7 +163,7 @@ export function InvoiceHistoryLink({
               className="mt-4 w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-elevated sm:w-auto"
               asChild
             >
-              <Link to="/dashboard/checkout-/-payment">
+              <Link to="/dashboard/order-transaction-history">
                 View all invoices
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Link>

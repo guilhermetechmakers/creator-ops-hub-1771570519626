@@ -1,5 +1,5 @@
-import { useCallback } from 'react'
-import { Download, FileSpreadsheet, FileText } from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { Download, FileSpreadsheet, FileText, Instagram, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +13,9 @@ import { AnalyticsCharts } from '@/components/analytics/analytics-charts'
 import { AnalyticsTopPosts } from '@/components/analytics/analytics-top-posts'
 import { PremiumGate } from '@/components/premium-gate'
 import { useAnalytics } from '@/hooks/use-analytics'
+import { useInstagramIntegration } from '@/hooks/use-instagram-integration'
 import { exportAnalyticsToCsv, exportAnalyticsToPdf } from '@/lib/analytics-export'
+import { fetchInstagramEngagement } from '@/lib/instagram-ops'
 import { toast } from 'sonner'
 
 export function AnalyticsPage() {
@@ -26,6 +28,8 @@ export function AnalyticsPage() {
 
 function AnalyticsPageContent() {
   const { data, filters, updateFilters, isLoading, error, refetch } = useAnalytics()
+  const { connected: instagramConnected } = useInstagramIntegration()
+  const [isSyncingInstagram, setIsSyncingInstagram] = useState(false)
 
   const handleExportCsv = useCallback(() => {
     if (!data) {
@@ -65,6 +69,23 @@ function AnalyticsPageContent() {
     },
     [updateFilters]
   )
+
+  const handleSyncInstagram = useCallback(async () => {
+    if (!instagramConnected) {
+      toast.error('Connect Instagram in Integrations first')
+      return
+    }
+    setIsSyncingInstagram(true)
+    try {
+      await fetchInstagramEngagement()
+      toast.success('Instagram engagement data synced')
+      refetch()
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Failed to sync Instagram')
+    } finally {
+      setIsSyncingInstagram(false)
+    }
+  }, [instagramConnected, refetch])
 
   if (error) {
     return (
@@ -131,10 +152,28 @@ function AnalyticsPageContent() {
         </DropdownMenu>
       </div>
 
-      <AnalyticsFiltersComponent
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-      />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <AnalyticsFiltersComponent
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          className="flex-1"
+        />
+        {instagramConnected && (
+          <Button
+            variant="outline"
+            onClick={handleSyncInstagram}
+            disabled={isSyncingInstagram || isLoading}
+            className="shrink-0 gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm self-end sm:self-auto"
+          >
+            {isSyncingInstagram ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Instagram className="h-4 w-4" />
+            )}
+            {isSyncingInstagram ? 'Syncing...' : 'Sync Instagram'}
+          </Button>
+        )}
+      </div>
 
       <AnalyticsOverviewCards
         overview={data?.overview ?? null}

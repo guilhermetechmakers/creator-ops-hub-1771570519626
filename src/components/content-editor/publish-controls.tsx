@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Calendar, Image, Hash, Tag, ExternalLink } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Calendar, Image, Hash, Tag, ExternalLink, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -22,6 +23,7 @@ export interface PublishControlsProps {
   onHashtagsChange?: (hashtags: string[]) => void
   onCtaChange?: (cta: string) => void
   isScheduling?: boolean
+  instagramConnected?: boolean
   className?: string
 }
 
@@ -49,6 +51,7 @@ export function PublishControls({
   onHashtagsChange,
   onCtaChange,
   isScheduling = false,
+  instagramConnected = false,
   className,
 }: PublishControlsProps) {
   const platformKey = (['instagram', 'x', 'youtube'] as const).includes(
@@ -77,8 +80,30 @@ export function PublishControls({
     }
   }
 
+  const showInstagramWarning =
+    platformKey === 'instagram' && !instagramConnected
+
   return (
     <div className={cn('flex flex-col border-t', className)}>
+      {showInstagramWarning && (
+        <div className="p-3 mx-4 mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-small">
+            <p className="font-medium text-amber-800 dark:text-amber-200">
+              Instagram not connected
+            </p>
+            <p className="text-muted-foreground mt-0.5">
+              <Link
+                to="/dashboard/integrations"
+                className="text-primary hover:underline font-medium"
+              >
+                Connect Instagram
+              </Link>{' '}
+              to publish directly.
+            </p>
+          </div>
+        </div>
+      )}
       <div className="p-4 border-b">
         <h3 className="font-semibold mb-3">Publish</h3>
         <div className="flex gap-2">

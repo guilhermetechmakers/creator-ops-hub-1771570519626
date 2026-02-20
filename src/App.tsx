@@ -22,10 +22,12 @@ import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { ResetPasswordPage } from '@/pages/reset-password'
 import { EmailVerificationPage } from '@/pages/email-verification'
 import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
+import { OAuthInstagramCallbackPage } from '@/pages/oauth-instagram-callback'
 import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
 import { ContentEditorPage } from '@/pages/content-editor'
 import { ContentStudioListPage } from '@/pages/content-studio-list'
 import { PaymentPage } from '@/pages/Checkout/Payment'
+import { OrderTransactionHistoryPage } from '@/pages/OrderTransactionHistory'
 import { HelpAndAboutPage } from '@/pages/HelpAndAbout'
 
 function App() {
@@ -46,6 +48,7 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
+          <Route path="/oauth/instagram/callback" element={<OAuthInstagramCallbackPage />} />
           <Route path="/dashboard" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
             <Route path="library" element={<FileLibraryPage />} />
@@ -68,6 +71,7 @@ function App() {
             <Route path="help-and-about" element={<HelpAndAboutPage />} />
             <Route path="help-&-about" element={<HelpAndAboutPage />} />
             <Route path="checkout-/-payment" element={<PaymentPage />} />
+            <Route path="order-transaction-history" element={<OrderTransactionHistoryPage />} />
           </Route>
           <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />

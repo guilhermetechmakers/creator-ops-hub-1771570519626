@@ -23,4 +23,6 @@ export const QUERY_KEYS = {
   contentStudio: (filters?: string) => ['content-studio', filters] as const,
   research: ['research'] as const,
   search: (q: string, types?: string) => ['search', q, types] as const,
+  orderTransactionHistory: (params?: { page?: number; limit?: number; sortBy?: string; sortOrder?: string; status?: string }) =>
+    ['order-transaction-history', params] as const,
 } as const

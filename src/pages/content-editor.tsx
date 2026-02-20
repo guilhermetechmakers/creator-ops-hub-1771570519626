@@ -2,12 +2,14 @@ import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useContentEditor } from '@/hooks/use-content-editor'
+import { useInstagramIntegration } from '@/hooks/use-instagram-integration'
 import {
   createContentEditor,
   updateContentEditor,
   saveContentEditorVersion,
 } from '@/lib/content-editor-ops'
 import { scheduleToQueue } from '@/lib/publishing-queue-ops'
+import { publishToInstagram } from '@/lib/instagram-ops'
 import { researchTopic, factCheckContent } from '@/lib/openclaw-ops'
 import type { ResearchResult, FactCheckResult } from '@/lib/openclaw-ops'
 import { RichTextEditor } from '@/components/content-editor/rich-text-editor'
@@ -30,6 +32,7 @@ export function ContentEditorPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { item, loading, error, refetch } = useContentEditor(id)
+  const { connected: instagramConnected } = useInstagramIntegration()
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -284,6 +287,14 @@ export function ContentEditorPage() {
       toast.error('Save your content first')
       return
     }
+    if (channel === 'instagram' && !instagramConnected) {
+      toast.error('Connect Instagram in Integrations to publish')
+      return
+    }
+    if (channel === 'instagram' && !thumbnailUrl?.trim()) {
+      toast.error('Thumbnail URL required for Instagram. Add an image URL in Publish controls.')
+      return
+    }
     setIsScheduling(true)
     try {
       let contentId = id
@@ -303,21 +314,32 @@ export function ContentEditorPage() {
           content_body: content,
         })
       }
-      await scheduleToQueue({
-        title,
-        description: description || undefined,
-        platform: channel,
-        scheduledTime: null,
-        payload: {
-          content_editor_id: contentId,
+
+      if (channel === 'instagram' && instagramConnected) {
+        await publishToInstagram({
           content_body: content,
-          thumbnail_url: thumbnailUrl,
-          tags,
-          hashtags,
-          cta,
-        },
-      })
-      toast.success('Publish initiated')
+          thumbnail_url: thumbnailUrl || undefined,
+          hashtags: hashtags.length > 0 ? hashtags : undefined,
+          cta: cta || undefined,
+        })
+        toast.success('Published to Instagram')
+      } else {
+        await scheduleToQueue({
+          title,
+          description: description || undefined,
+          platform: channel,
+          scheduledTime: null,
+          payload: {
+            content_editor_id: contentId,
+            content_body: content,
+            thumbnail_url: thumbnailUrl,
+            tags,
+            hashtags,
+            cta,
+          },
+        })
+        toast.success('Publish initiated')
+      }
       refetch()
     } catch (e) {
       toast.error((e as Error).message)
@@ -334,6 +356,7 @@ export function ContentEditorPage() {
     tags,
     hashtags,
     cta,
+    instagramConnected,
     refetch,
     navigate,
   ])
@@ -520,6 +543,7 @@ export function ContentEditorPage() {
               onHashtagsChange={setHashtags}
               onCtaChange={setCta}
               isScheduling={isScheduling}
+              instagramConnected={instagramConnected}
             />
           </div>
         </div>

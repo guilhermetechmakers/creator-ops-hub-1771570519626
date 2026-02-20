@@ -104,11 +104,14 @@ serve(async (req) => {
               .eq('stripe_subscription_id', subId)
               .single()
             if (sub) {
+              const amountCents = invoice.amount_paid ?? invoice.amount_due ?? 0
               await adminClient.from('checkout_payment').insert({
                 user_id: sub.user_id,
                 title: `Invoice ${invoice.number ?? invoice.id}`,
                 description: event.type === 'invoice.paid' ? 'Paid' : 'Payment failed',
                 status: event.type === 'invoice.paid' ? 'active' : 'failed',
+                amount_cents: amountCents,
+                invoice_url: invoice.hosted_invoice_url ?? null,
                 updated_at: new Date().toISOString(),
               })
             }

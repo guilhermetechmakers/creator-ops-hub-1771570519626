@@ -12,6 +12,7 @@ import {
   FileEdit,
   HelpCircle,
   CreditCard,
+  Receipt,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ export const navItems = [
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   { to: '/dashboard/checkout-/-payment', icon: CreditCard, label: 'Billing' },
+  { to: '/dashboard/order-transaction-history', icon: Receipt, label: 'Transactions' },
   { to: '/dashboard/help-and-about', icon: HelpCircle, label: 'Help & About' },
 ]
 
