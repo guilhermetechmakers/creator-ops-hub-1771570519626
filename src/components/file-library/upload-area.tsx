@@ -38,6 +38,8 @@ export interface UploadAreaProps {
   disabled?: boolean
   suggestedTags?: string[]
   onTagSuggestionClick?: (tag: string) => void
+  /** Ref to the file input for programmatic trigger (e.g. from empty state CTA) */
+  inputRef?: React.RefObject<HTMLInputElement | null>
   className?: string
 }
 
@@ -90,6 +92,7 @@ export function UploadArea({
   disabled = false,
   suggestedTags = [],
   onTagSuggestionClick,
+  inputRef,
   className,
 }: UploadAreaProps) {
   const [isDragging, setIsDragging] = useState(false)
@@ -260,6 +263,7 @@ export function UploadArea({
               or click to browse · Multi-file supported
             </p>
             <input
+              ref={inputRef}
               type="file"
               multiple
               className="hidden"

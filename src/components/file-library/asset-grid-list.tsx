@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Loader2,
   Upload,
+  FilterX,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -65,9 +66,16 @@ interface ViewToggleBarProps {
   viewMode: 'grid' | 'list'
   onViewModeChange: (mode: 'grid' | 'list') => void
   disabled?: boolean
+  isActionLoading?: boolean
 }
 
-function ViewToggleBar({ viewMode, onViewModeChange, disabled }: ViewToggleBarProps) {
+function ViewToggleBar({
+  viewMode,
+  onViewModeChange,
+  disabled,
+  isActionLoading,
+}: ViewToggleBarProps) {
+  const showLoading = disabled && isActionLoading
   return (
     <div className="flex items-center justify-end gap-2">
       <Button
@@ -76,8 +84,13 @@ function ViewToggleBar({ viewMode, onViewModeChange, disabled }: ViewToggleBarPr
         onClick={() => onViewModeChange('grid')}
         aria-label="Grid view"
         disabled={disabled}
+        aria-busy={showLoading}
       >
-        <Grid3X3 className="h-4 w-4" />
+        {showLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        ) : (
+          <Grid3X3 className="h-4 w-4" />
+        )}
       </Button>
       <Button
         variant={viewMode === 'list' ? 'secondary' : 'ghost'}
@@ -85,8 +98,13 @@ function ViewToggleBar({ viewMode, onViewModeChange, disabled }: ViewToggleBarPr
         onClick={() => onViewModeChange('list')}
         aria-label="List view"
         disabled={disabled}
+        aria-busy={showLoading}
       >
-        <List className="h-4 w-4" />
+        {showLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+        ) : (
+          <List className="h-4 w-4" />
+        )}
       </Button>
     </div>
   )
@@ -120,6 +138,10 @@ export interface AssetGridListProps {
   searchQuery?: string
   onItemClick?: (item: FileLibrary) => void
   emptyMessage?: string
+  /** Called when user clicks "Upload assets" in empty state; triggers file picker */
+  onUploadClick?: () => void
+  /** Called when user clicks "Clear search" in filtered empty state */
+  onClearFilters?: () => void
 }
 
 export function AssetGridList({
@@ -131,6 +153,8 @@ export function AssetGridList({
   searchQuery = '',
   onItemClick,
   emptyMessage = 'No assets yet',
+  onUploadClick,
+  onClearFilters,
 }: AssetGridListProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [sortKey, setSortKey] = useState<SortKey>('updated_at')
@@ -369,12 +393,35 @@ export function AssetGridList({
                 {description}
               </p>
             </div>
-            {!isFiltered && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Upload className="h-5 w-5" aria-hidden />
-                <span className="text-small">Use the upload area above to add files</span>
-              </div>
-            )}
+            <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+              {!isFiltered && onUploadClick && (
+                <Button
+                  onClick={onUploadClick}
+                  className="bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
+                  aria-label="Upload assets"
+                >
+                  <Upload className="h-4 w-4 shrink-0" aria-hidden />
+                  Upload assets
+                </Button>
+              )}
+              {isFiltered && onClearFilters && (
+                <Button
+                  variant="outline"
+                  onClick={onClearFilters}
+                  className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  aria-label="Clear search and filters"
+                >
+                  <FilterX className="h-4 w-4 shrink-0" aria-hidden />
+                  Clear search
+                </Button>
+              )}
+              {!isFiltered && !onUploadClick && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Upload className="h-5 w-5" aria-hidden />
+                  <span className="text-small">Use the upload area above to add files</span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -417,6 +464,7 @@ export function AssetGridList({
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         disabled={isActionLoading}
+        isActionLoading={isActionLoading}
       />
 
       <div className={cn('relative', isActionLoading && 'pointer-events-none opacity-60')}>

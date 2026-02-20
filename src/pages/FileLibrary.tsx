@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -39,6 +39,7 @@ export function FileLibraryPage() {
   const [isTagging, setIsTagging] = useState(false)
   const [isMoving, setIsMoving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const { items, loading, error, refetch, totalCount, page, totalPages } =
     useFileLibrary(filters)
@@ -219,6 +220,7 @@ export function FileLibraryPage() {
       <UploadArea
         onUpload={handleUpload}
         suggestedTags={allTags.slice(0, 4)}
+        inputRef={uploadInputRef}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -262,6 +264,10 @@ export function FileLibraryPage() {
             onSelectionChange={setSelectedIds}
             searchQuery={filters.search ?? ''}
             onItemClick={handleItemClick}
+            onUploadClick={() => uploadInputRef.current?.click()}
+            onClearFilters={() =>
+              setFilters((prev) => ({ ...prev, search: '' }))
+            }
           />
 
           <ContentPagination
