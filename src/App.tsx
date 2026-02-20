@@ -22,6 +22,7 @@ import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
 import { ContentEditorPage } from '@/pages/content-editor'
 import { ContentStudioListPage } from '@/pages/content-studio-list'
 import { PaymentPage } from '@/pages/Checkout/Payment'
+import { HelpAndAboutPage } from '@/pages/HelpAndAbout'
 
 function App() {
   return (
@@ -56,10 +57,13 @@ function App() {
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
             <Route path="settings" element={<SettingsPreferencesPage />} />
             <Route path="settings-&-preferences" element={<SettingsPreferencesPage />} />
+            <Route path="help-and-about" element={<HelpAndAboutPage />} />
+            <Route path="help-&-about" element={<HelpAndAboutPage />} />
             <Route path="checkout-/-payment" element={<PaymentPage />} />
           </Route>
           <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<Navigate to="/404" replace />} />

@@ -135,7 +135,7 @@ export function LandingPage() {
           <span className="text-muted-foreground text-small">© Creator Ops Hub</span>
           <div className="flex gap-6">
             <Link to="/privacy-policy" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Privacy Policy</Link>
-            <Link to="/terms" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Terms</Link>
+            <Link to="/terms" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Terms of Service</Link>
           </div>
         </div>
       </footer>

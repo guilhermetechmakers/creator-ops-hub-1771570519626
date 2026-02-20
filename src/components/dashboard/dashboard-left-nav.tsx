@@ -10,6 +10,7 @@ import {
   Settings,
   Menu,
   FileEdit,
+  HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ export const navItems = [
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard/help-and-about', icon: HelpCircle, label: 'Help & About' },
 ]
 
 const SIDEBAR_COLLAPSED_KEY = 'creator-ops-sidebar-collapsed'
