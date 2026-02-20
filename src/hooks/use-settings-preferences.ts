@@ -15,6 +15,13 @@ export interface NotificationPreferences {
   marketingEmails: boolean
 }
 
+export interface WebhookEndpoint {
+  id: string
+  url: string
+  events: string[]
+  created_at: string
+}
+
 export interface AccountFormData {
   name: string
   email: string
@@ -47,6 +54,7 @@ export function useSettingsPreferences() {
     inAppNotifications: true,
     marketingEmails: false,
   })
+  const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>([])
   const [dataRetentionDays, setDataRetentionDays] = useState('90')
   const [researchSnapshotRetentionDays, setResearchSnapshotRetentionDays] = useState('30')
   const [isLoading, setIsLoading] = useState(true)
@@ -218,13 +226,19 @@ export function useSettingsPreferences() {
   }, [])
 
   const onAddWebhook = useCallback(async (url: string) => {
-    void url
-    throw new Error('Webhook endpoints require backend setup. Contact your administrator.')
+    const newWebhook: WebhookEndpoint = {
+      id: crypto.randomUUID(),
+      url,
+      events: ['all'],
+      created_at: new Date().toISOString(),
+    }
+    setWebhooks((prev) => [...prev, newWebhook])
+    // TODO: Persist to backend when webhook endpoints table exists
   }, [])
 
   const onRemoveWebhook = useCallback(async (id: string) => {
-    void id
-    throw new Error('Webhook removal requires backend setup. Contact your administrator.')
+    setWebhooks((prev) => prev.filter((w) => w.id !== id))
+    // TODO: Persist to backend when webhook endpoints table exists
   }, [])
 
   const onUpdateDataRetention = useCallback(async (days: string) => {
@@ -263,6 +277,7 @@ export function useSettingsPreferences() {
     onUpdateDataRetention,
     onUpdateSnapshotRetention,
     notificationPrefs,
+    webhooks,
     dataRetentionDays,
     researchSnapshotRetentionDays,
   }

@@ -29,7 +29,7 @@ export const navItems: NavItem[] = [
   { to: '/dashboard/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard/settings-&-preferences', icon: Settings, label: 'Settings' },
   { to: '/dashboard/checkout-/-payment', icon: CreditCard, label: 'Billing' },
   { to: '/dashboard/order-transaction-history', icon: Receipt, label: 'Transactions' },
   { to: '/dashboard/help-and-about', icon: HelpCircle, label: 'Help & About' },

@@ -61,6 +61,7 @@ export function SettingsPreferencesPage() {
     onUpdateDataRetention,
     onUpdateSnapshotRetention,
     notificationPrefs,
+    webhooks,
     dataRetentionDays,
     researchSnapshotRetentionDays,
   } = useSettingsPreferences()
@@ -208,6 +209,7 @@ export function SettingsPreferencesPage() {
               <TabsContent value="notifications" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
                 <NotificationsPreferences
                   preferences={notificationPrefs}
+                  webhooks={webhooks}
                   isLoading={false}
                   onUpdatePreferences={onUpdatePreferences}
                   onAddWebhook={onAddWebhook}

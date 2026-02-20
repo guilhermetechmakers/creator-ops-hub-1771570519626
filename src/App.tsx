@@ -68,7 +68,7 @@ function App() {
             <Route path="content-editor" element={<ContentEditorPage />} />
             <Route path="content-editor/new" element={<ContentEditorPage />} />
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
-            <Route path="settings" element={<SettingsPreferencesPage />} />
+            <Route path="settings" element={<Navigate to="/dashboard/settings-&-preferences" replace />} />
             <Route path="settings-&-preferences" element={<SettingsPreferencesPage />} />
             <Route path="help-and-about" element={<HelpAndAboutPage />} />
             <Route path="help-&-about" element={<HelpAndAboutPage />} />

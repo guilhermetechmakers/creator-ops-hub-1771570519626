@@ -58,7 +58,7 @@ export function DashboardLeftNav({
           const isActive =
             location.pathname === to ||
             (to !== '/dashboard' && location.pathname.startsWith(to + '/')) ||
-            (to === '/dashboard/settings' && location.pathname.includes('settings'))
+            (to === '/dashboard/settings-&-preferences' && location.pathname.includes('settings'))
           return (
             <Link
               key={to}
