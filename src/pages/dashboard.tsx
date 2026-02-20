@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { Zap } from 'lucide-react'
+import { toast } from 'sonner'
 import { DashboardMainWidgets } from '@/components/dashboard/dashboard-main-widgets'
 import { DashboardActivityFeed } from '@/components/dashboard/dashboard-activity-feed'
 import { DashboardCtaBanner } from '@/components/dashboard/dashboard-cta-banner'
@@ -35,8 +36,28 @@ export function DashboardPage() {
     }
   }, [])
 
-  const handleRetry = useCallback(() => {
-    refetch(true)
+  const handleRetry = useCallback(async () => {
+    const toastId = toast.loading('Retrying...')
+    try {
+      await refetch(true)
+      toast.dismiss(toastId)
+      toast.success('Dashboard loaded')
+    } catch {
+      toast.dismiss(toastId)
+      toast.error('Failed to load dashboard')
+    }
+  }, [refetch])
+
+  const handleRefresh = useCallback(async () => {
+    const toastId = toast.loading('Refreshing dashboard...')
+    try {
+      await refetch(true)
+      toast.dismiss(toastId)
+      toast.success('Dashboard refreshed')
+    } catch {
+      toast.dismiss(toastId)
+      toast.error('Failed to refresh dashboard')
+    }
   }, [refetch])
 
   return (
@@ -66,10 +87,10 @@ export function DashboardPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => refetch(true)}
+            onClick={handleRefresh}
             disabled={isRefetching}
             className="text-micro"
-            aria-label="Refresh dashboard"
+            aria-label="Refresh dashboard data"
           >
             {isRefetching ? 'Refreshing...' : 'Refresh'}
           </Button>
@@ -84,6 +105,7 @@ export function DashboardPage() {
           description={errorMessage ?? 'Some data failed to load. You can retry or continue with available data.'}
           onRetry={handleRetry}
           retryLabel="Retry"
+          buttonAriaLabel="Retry loading dashboard"
         />
       )}
 
@@ -99,6 +121,7 @@ export function DashboardPage() {
         isLoadingScheduled={loadingScheduled}
         isLoadingAssets={loadingAssets}
         isLoadingResearch={loadingResearch}
+        isLoading={loadingCalendar}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
