@@ -70,7 +70,7 @@ export function FileLibraryPage() {
           })
         }
         toast.success(`${files.length} file(s) uploaded`)
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         refetch()
       } catch (e) {
         toast.error((e as Error).message)
@@ -86,7 +86,7 @@ export function FileLibraryPage() {
     try {
       await bulkDeleteFileLibrary(selectedItems.map((i) => i.id))
       toast.success(`${selectedItems.length} asset(s) deleted`)
-      invalidateDashboardRelatedCaches(queryClient)
+      invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
       setSelectedIds(new Set())
       refetch()
     } catch (e) {
@@ -106,7 +106,7 @@ export function FileLibraryPage() {
           tags
         )
         toast.success(`Tags added to ${selectedItems.length} asset(s)`)
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
         refetch()
       } catch (e) {
@@ -127,7 +127,7 @@ export function FileLibraryPage() {
         toast.success(
           `${selectedItems.length} asset(s) moved to ${folderId ? 'folder' : 'Uncategorized'}`
         )
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
         refetch()
         refetchFolders()

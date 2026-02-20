@@ -1,0 +1,44 @@
+import { useState, useEffect, useCallback } from 'react'
+
+/**
+ * Returns a debounced version of the value.
+ * Updates only after `delay` ms of no changes.
+ */
+export function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValue(value)
+    }, delay)
+
+    return () => clearTimeout(timer)
+  }, [value, delay])
+
+  return debouncedValue
+}
+
+/**
+ * Returns a debounced callback that only invokes the latest call after `delay` ms.
+ */
+export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
+  callback: T,
+  delay: number
+): T {
+  const timeoutRef = { current: undefined as ReturnType<typeof setTimeout> | undefined }
+  const callbackRef = { current: callback }
+  callbackRef.current = callback
+
+  const debounced = useCallback(
+    ((...args: Parameters<T>) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      timeoutRef.current = setTimeout(() => {
+        callbackRef.current(...args)
+        timeoutRef.current = undefined
+      }, delay)
+    }) as T,
+    [delay]
+  )
+
+  return debounced
+}

@@ -41,7 +41,7 @@ export function PublishingQueueLogsPage() {
       try {
         await retryJob(job.id)
         toast.success('Job scheduled for retry')
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         refetch()
         setDetailOpen(false)
       } catch (e) {
@@ -59,7 +59,7 @@ export function PublishingQueueLogsPage() {
       try {
         await manualPublishJob(job.id)
         toast.success('Publish initiated')
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         refetch()
         setDetailOpen(false)
       } catch (e) {
@@ -76,7 +76,7 @@ export function PublishingQueueLogsPage() {
       try {
         const { retried } = await bulkRetryJobs(jobsToRetry.map((j) => j.id))
         toast.success(`${retried} job(s) scheduled for retry`)
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
         refetch()
       } catch (e) {

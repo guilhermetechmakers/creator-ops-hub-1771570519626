@@ -1,77 +1,55 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { fetchGlobalSearch } from '@/api/global-search'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { QUERY_KEYS, CACHE_TTL } from '@/lib/cache-config'
 import type { GlobalSearchResult, GlobalSearchParams } from '@/types/search'
 
 const DEBOUNCE_MS = 300
+const SEARCH_TYPES = ['library', 'content', 'research'] as const
 
 export function useGlobalSearch() {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<GlobalSearchResult[]>([])
-  const [isSearching, setIsSearching] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const debouncedQuery = useDebouncedValue(query.trim(), DEBOUNCE_MS)
 
-  const search = useCallback(async (params: GlobalSearchParams) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) {
-      setResults([])
-      return
-    }
+  const { data, isFetching, refetch } = useQuery({
+    queryKey: QUERY_KEYS.search(debouncedQuery, SEARCH_TYPES.join(',')),
+    queryFn: () =>
+      fetchGlobalSearch({
+        query: debouncedQuery,
+        types: [...SEARCH_TYPES],
+        limit: 15,
+      }),
+    enabled: debouncedQuery.length > 0,
+    staleTime: CACHE_TTL.SEARCH * 1000,
+    gcTime: CACHE_TTL.SEARCH * 2 * 1000,
+  })
 
-    setIsSearching(true)
-    try {
-      const { data, error } = await supabase.functions.invoke('global-search', {
-        body: params,
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
+  const results: GlobalSearchResult[] = data?.results ?? []
 
-      if (error) throw error
-      setResults(data?.results ?? [])
-    } catch {
-      setResults([])
-    } finally {
-      setIsSearching(false)
-    }
+  const handleQueryChange = useCallback((value: string) => {
+    setQuery(value)
   }, [])
-
-  const handleQueryChange = useCallback(
-    (value: string) => {
-      setQuery(value)
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-
-      if (!value.trim()) {
-        setResults([])
-        setIsSearching(false)
-        return
-      }
-
-      debounceRef.current = setTimeout(() => {
-        search({
-          query: value.trim(),
-          types: ['library', 'content', 'research'],
-          limit: 15,
-        })
-      }, DEBOUNCE_MS)
-    },
-    [search]
-  )
 
   const clearSearch = useCallback(() => {
     setQuery('')
-    setResults([])
     setIsOpen(false)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
   }, [])
 
-  useEffect(() => () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-  }, [])
+  const search = useCallback(
+    (params: GlobalSearchParams) => {
+      setQuery(params.query ?? '')
+      void refetch()
+    },
+    [refetch]
+  )
 
   return {
     query,
     setQuery,
     results,
-    isSearching,
+    isSearching: isFetching,
     isOpen,
     setIsOpen,
     handleQueryChange,

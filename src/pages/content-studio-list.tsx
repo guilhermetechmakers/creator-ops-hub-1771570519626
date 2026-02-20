@@ -122,7 +122,7 @@ export function ContentStudioListPage() {
         await deleteContentEditor(item.id)
       }
       toast.success(`${selectedItems.length} item(s) deleted`)
-      invalidateDashboardRelatedCaches(queryClient)
+      invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
       setSelectedIds(new Set())
       setDeleteConfirmOpen(false)
       refetch()
@@ -144,7 +144,7 @@ export function ContentStudioListPage() {
           status
         )
         toast.success(`${selectedItems.length} item(s) marked as ${status}`)
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
         refetch()
         refetchStats()

@@ -112,7 +112,7 @@ export function ContentEditorPage() {
           // Non-fatal: version save failed
         }
         toast.success('Saved')
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         refetch()
       } else {
         const created = await createContentEditor({
@@ -123,7 +123,7 @@ export function ContentEditorPage() {
           channel,
         })
         toast.success('Created')
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         navigate(`/dashboard/content-editor/${created.id}`, { replace: true })
       }
     } catch (e) {
@@ -148,7 +148,7 @@ export function ContentEditorPage() {
       if (id) {
         try {
           await updateContentEditor(id, { status: newStatus })
-          invalidateDashboardRelatedCaches(queryClient)
+          invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
           refetch()
         } catch (e) {
           toast.error((e as Error).message)
@@ -270,7 +270,7 @@ export function ContentEditorPage() {
           },
         })
         toast.success(`Scheduled for ${date.toLocaleString()}`)
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         refetch()
       } catch (e) {
         toast.error((e as Error).message)
@@ -336,7 +336,7 @@ export function ContentEditorPage() {
           hashtags: hashtags.length > 0 ? hashtags : undefined,
           cta: cta || undefined,
         })
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         toast.success('Published to Instagram')
       } else {
         await scheduleToQueue({
@@ -353,7 +353,7 @@ export function ContentEditorPage() {
             cta,
           },
         })
-        invalidateDashboardRelatedCaches(queryClient)
+        invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         toast.success('Publish initiated')
       }
       refetch()
