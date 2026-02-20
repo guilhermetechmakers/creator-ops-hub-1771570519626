@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { Send, MessageSquare, Loader2, LogIn } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -81,8 +82,16 @@ export function ContactForm({ headingId }: ContactFormProps) {
       </CardHeader>
       <CardContent>
         {isAuthenticated === null ? (
-          <div className="flex items-center justify-center py-12 animate-pulse" role="status" aria-label="Loading">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <div className="space-y-4" role="status" aria-label="Loading">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16" />
+              <Skeleton className="h-24 w-full" />
+            </div>
+            <Skeleton className="h-10 w-32" />
           </div>
         ) : !isAuthenticated ? (
           <div
