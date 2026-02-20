@@ -111,10 +111,10 @@ export function LoginSignupPage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
       <Link
         to="/"
-        className="absolute top-4 left-4 z-10 flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
+        className="absolute top-4 left-4 z-10 flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2.5 min-h-[44px]"
         aria-label="Back to home"
       >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
+        <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
         Back to home
       </Link>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -125,7 +125,7 @@ export function LoginSignupPage() {
         <div className="absolute bottom-1/4 right-1/4 w-48 h-48 rounded-full bg-accent/10 blur-3xl animate-float-subtle" style={{ animationDelay: '-2s' }} />
       </div>
 
-      <Card className="relative w-full max-w-md animate-fade-in shadow-card border-border overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:shadow-lg">
+      <Card className="relative w-full max-w-md animate-fade-in shadow-card border-2 border-primary/10 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:shadow-lg hover:border-primary/20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-50" />
         <CardHeader className="relative text-center space-y-4">
           <CardTitle className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -141,13 +141,15 @@ export function LoginSignupPage() {
           </div>
         </CardHeader>
         <CardContent className="relative space-y-6">
-          <EmailPasswordForm
-            mode={mode}
-            onSubmit={handleEmailSubmit}
-            isSubmitting={isSubmitting}
-          />
+          <div className="animate-slide-up" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>
+            <EmailPasswordForm
+              mode={mode}
+              onSubmit={handleEmailSubmit}
+              isSubmitting={isSubmitting}
+            />
+          </div>
 
-          <div className="relative">
+          <div className="relative animate-slide-up" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-border" />
             </div>
@@ -156,16 +158,24 @@ export function LoginSignupPage() {
             </div>
           </div>
 
-          <ContinueWithGoogle
-            onContinue={handleGoogleContinue}
-            disabled={isSubmitting}
-          />
+          <div className="animate-slide-up" style={{ animationDelay: '150ms', animationFillMode: 'both' }}>
+            <ContinueWithGoogle
+              onContinue={handleGoogleContinue}
+              disabled={isSubmitting}
+            />
+          </div>
 
-          <SocialOAuthButtons buttons={socialButtons} />
+          <div className="animate-slide-up" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+            <SocialOAuthButtons buttons={socialButtons} />
+          </div>
 
-          <ForgotPasswordTermsLinks showForgotPassword={mode === 'login'} />
+          <div className="animate-slide-up" style={{ animationDelay: '250ms', animationFillMode: 'both' }}>
+            <ForgotPasswordTermsLinks showForgotPassword={mode === 'login'} />
+          </div>
 
-          <SSOEnterpriseCTA onClick={handleSSORequest} />
+          <div className="animate-slide-up" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+            <SSOEnterpriseCTA onClick={handleSSORequest} />
+          </div>
         </CardContent>
       </Card>
     </div>
