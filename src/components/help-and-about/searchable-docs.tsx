@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
-import { Search, BookOpen, Code, Coins } from 'lucide-react'
+import { Search, BookOpen, Code, Coins, RotateCcw } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { DocItem } from '@/types/help-and-about'
@@ -127,7 +128,7 @@ export function SearchableDocs() {
       </CardHeader>
       <CardContent className="p-0">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+          <div className="flex flex-col items-center justify-center py-16 px-6 text-center animate-fade-in">
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-4">
               <Search className="h-8 w-8 text-muted-foreground/50" />
             </div>
@@ -135,6 +136,19 @@ export function SearchableDocs() {
             <p className="text-small text-muted-foreground mt-1">
               Try a different query or category
             </p>
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => {
+                setQuery('')
+                setSelectedCategory('all')
+              }}
+              className="mt-6 gap-2 shadow-md hover:shadow-lg transition-shadow"
+              aria-label="Clear search and view all docs"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Clear search & view all docs
+            </Button>
           </div>
         ) : (
           <ul className="divide-y divide-border/50">
