@@ -270,6 +270,7 @@ export function FileLibraryPage() {
             pageSize={filters.limit ?? DEFAULT_PAGE_SIZE}
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
+            hideEmptyState
           />
 
           <AssetDetailPanel

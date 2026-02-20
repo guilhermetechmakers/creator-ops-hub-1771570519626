@@ -285,6 +285,7 @@ export function ContentStudioListPage() {
             isLoading={loading}
             hasMore={page < totalPages}
             onViewModeChange={setUseInfiniteScroll}
+            hideEmptyState
           />
         </>
       )}

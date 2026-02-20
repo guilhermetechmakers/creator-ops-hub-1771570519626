@@ -1,6 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Loader2, Inbox } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,15 @@ export interface ContentPaginationProps {
   isLoading?: boolean
   hasMore?: boolean
   onViewModeChange?: (useInfinite: boolean) => void
+  /** Customize empty state when totalCount is 0 */
+  emptyTitle?: string
+  emptyDescription?: string
+  onEmptyAction?: () => void
+  emptyActionLabel?: string
+  /** Accessible label for the empty state action button */
+  emptyActionAriaLabel?: string
+  /** When true, return null when totalCount is 0 (parent handles empty state) */
+  hideEmptyState?: boolean
   className?: string
 }
 
@@ -38,6 +48,12 @@ export function ContentPagination({
   isLoading = false,
   hasMore = page < totalPages,
   onViewModeChange,
+  emptyTitle = 'No items to display',
+  emptyDescription = 'There are no items to show in this view. Try adjusting your filters or add new content to get started.',
+  onEmptyAction,
+  emptyActionLabel = 'Add content',
+  emptyActionAriaLabel,
+  hideEmptyState = false,
   className,
 }: ContentPaginationProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null)
@@ -67,7 +83,45 @@ export function ContentPagination({
   const end = Math.min(page * pageSize, totalCount)
 
   if (totalCount === 0) {
-    return null
+    if (hideEmptyState) return null
+    return (
+      <Card
+        role="status"
+        aria-live="polite"
+        className={cn(
+          'overflow-hidden border-dashed border-2 border-muted animate-fade-in',
+          'transition-shadow duration-300 hover:shadow-card-hover',
+          className
+        )}
+      >
+        <CardContent className="flex flex-col items-center justify-center gap-6 py-12 px-6 sm:py-16 sm:px-8">
+          <div
+            className="rounded-2xl bg-muted/50 p-6 sm:p-8"
+            aria-hidden
+          >
+            <Inbox className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground/70 mx-auto" />
+          </div>
+          <div className="text-center space-y-2 max-w-sm">
+            <h3 className="font-semibold text-foreground text-body sm:text-h3">
+              {emptyTitle}
+            </h3>
+            <p className="text-small text-muted-foreground leading-relaxed">
+              {emptyDescription}
+            </p>
+          </div>
+          {onEmptyAction && (
+            <Button
+              onClick={onEmptyAction}
+              className="inline-flex items-center gap-2 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[44px] min-w-[44px]"
+              aria-label={emptyActionAriaLabel ?? emptyActionLabel}
+            >
+              <Inbox className="h-4 w-4 shrink-0" aria-hidden />
+              {emptyActionLabel}
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
