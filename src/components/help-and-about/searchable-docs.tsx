@@ -87,15 +87,17 @@ export function SearchableDocs() {
   }, [query, selectedCategory])
 
   return (
-    <Card className="overflow-hidden animate-fade-in">
-      <CardHeader className="border-b bg-muted/30">
+    <Card className="overflow-hidden animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
+      <CardHeader className="border-b border-border/50 bg-muted/30">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="flex items-center gap-2 text-h3">
-            <Search className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Search className="h-5 w-5 text-primary" />
+            </div>
             Searchable Documentation
           </CardTitle>
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
             <Input
               placeholder="Search docs..."
               value={query}
@@ -112,7 +114,7 @@ export function SearchableDocs() {
               type="button"
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200',
+                'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
                 selectedCategory === cat
                   ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90'
                   : 'bg-secondary/80 text-secondary-foreground hover:bg-secondary'
@@ -125,26 +127,28 @@ export function SearchableDocs() {
       </CardHeader>
       <CardContent className="p-0">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No docs match your search</p>
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 mb-4">
+              <Search className="h-8 w-8 text-muted-foreground/50" />
+            </div>
+            <p className="text-muted-foreground font-medium">No docs match your search</p>
             <p className="text-small text-muted-foreground mt-1">
               Try a different query or category
             </p>
           </div>
         ) : (
-          <ul className="divide-y">
+          <ul className="divide-y divide-border/50">
             {filtered.map((doc, i) => {
               const Icon = CATEGORY_ICONS[doc.category]
               return (
                 <li
                   key={doc.id}
-                  className="animate-fade-in px-6 py-4 transition-colors hover:bg-muted/30"
-                  style={{ animationDelay: `${i * 30}ms` }}
+                  className="animate-fade-in px-6 py-4 transition-all duration-200 hover:bg-muted/30 border-l-4 border-l-transparent hover:border-l-primary/40"
+                  style={{ animationDelay: `${i * 30}ms`, animationFillMode: 'forwards' }}
                 >
                   <div className="flex gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Icon className="h-4 w-4 text-primary" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
                       <span className="text-micro font-medium text-primary">

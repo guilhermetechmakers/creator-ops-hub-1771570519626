@@ -29,6 +29,7 @@ import { ContentStudioListPage } from '@/pages/content-studio-list'
 import { PaymentPage } from '@/pages/Checkout/Payment'
 import { OrderTransactionHistoryPage } from '@/pages/OrderTransactionHistory'
 import { HelpAndAboutPage } from '@/pages/HelpAndAbout'
+import { HelpAndAboutStandalonePage } from '@/pages/HelpAndAboutStandalone'
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
             <Route path="checkout-/-payment" element={<PaymentPage />} />
             <Route path="order-transaction-history" element={<OrderTransactionHistoryPage />} />
           </Route>
+          <Route path="/help-and-about" element={<HelpAndAboutStandalonePage />} />
           <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />

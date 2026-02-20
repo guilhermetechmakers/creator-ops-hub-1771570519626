@@ -92,10 +92,12 @@ export function FAQ() {
   const [openId, setOpenId] = useState<string | null>(FAQ_ITEMS[0]?.id ?? null)
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-h3">
-          <HelpCircle className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <HelpCircle className="h-5 w-5 text-primary" />
+          </div>
           Frequently Asked Questions
         </CardTitle>
         <p className="text-small text-muted-foreground">

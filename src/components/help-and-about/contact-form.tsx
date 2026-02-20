@@ -3,12 +3,13 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Send, MessageSquare } from 'lucide-react'
+import { Send, MessageSquare, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import { submitSupportTicket } from '@/lib/help-and-about-ops'
 
 const schema = z.object({
@@ -31,6 +32,8 @@ export function ContactForm() {
     defaultValues: { title: '', description: '' },
   })
 
+  const hasErrors = !!errors.title || !!errors.description
+
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
     try {
@@ -45,10 +48,12 @@ export function ContactForm() {
   }
 
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-h3">
-          <MessageSquare className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <MessageSquare className="h-5 w-5 text-primary" />
+          </div>
           Contact Support
         </CardTitle>
         <p className="text-small text-muted-foreground">
@@ -58,7 +63,10 @@ export function ContactForm() {
       <CardContent>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="space-y-4"
+          className={cn(
+            'space-y-4',
+            hasErrors && 'animate-shake'
+          )}
           noValidate
         >
           <div className="space-y-2">
@@ -67,7 +75,10 @@ export function ContactForm() {
               id="contact-title"
               placeholder="Brief description of your issue"
               {...register('title')}
-              className={errors.title ? 'border-destructive' : ''}
+              className={cn(
+                'transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring',
+                errors.title && 'border-destructive focus-visible:ring-destructive'
+              )}
               aria-invalid={!!errors.title}
               aria-describedby={errors.title ? 'contact-title-error' : undefined}
             />
@@ -88,7 +99,10 @@ export function ContactForm() {
               placeholder="Provide details about your request..."
               rows={4}
               {...register('description')}
-              className={errors.description ? 'border-destructive' : ''}
+              className={cn(
+                'transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring',
+                errors.description && 'border-destructive focus-visible:ring-destructive'
+              )}
               aria-invalid={!!errors.description}
               aria-describedby={
                 errors.description ? 'contact-description-error' : undefined
@@ -107,11 +121,12 @@ export function ContactForm() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
           >
             {isSubmitting ? (
               <>
-                <span className="animate-pulse">Sending...</span>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Sending...
               </>
             ) : (
               <>

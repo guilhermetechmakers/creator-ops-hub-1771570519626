@@ -1,4 +1,4 @@
-import { ExternalLink, MessageCircle, Map } from 'lucide-react'
+import { ExternalLink, MessageCircle, Map, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -21,9 +21,14 @@ const COMMUNITY_LINKS = [
 
 export function CommunityLinks() {
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
-        <CardTitle className="text-h3">Community</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-h3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <Users className="h-5 w-5 text-primary" />
+          </div>
+          Community
+        </CardTitle>
         <p className="text-small text-muted-foreground">
           Join the conversation and shape the product
         </p>

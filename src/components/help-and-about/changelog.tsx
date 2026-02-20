@@ -68,10 +68,12 @@ const STATUS_OPTIONS: Record<string, { label: string; variant: 'default' | 'seco
 
 export function Changelog() {
   return (
-    <Card className="animate-fade-in">
+    <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-h3">
-          <GitBranch className="h-5 w-5 text-primary" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+            <GitBranch className="h-5 w-5 text-primary" />
+          </div>
           Changelog
         </CardTitle>
         <p className="text-small text-muted-foreground">
