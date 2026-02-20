@@ -1,4 +1,5 @@
-import { FileText, AlertCircle, RefreshCw } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { FileText, AlertCircle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -86,28 +87,49 @@ function TermsContentSkeleton() {
 
 function TermsEmptyState() {
   return (
-    <Card className="overflow-hidden border-dashed border-2">
-      <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
-        <div className="rounded-2xl bg-muted/50 p-8">
-          <FileText className="h-16 w-16 text-muted-foreground/70 mx-auto" aria-hidden />
+    <Card
+      role="status"
+      aria-live="polite"
+      aria-label="Terms of Service content unavailable"
+      className="overflow-hidden border-dashed border-2 border-muted-foreground/20 animate-fade-in transition-all duration-300 hover:shadow-card-hover hover:border-muted-foreground/30"
+    >
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-12 px-6 sm:py-16 sm:px-8">
+        <div className="rounded-2xl bg-muted/50 p-6 sm:p-8 animate-float-subtle motion-reduce:animate-none">
+          <FileText
+            className="h-14 w-14 sm:h-16 sm:w-16 text-muted-foreground/70 mx-auto"
+            aria-hidden
+          />
         </div>
         <div className="text-center space-y-2">
-          <p className="text-body font-medium text-foreground">
+          <p className="text-body font-semibold text-foreground">
             Terms of Service content is unavailable
           </p>
           <p className="text-small text-muted-foreground max-w-sm">
             We&apos;re unable to load the full terms at this time. Please check back later or
-            contact us at legal@creatoropshub.com for assistance.
+            contact us for assistance.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-          asChild
-        >
-          <a href="mailto:legal@creatoropshub.com">Contact us</a>
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:flex-wrap justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
+            asChild
+          >
+            <a href="mailto:legal@creatoropshub.com">Contact us</a>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[44px] text-muted-foreground hover:text-foreground"
+            asChild
+          >
+            <Link to="/" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Back to home
+            </Link>
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
@@ -115,13 +137,18 @@ function TermsEmptyState() {
 
 function TermsErrorState({ onRetry }: { onRetry?: () => void }) {
   return (
-    <Card className="overflow-hidden border-destructive/30">
-      <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
-        <div className="rounded-2xl bg-destructive/10 p-8">
-          <AlertCircle className="h-16 w-16 text-destructive mx-auto" aria-hidden />
+    <Card
+      role="alert"
+      aria-live="assertive"
+      aria-label="Error loading terms of service"
+      className="overflow-hidden border-destructive/30 animate-fade-in"
+    >
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-12 px-6 sm:py-16 sm:px-8">
+        <div className="rounded-2xl bg-destructive/10 p-6 sm:p-8">
+          <AlertCircle className="h-14 w-14 sm:h-16 sm:w-16 text-destructive mx-auto" aria-hidden />
         </div>
         <div className="text-center space-y-2">
-          <p className="text-body font-medium text-foreground">
+          <p className="text-body font-semibold text-foreground">
             Something went wrong
           </p>
           <p className="text-small text-muted-foreground max-w-sm">
@@ -131,8 +158,9 @@ function TermsErrorState({ onRetry }: { onRetry?: () => void }) {
         <Button
           variant="outline"
           size="sm"
-          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] min-h-[44px]"
           onClick={onRetry ?? (() => window.location.reload())}
+          aria-label="Retry loading terms of service"
         >
           <RefreshCw className="h-4 w-4 mr-2" />
           Retry
@@ -142,16 +170,23 @@ function TermsErrorState({ onRetry }: { onRetry?: () => void }) {
   )
 }
 
+/** Returns true if the section has meaningful content to display */
+function hasContent(section: TermsSection): boolean {
+  const hasTitle = typeof section.title === 'string' && section.title.trim().length > 0
+  const hasBody = typeof section.content === 'string' && section.content.trim().length > 0
+  return hasTitle && hasBody
+}
+
 export function FullTermsOfServiceText({
   className,
-  sections = DEFAULT_TERMS_SECTIONS,
+  sections: rawSections,
   isLoading = false,
   error = null,
   onRetry,
 }: FullTermsOfServiceTextProps) {
   if (isLoading) {
     return (
-      <article className={cn('max-w-none', className)}>
+      <article className={cn('max-w-none', className)} aria-busy="true" aria-label="Loading terms of service">
         <TermsContentSkeleton />
       </article>
     )
@@ -165,7 +200,10 @@ export function FullTermsOfServiceText({
     )
   }
 
-  if (!sections || sections.length === 0) {
+  const sections = rawSections ?? DEFAULT_TERMS_SECTIONS
+  const validSections = sections.filter(hasContent)
+
+  if (validSections.length === 0) {
     return (
       <article className={cn('max-w-none', className)}>
         <TermsEmptyState />
@@ -180,7 +218,7 @@ export function FullTermsOfServiceText({
         className
       )}
     >
-      {sections.map((section, index) => (
+      {validSections.map((section, index) => (
         <section
           key={section.title}
           className="animate-slide-up opacity-0"
