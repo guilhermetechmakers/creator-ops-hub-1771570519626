@@ -17,6 +17,29 @@ async function invokeAction(
   return data ?? {}
 }
 
+export interface ScheduleToQueueInput {
+  title: string
+  description?: string
+  platform?: string
+  scheduledTime?: string | null
+  payload?: Record<string, unknown>
+}
+
+export async function scheduleToQueue(
+  input: ScheduleToQueueInput
+): Promise<{ jobId: string }> {
+  const result = await invokeAction('schedule', {
+    title: input.title,
+    description: input.description,
+    platform: input.platform ?? 'instagram',
+    scheduledTime: input.scheduledTime ?? null,
+    payload: input.payload ?? {},
+  })
+  const job = (result as { job?: { id: string } }).job
+  if (!job?.id) throw new Error('Failed to create publishing job')
+  return { jobId: job.id }
+}
+
 export async function retryJob(jobId: string): Promise<void> {
   await invokeAction('retry', { jobId })
 }

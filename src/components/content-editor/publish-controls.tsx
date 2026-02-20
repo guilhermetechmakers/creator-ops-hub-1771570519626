@@ -8,6 +8,9 @@ import { cn } from '@/lib/utils'
 type ChannelPreview = 'instagram' | 'x' | 'youtube'
 
 export interface PublishControlsProps {
+  title?: string
+  content?: string
+  channel?: string
   onSchedule?: (date: Date) => void
   onPublish?: () => void
   thumbnailUrl?: string
@@ -18,10 +21,23 @@ export interface PublishControlsProps {
   onTagsChange?: (tags: string[]) => void
   onHashtagsChange?: (hashtags: string[]) => void
   onCtaChange?: (cta: string) => void
+  isScheduling?: boolean
   className?: string
 }
 
+function truncateForPlatform(text: string, platform: ChannelPreview): string {
+  if (!text.trim()) return ''
+  const maxLen =
+    platform === 'x' ? 280 : platform === 'instagram' ? 150 : 500
+  const cleaned = text.replace(/\*\*|\*|`/g, '').trim()
+  if (cleaned.length <= maxLen) return cleaned
+  return cleaned.slice(0, maxLen - 3) + '...'
+}
+
 export function PublishControls({
+  title = '',
+  content = '',
+  channel = 'instagram',
   onSchedule,
   onPublish,
   thumbnailUrl = '',
@@ -32,10 +48,16 @@ export function PublishControls({
   onTagsChange,
   onHashtagsChange,
   onCtaChange,
+  isScheduling = false,
   className,
 }: PublishControlsProps) {
+  const platformKey = (['instagram', 'x', 'youtube'] as const).includes(
+    channel as ChannelPreview
+  )
+    ? (channel as ChannelPreview)
+    : 'instagram'
   const [previewChannel, setPreviewChannel] =
-    useState<ChannelPreview>('instagram')
+    useState<ChannelPreview>(platformKey)
   const [scheduledDate, setScheduledDate] = useState('')
   const [tagInput, setTagInput] = useState('')
   const [hashtagInput, setHashtagInput] = useState('')
@@ -71,12 +93,17 @@ export function PublishControls({
             onClick={() =>
               scheduledDate && onSchedule?.(new Date(scheduledDate))
             }
-            className="gap-2"
+            disabled={!scheduledDate || isScheduling}
+            className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
           >
             <Calendar className="h-4 w-4" />
-            Schedule
+            {isScheduling ? 'Scheduling...' : 'Schedule'}
           </Button>
-          <Button onClick={onPublish} className="gap-2">
+          <Button
+            onClick={onPublish}
+            disabled={isScheduling}
+            className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+          >
             <ExternalLink className="h-4 w-4" />
             Publish now
           </Button>
@@ -197,7 +224,7 @@ export function PublishControls({
                   type="button"
                   onClick={() => setPreviewChannel(ch)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-small font-medium transition-colors',
+                    'px-3 py-1.5 rounded-lg text-small font-medium transition-colors duration-200 hover:scale-[1.02]',
                     previewChannel === ch
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80'
@@ -207,22 +234,56 @@ export function PublishControls({
                 </button>
               ))}
             </div>
-            <div className="rounded-lg border bg-muted/30 p-4 min-h-[120px]">
-              <p className="text-micro text-muted-foreground mb-2">
-                {previewChannel} preview
-              </p>
-              {thumbnailUrl && (
-                <div className="aspect-video bg-muted rounded mb-2 overflow-hidden">
-                  <img
-                    src={thumbnailUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+            <div
+              className={cn(
+                'rounded-lg border p-4 min-h-[120px] transition-all duration-200',
+                previewChannel === 'instagram' &&
+                  'bg-gradient-to-b from-muted/50 to-muted/20',
+                previewChannel === 'x' && 'bg-[#000] text-white border-muted',
+                previewChannel === 'youtube' &&
+                  'bg-[#0f0f0f] text-white border-muted'
               )}
-              <p className="text-small line-clamp-3">
-                Content preview will appear here...
+            >
+              <p className="text-micro text-muted-foreground mb-2">
+                {previewChannel === 'x' ? 'X' : previewChannel} preview
               </p>
+              {(previewChannel === 'instagram' || previewChannel === 'youtube') &&
+                (thumbnailUrl ? (
+                  <div className="aspect-video bg-muted rounded mb-2 overflow-hidden">
+                    <img
+                      src={thumbnailUrl}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="aspect-video bg-muted/50 rounded mb-2 flex items-center justify-center">
+                    <Image className="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                ))}
+              <p
+                className={cn(
+                  'text-small',
+                  previewChannel === 'instagram' && 'line-clamp-4',
+                  previewChannel === 'x' && 'line-clamp-4 text-[15px]',
+                  previewChannel === 'youtube' && 'line-clamp-3'
+                )}
+              >
+                {truncateForPlatform(
+                  content || title || 'Your content will appear here...',
+                  previewChannel
+                )}
+              </p>
+              {hashtags.length > 0 && previewChannel !== 'youtube' && (
+                <p className="text-micro text-primary mt-2">
+                  {hashtags.map((h) => `#${h}`).join(' ')}
+                </p>
+              )}
+              {cta && (
+                <p className="text-small font-medium mt-2 text-primary">
+                  {cta}
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

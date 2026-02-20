@@ -6,6 +6,7 @@ import {
   createContentEditor,
   updateContentEditor,
 } from '@/lib/content-editor-ops'
+import { scheduleToQueue } from '@/lib/publishing-queue-ops'
 import { RichTextEditor } from '@/components/content-editor/rich-text-editor'
 import { ContentEditorSidebar } from '@/components/content-editor/content-editor-sidebar'
 import { ContentEditorTopbar } from '@/components/content-editor/content-editor-topbar'
@@ -14,6 +15,9 @@ import { AIPanel } from '@/components/content-editor/ai-panel'
 import { PublishControls } from '@/components/content-editor/publish-controls'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { PanelRightOpen } from 'lucide-react'
 import type { Comment } from '@/components/content-editor/comments-mentions'
 
 type SaveStatus = 'saved' | 'saving' | 'unsaved'
@@ -36,6 +40,10 @@ export function ContentEditorPage() {
   const [tags, setTags] = useState<string[]>([])
   const [hashtags, setHashtags] = useState<string[]>([])
   const [cta, setCta] = useState('')
+  const [assignee, setAssignee] = useState<string | null>(null)
+  const [dueDate, setDueDate] = useState<string | null>(null)
+  const [isScheduling, setIsScheduling] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (item) {
@@ -44,12 +52,14 @@ export function ContentEditorPage() {
       setDescription(item.description ?? '')
       setStatus(item.status)
       setChannel(item.channel ?? 'instagram')
+      setDueDate(item.due_date ?? null)
     } else if (!id) {
       setTitle('')
       setContent('')
       setDescription('')
       setStatus('draft')
       setChannel('instagram')
+      setDueDate(null)
     }
   }, [item, id])
 
@@ -67,6 +77,7 @@ export function ContentEditorPage() {
           status,
           content_body: content,
           channel,
+          due_date: dueDate ?? undefined,
         })
         toast.success('Saved')
         refetch()
@@ -86,7 +97,7 @@ export function ContentEditorPage() {
     } finally {
       setSaveStatus('saved')
     }
-  }, [id, title, description, status, content, channel, refetch, navigate])
+  }, [id, title, description, status, content, channel, dueDate, refetch, navigate])
 
   useEffect(() => {
     if (saveStatus !== 'saving') {
@@ -145,6 +156,127 @@ export function ContentEditorPage() {
     toast.success('Variant inserted')
   }, [])
 
+  const handleSchedule = useCallback(
+    async (date: Date) => {
+      if (!title.trim()) {
+        toast.error('Save your content first')
+        return
+      }
+      setIsScheduling(true)
+      try {
+        let contentId = id
+        if (!contentId) {
+          const created = await createContentEditor({
+            title,
+            description: description || undefined,
+            status: 'scheduled',
+            content_body: content,
+            channel,
+          })
+          contentId = created.id
+          navigate(`/dashboard/content-editor/${contentId}`, { replace: true })
+        } else {
+          await updateContentEditor(contentId, {
+            status: 'scheduled',
+            content_body: content,
+          })
+        }
+        await scheduleToQueue({
+          title,
+          description: description || undefined,
+          platform: channel,
+          scheduledTime: date.toISOString(),
+          payload: {
+            content_editor_id: contentId,
+            content_body: content,
+            thumbnail_url: thumbnailUrl,
+            tags,
+            hashtags,
+            cta,
+          },
+        })
+        toast.success(`Scheduled for ${date.toLocaleString()}`)
+        refetch()
+      } catch (e) {
+        toast.error((e as Error).message)
+      } finally {
+        setIsScheduling(false)
+      }
+    },
+    [
+      id,
+      title,
+      description,
+      content,
+      channel,
+      thumbnailUrl,
+      tags,
+      hashtags,
+      cta,
+      refetch,
+      navigate,
+    ]
+  )
+
+  const handlePublish = useCallback(async () => {
+    if (!title.trim()) {
+      toast.error('Save your content first')
+      return
+    }
+    setIsScheduling(true)
+    try {
+      let contentId = id
+      if (!contentId) {
+        const created = await createContentEditor({
+          title,
+          description: description || undefined,
+          status: 'published',
+          content_body: content,
+          channel,
+        })
+        contentId = created.id
+        navigate(`/dashboard/content-editor/${contentId}`, { replace: true })
+      } else {
+        await updateContentEditor(contentId, {
+          status: 'published',
+          content_body: content,
+        })
+      }
+      await scheduleToQueue({
+        title,
+        description: description || undefined,
+        platform: channel,
+        scheduledTime: null,
+        payload: {
+          content_editor_id: contentId,
+          content_body: content,
+          thumbnail_url: thumbnailUrl,
+          tags,
+          hashtags,
+          cta,
+        },
+      })
+      toast.success('Publish initiated')
+      refetch()
+    } catch (e) {
+      toast.error((e as Error).message)
+    } finally {
+      setIsScheduling(false)
+    }
+  }, [
+    id,
+    title,
+    description,
+    content,
+    channel,
+    thumbnailUrl,
+    tags,
+    hashtags,
+    cta,
+    refetch,
+    navigate,
+  ])
+
   if (loading && id) {
     return (
       <div className="h-full flex flex-col animate-fade-in">
@@ -180,33 +312,47 @@ export function ContentEditorPage() {
   }
 
   return (
-    <div className="h-full flex flex-col animate-fade-in">
+    <div className="h-full min-h-0 flex flex-col animate-fade-in -m-4 md:-m-6">
       <ContentEditorTopbar
         saveStatus={saveStatus}
         status={status}
         onStatusChange={handleStatusChange}
+        assignee={assignee ?? undefined}
+        dueDate={dueDate ?? undefined}
+        onAssigneeChange={setAssignee}
+        onDueDateChange={setDueDate}
         onVersionHistoryClick={() => toast.info('Version history coming soon')}
-        onAssignClick={() => toast.info('Assign coming soon')}
-        onDueDateClick={() => toast.info('Due date coming soon')}
       />
 
       <div className="flex-1 flex overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0">
           <div className="p-4 border-b">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Untitled"
-              className="w-full text-h2 font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground focus:ring-0"
-              aria-label="Title"
-            />
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Untitled"
+                className="flex-1 min-w-0 text-h2 font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground focus:ring-0"
+                aria-label="Title"
+              />
+              <select
+                value={channel}
+                onChange={(e) => setChannel(e.target.value)}
+                className="rounded-lg border border-input bg-muted/30 px-3 py-1.5 text-small font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+                aria-label="Channel"
+              >
+                <option value="instagram">Instagram</option>
+                <option value="x">X</option>
+                <option value="youtube">YouTube</option>
+              </select>
+            </div>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add description..."
-              className="w-full mt-1 text-small text-muted-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/70 focus:ring-0"
+              className="w-full text-small text-muted-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/70 focus:ring-0"
               aria-label="Description"
             />
           </div>
@@ -232,6 +378,35 @@ export function ContentEditorPage() {
           </div>
         </div>
 
+        <div className="lg:hidden fixed bottom-20 right-4 z-30">
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button
+                size="icon"
+                className="rounded-full shadow-lg h-12 w-12"
+                aria-label="Open sidebar"
+              >
+                <PanelRightOpen className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80 p-0 overflow-hidden">
+              <div className="flex flex-col h-full">
+                <div className="p-4 border-b">
+                  <h3 className="font-semibold">Sidebar</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <ContentEditorSidebar
+                    brief={brief}
+                    onBriefChange={setBrief}
+                    researchLinks={researchLinks}
+                    onResearchLinksChange={setResearchLinks}
+                  />
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <div className="hidden xl:flex w-80 shrink-0 flex-col border-l overflow-hidden">
           <div className="flex-1 overflow-y-auto max-h-[50vh]">
             <CommentsMentions
@@ -251,10 +426,11 @@ export function ContentEditorPage() {
         <div className="hidden 2xl:flex w-72 shrink-0 flex-col border-l overflow-hidden">
           <div className="flex-1 overflow-y-auto">
             <PublishControls
-              onSchedule={(date) => {
-                toast.success(`Scheduled for ${date.toLocaleString()}`)
-              }}
-              onPublish={() => toast.success('Publish initiated')}
+              title={title}
+              content={content}
+              channel={channel}
+              onSchedule={handleSchedule}
+              onPublish={handlePublish}
               thumbnailUrl={thumbnailUrl}
               tags={tags}
               hashtags={hashtags}
@@ -263,39 +439,43 @@ export function ContentEditorPage() {
               onTagsChange={setTags}
               onHashtagsChange={setHashtags}
               onCtaChange={setCta}
+              isScheduling={isScheduling}
             />
           </div>
         </div>
       </div>
 
       <div className="flex items-center justify-between gap-4 p-4 border-t bg-card lg:hidden">
-        <p className="text-small text-muted-foreground">
-          Expand the window to see sidebar, comments, AI panel, and publish controls.
+        <p className="text-small text-muted-foreground flex-1">
+          Use the sidebar button for brief, research, assets, and templates.
         </p>
-        <button
+        <Button
           type="button"
           onClick={saveContent}
-          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-small font-medium hover:bg-primary/90 transition-colors"
+          disabled={saveStatus === 'saving'}
+          size="sm"
         >
           {saveStatus === 'saving' ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
       </div>
 
       <div className="hidden lg:flex items-center justify-end gap-2 p-4 border-t bg-card">
-        <button
+        <Button
           type="button"
-          onClick={saveContent}
-          className="px-4 py-2 rounded-lg border border-input hover:bg-muted/50 text-small font-medium transition-colors"
+          variant="outline"
+          size="sm"
+          onClick={() => navigate(-1)}
         >
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          size="sm"
           onClick={saveContent}
-          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-small font-medium hover:bg-primary/90 transition-colors hover:scale-[1.02] active:scale-[0.98]"
+          disabled={saveStatus === 'saving'}
         >
           {saveStatus === 'saving' ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
       </div>
     </div>
   )

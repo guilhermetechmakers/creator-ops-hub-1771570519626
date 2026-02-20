@@ -133,6 +133,40 @@ serve(async (req) => {
       )
     }
 
+    if (req.method === 'POST' && action === 'schedule') {
+      const { title, description, platform, scheduledTime, payload } = body
+      if (!title || typeof title !== 'string') {
+        return new Response(
+          JSON.stringify({ error: 'title required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      const { data: job, error: insertErr } = await supabase
+        .from('publishing_queue_logs')
+        .insert({
+          user_id: user.id,
+          title: String(title),
+          description: description ?? null,
+          platform: platform ?? 'instagram',
+          scheduled_time: scheduledTime ?? null,
+          payload: payload ?? {},
+          status: 'queued',
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single()
+      if (insertErr) {
+        return new Response(
+          JSON.stringify({ error: insertErr.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      return new Response(
+        JSON.stringify({ success: true, job }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     if (req.method === 'POST' && action === 'manual-publish') {
       const { jobId } = body
       if (!jobId || typeof jobId !== 'string') {
