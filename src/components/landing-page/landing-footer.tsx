@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 
 const footerLinks = [
   { to: '/login-/-signup?mode=login', label: 'Sign In', ariaLabel: 'Sign in to your account' },
+  { to: '/login-/-signup?mode=signup', label: 'Get Started', ariaLabel: 'Sign up for Creator Ops Hub' },
   { to: '/terms', label: 'Terms', ariaLabel: 'View terms of service' },
   { to: '/privacy-policy', label: 'Privacy', ariaLabel: 'View privacy policy' },
   { to: '/cookie-policy', label: 'Cookies', ariaLabel: 'View cookie policy' },

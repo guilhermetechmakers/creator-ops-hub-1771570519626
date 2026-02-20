@@ -130,7 +130,7 @@ export function LoginSignupPage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden" aria-label={mode === 'login' ? 'Sign in to your account' : 'Create your account'}>
       <Link
         to="/"
         className="absolute top-4 left-4 z-10 flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2.5 min-h-[44px]"
@@ -217,7 +217,7 @@ export function LoginSignupPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </main>
   )
 }
 

@@ -76,12 +76,19 @@ export function PricingTeaser() {
                   </li>
                 ))}
               </ul>
-              <Button asChild variant={popular ? 'default' : 'outline'} className="w-full" size="lg">
-                <Link to="/pricing" aria-label={`View ${name} pricing plan details`}>
-                  View plans
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button asChild variant={popular ? 'default' : 'outline'} className="flex-1" size="lg">
+                  <Link to="/login-/-signup?mode=signup" aria-label={`Start free trial with ${name} plan`}>
+                    Start free trial
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="lg" className="flex-1">
+                  <Link to="/pricing" aria-label={`View ${name} pricing plan details`}>
+                    View plans
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}

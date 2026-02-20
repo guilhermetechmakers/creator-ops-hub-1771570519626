@@ -16,7 +16,8 @@ export function ForgotPasswordTermsLinks({
       {showForgotPassword && (
         <Link
           to="/forgot-password"
-          className="block text-small text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+          className="block text-small text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded py-2"
+          aria-label="Reset your password"
         >
           Forgot password?
         </Link>
@@ -25,14 +26,16 @@ export function ForgotPasswordTermsLinks({
         By continuing, you agree to our{' '}
         <Link
           to="/terms"
-          className="text-primary hover:underline transition-colors duration-200"
+          className="text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
+          aria-label="View Terms of Service"
         >
           Terms of Service
         </Link>{' '}
         and{' '}
         <Link
           to="/privacy-policy"
-          className="text-primary hover:underline transition-colors duration-200"
+          className="text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded px-1"
+          aria-label="View Privacy Policy"
         >
           Privacy Policy
         </Link>
