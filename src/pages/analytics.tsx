@@ -90,33 +90,6 @@ function AnalyticsPageContent() {
     }
   }, [instagramConnected, refetch])
 
-  if (error) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <div>
-          <h1 className="text-h1 font-bold">Analytics</h1>
-          <p className="text-muted-foreground mt-1">Performance insights</p>
-        </div>
-        <div className="flex flex-col items-center justify-center py-16 rounded-xl border bg-card">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mb-4">
-            <FileText className="h-8 w-8 text-destructive" />
-          </div>
-          <p className="font-medium text-foreground">Unable to load analytics</p>
-          <p className="text-small text-muted-foreground mt-1 max-w-md text-center">
-            {error}
-          </p>
-          <Button
-            variant="outline"
-            className="mt-6 hover:scale-[1.02] transition-transform"
-            onClick={() => refetch()}
-          >
-            Try again
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -210,6 +183,8 @@ function AnalyticsPageContent() {
       <AnalyticsTopPosts
         topPosts={data?.topPosts ?? []}
         isLoading={isLoading}
+        error={error}
+        onRetry={refetch}
       />
     </div>
   )
