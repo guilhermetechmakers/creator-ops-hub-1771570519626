@@ -1,5 +1,6 @@
 import { useRef, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, Loader2, Inbox } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronLeft, ChevronRight, Loader2, Inbox, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
@@ -28,6 +29,8 @@ export interface ContentPaginationProps {
   emptyTitle?: string
   emptyDescription?: string
   onEmptyAction?: () => void
+  /** Fallback CTA: when onEmptyAction is not provided, use this href for the CTA link */
+  emptyActionHref?: string
   emptyActionLabel?: string
   /** Accessible label for the empty state action button */
   emptyActionAriaLabel?: string
@@ -51,6 +54,7 @@ export function ContentPagination({
   emptyTitle = 'No items to display',
   emptyDescription = 'There are no items to show in this view. Try adjusting your filters or add new content to get started.',
   onEmptyAction,
+  emptyActionHref = '/dashboard/content-editor/new',
   emptyActionLabel = 'Add content',
   emptyActionAriaLabel,
   hideEmptyState = false,
@@ -84,13 +88,15 @@ export function ContentPagination({
 
   if (totalCount === 0) {
     if (hideEmptyState) return null
+    const ctaAriaLabel = emptyActionAriaLabel ?? emptyActionLabel
+    const showCta = onEmptyAction || emptyActionHref
     return (
       <Card
         role="status"
         aria-live="polite"
         className={cn(
           'overflow-hidden border-dashed border-2 border-muted animate-fade-in',
-          'transition-shadow duration-300 hover:shadow-card-hover',
+          'shadow-card transition-shadow duration-300 hover:shadow-card-hover',
           className
         )}
       >
@@ -102,23 +108,34 @@ export function ContentPagination({
             <Inbox className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground/70 mx-auto" />
           </div>
           <div className="text-center space-y-2 max-w-sm">
-            <h3 className="font-semibold text-foreground text-body sm:text-h3">
+            <h2 className="font-semibold text-foreground text-body sm:text-h3">
               {emptyTitle}
-            </h3>
+            </h2>
             <p className="text-small text-muted-foreground leading-relaxed">
               {emptyDescription}
             </p>
           </div>
-          {onEmptyAction && (
-            <Button
-              onClick={onEmptyAction}
-              className="inline-flex items-center gap-2 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[44px] min-w-[44px]"
-              aria-label={emptyActionAriaLabel ?? emptyActionLabel}
-            >
-              <Inbox className="h-4 w-4 shrink-0" aria-hidden />
-              {emptyActionLabel}
-            </Button>
-          )}
+          {showCta &&
+            (onEmptyAction ? (
+              <Button
+                onClick={onEmptyAction}
+                className="inline-flex items-center gap-2 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[44px] min-w-[44px]"
+                aria-label={ctaAriaLabel}
+              >
+                <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                {emptyActionLabel}
+              </Button>
+            ) : (
+              <Button
+                asChild
+                className="inline-flex items-center gap-2 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 min-h-[44px] min-w-[44px]"
+              >
+                <Link to={emptyActionHref!} aria-label={ctaAriaLabel}>
+                  <Plus className="h-4 w-4 shrink-0" aria-hidden />
+                  {emptyActionLabel}
+                </Link>
+              </Button>
+            ))}
         </CardContent>
       </Card>
     )
@@ -128,18 +145,25 @@ export function ContentPagination({
     <div className={cn('space-y-4', className)}>
       {onViewModeChange && totalCount > 0 && (
         <div className="flex items-center gap-2">
-          <span className="text-micro text-muted-foreground">View:</span>
-          <div className="flex rounded-lg border p-0.5" role="group" aria-label="View mode">
+          <span id="view-mode-label" className="text-micro text-muted-foreground">
+            View:
+          </span>
+          <div
+            className="flex rounded-lg border p-0.5"
+            role="group"
+            aria-labelledby="view-mode-label"
+            aria-label="Content view mode toggle"
+          >
             <button
               type="button"
               onClick={() => onViewModeChange(false)}
               className={cn(
-                'rounded-md px-3 py-1.5 text-micro font-medium transition-colors',
+                'rounded-md px-3 py-1.5 text-micro font-medium transition-colors min-h-[44px] min-w-[44px] sm:min-w-0',
                 !useInfiniteScroll
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
-              aria-label="Use pagination view"
+              aria-label="Switch to pagination view to show page numbers"
               aria-pressed={!useInfiniteScroll}
             >
               Pagination
@@ -148,12 +172,12 @@ export function ContentPagination({
               type="button"
               onClick={() => onViewModeChange(true)}
               className={cn(
-                'rounded-md px-3 py-1.5 text-micro font-medium transition-colors',
+                'rounded-md px-3 py-1.5 text-micro font-medium transition-colors min-h-[44px] min-w-[44px] sm:min-w-0',
                 useInfiniteScroll
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
-              aria-label="Use load more view"
+              aria-label="Switch to load more view to load content incrementally"
               aria-pressed={useInfiniteScroll}
             >
               Load more
@@ -191,27 +215,35 @@ export function ContentPagination({
           )}
         </div>
         {!useInfiniteScroll && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" aria-busy={isLoading}>
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1}
-              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              aria-label="Previous page"
+              disabled={page <= 1 || isLoading}
+              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 min-h-[44px] min-w-[44px] sm:min-w-0"
+              aria-label={isLoading ? 'Loading previous page' : 'Previous page'}
+              aria-busy={isLoading}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-small font-medium px-2">
+            <span className="text-small font-medium px-2 flex items-center gap-2">
+              {isLoading && (
+                <Loader2
+                  className="h-4 w-4 animate-spin text-muted-foreground shrink-0"
+                  aria-hidden
+                />
+              )}
               Page {page} of {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages}
-              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
-              aria-label="Next page"
+              disabled={page >= totalPages || isLoading}
+              className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 min-h-[44px] min-w-[44px] sm:min-w-0"
+              aria-label={isLoading ? 'Loading next page' : 'Next page'}
+              aria-busy={isLoading}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
