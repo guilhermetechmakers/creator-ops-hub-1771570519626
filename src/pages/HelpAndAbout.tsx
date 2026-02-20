@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronRight, Home } from 'lucide-react'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SearchableDocs } from '@/components/help-and-about/searchable-docs'
 import { FAQ } from '@/components/help-and-about/faq'
 import { ContactForm } from '@/components/help-and-about/contact-form'
@@ -19,8 +20,11 @@ export function HelpAndAboutContent() {
       <section
         className="animate-fade-in"
         style={{ animationDelay: '0ms', animationFillMode: 'both' }}
-        aria-label="Searchable documentation"
+        aria-labelledby="section-docs"
       >
+        <h2 id="section-docs" className="sr-only">
+          Searchable Documentation
+        </h2>
         <SearchableDocs />
       </section>
 
@@ -28,8 +32,11 @@ export function HelpAndAboutContent() {
         id="contact"
         className="grid gap-6 lg:grid-cols-2 animate-fade-in"
         style={{ animationDelay: '100ms', animationFillMode: 'both' }}
-        aria-label="FAQ and contact"
+        aria-labelledby="section-faq-contact"
       >
+        <h2 id="section-faq-contact" className="sr-only">
+          FAQ and Contact
+        </h2>
         <FAQ />
         <ContactForm />
       </section>
@@ -37,16 +44,22 @@ export function HelpAndAboutContent() {
       <section
         className="animate-fade-in"
         style={{ animationDelay: '200ms', animationFillMode: 'both' }}
-        aria-label="Changelog"
+        aria-labelledby="section-changelog"
       >
+        <h2 id="section-changelog" className="sr-only">
+          Changelog
+        </h2>
         <Changelog />
       </section>
 
       <section
         className="animate-fade-in"
         style={{ animationDelay: '300ms', animationFillMode: 'both' }}
-        aria-label="Community links"
+        aria-labelledby="section-community"
       >
+        <h2 id="section-community" className="sr-only">
+          Community
+        </h2>
         <CommunityLinks />
       </section>
     </div>
@@ -80,23 +93,28 @@ export function HelpAndAboutPage() {
       >
         <Link
           to="/dashboard"
-          className="hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+          className="hover:text-foreground transition-colors duration-200 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
         >
-          <Home className="h-4 w-4" />
+          <Home className="h-4 w-4" aria-hidden />
           Dashboard
         </Link>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
         <span className="text-foreground font-medium">Help & About</span>
       </nav>
 
-      <div className="animate-fade-in">
-        <h1 className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-          Help & About
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Documentation hub, FAQs, contact support, and product changelog
-        </p>
-      </div>
+      <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 overflow-hidden">
+        <CardHeader className="pb-2">
+          <CardTitle
+            as="h1"
+            className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+          >
+            Help & About
+          </CardTitle>
+          <CardDescription className="text-body mt-1">
+            Documentation hub, FAQs, contact support, and product changelog
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       <HelpAndAboutContent />
     </div>
