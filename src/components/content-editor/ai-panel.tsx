@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, RefreshCw, Copy, Search, ShieldCheck, ExternalLink } from 'lucide-react'
+import { Sparkles, RefreshCw, Copy, Search, ShieldCheck, ExternalLink, Loader2, FileText } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -49,6 +50,7 @@ export function AIPanel({
         `Variant 2 based on: ${prompt}`,
         `Variant 3 based on: ${prompt}`,
       ])
+      toast.success('Variants generated')
     }
   }
 
@@ -59,6 +61,8 @@ export function AIPanel({
     try {
       const result = await onFactCheck(content)
       setFactCheckResult(result ?? null)
+    } catch (e) {
+      toast.error((e as Error).message)
     } finally {
       setIsFactChecking(false)
     }
@@ -76,6 +80,8 @@ export function AIPanel({
         setResearchSummary(result.summary)
         setResearchSources(result.sources ?? [])
       }
+    } catch (e) {
+      toast.error((e as Error).message)
     } finally {
       setIsResearching(false)
     }
@@ -83,15 +89,15 @@ export function AIPanel({
 
   return (
     <div className={cn('flex flex-col border-t', className)}>
-      <div className="flex items-center gap-2 p-4 border-b">
-        <Sparkles className="h-5 w-5 text-primary" />
-        <h3 className="font-semibold">OpenClaw AI</h3>
-      </div>
+      <header className="flex items-center gap-2 p-4 border-b">
+        <Sparkles className="h-5 w-5 text-primary" aria-hidden />
+        <h1 className="text-lg font-semibold">OpenClaw AI</h1>
+      </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <Card className="transition-all duration-200 hover:shadow-card-hover">
           <CardHeader className="p-3">
-            <p className="text-small font-medium">OpenClaw prompts</p>
+            <h2 className="text-small font-medium">OpenClaw prompts</h2>
           </CardHeader>
           <CardContent className="p-3 pt-0 space-y-2">
             <Textarea
@@ -116,8 +122,13 @@ export function AIPanel({
                 className="flex-1 gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
                 onClick={handleResearch}
                 disabled={!prompt.trim() || isResearching}
+                aria-busy={isResearching}
               >
-                <Search className="h-4 w-4" />
+                {isResearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
                 {isResearching ? 'Researching...' : 'Research'}
               </Button>
             </div>
@@ -126,15 +137,20 @@ export function AIPanel({
 
         <Card className="transition-all duration-200 hover:shadow-card-hover">
           <CardHeader className="p-3 flex flex-row items-center justify-between">
-            <p className="text-small font-medium">Fact-check draft</p>
+            <h2 className="text-small font-medium">Fact-check draft</h2>
             <Button
               size="sm"
               variant="outline"
               className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
               onClick={handleFactCheck}
               disabled={!content.trim() || isFactChecking}
+              aria-busy={isFactChecking}
             >
-              <ShieldCheck className="h-4 w-4" />
+              {isFactChecking ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <ShieldCheck className="h-4 w-4" />
+              )}
               {isFactChecking ? 'Checking...' : 'Fact-check'}
             </Button>
           </CardHeader>
@@ -177,7 +193,7 @@ export function AIPanel({
 
         <Card className="transition-all duration-200 hover:shadow-card-hover">
           <CardHeader className="p-3">
-            <p className="text-small font-medium">Research summary</p>
+            <h2 className="text-small font-medium">Research summary</h2>
           </CardHeader>
           <CardContent className="p-3 pt-0 space-y-2">
             <Textarea
@@ -217,7 +233,7 @@ export function AIPanel({
 
         <Card className="transition-all duration-200 hover:shadow-card-hover">
           <CardHeader className="p-3 flex flex-row items-center justify-between">
-            <p className="text-small font-medium">Regenerate / variants</p>
+            <h2 className="text-small font-medium">Regenerate / variants</h2>
             <Button
               type="button"
               variant="ghost"
@@ -230,9 +246,26 @@ export function AIPanel({
           </CardHeader>
           <CardContent className="p-3 pt-0 space-y-2">
             {variants.length === 0 ? (
-              <p className="text-small text-muted-foreground">
-                Generate variants using OpenClaw prompts above.
-              </p>
+              <div
+                className="flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-muted-foreground/30 bg-muted/30 p-6 text-center"
+                role="status"
+                aria-label="No variants generated yet"
+              >
+                <div className="rounded-2xl bg-muted/50 p-4">
+                  <FileText className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-small font-medium text-foreground">
+                    No variants yet
+                  </p>
+                  <p className="text-micro text-muted-foreground max-w-[200px]">
+                    Enter a prompt above and click Generate to create content variants you can insert into your draft.
+                  </p>
+                </div>
+                <p className="text-micro text-muted-foreground">
+                  Use the OpenClaw prompts section above to get started.
+                </p>
+              </div>
             ) : (
               variants.map((v, i) => (
                 <div
