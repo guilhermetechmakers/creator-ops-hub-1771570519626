@@ -42,7 +42,7 @@ export function FileLibraryPage() {
 
   const { items, loading, error, refetch, totalCount, page, totalPages } =
     useFileLibrary(filters)
-  const { folders, refetch: refetchFolders } = useFileFolders()
+  const { folders, loading: foldersLoading, refetch: refetchFolders } = useFileFolders()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
 
@@ -230,6 +230,7 @@ export function FileLibraryPage() {
             onMoveToFolder={selectedIds.size > 0 ? handleBulkMoveToFolder : undefined}
             onExport={selectedIds.size > 0 ? handleExport : undefined}
             folders={folders}
+            foldersLoading={foldersLoading}
             onCreateFolder={handleCreateFolder}
             isDeleting={isDeleting}
             isTagging={isTagging}
