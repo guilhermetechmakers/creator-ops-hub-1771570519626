@@ -10,6 +10,8 @@ import {
   ExternalLink,
   Trash2,
   ArrowUpDown,
+  FilterX,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { ErrorState } from '@/components/ui/error-state'
 import { useOrderTransactionHistory } from '@/hooks/use-order-transaction-history'
 import { createStripeCustomerPortal } from '@/lib/stripe-ops'
 import { toast } from 'sonner'
@@ -96,6 +99,7 @@ export function OrderTransactionHistoryPage() {
     totalPages,
     limit,
     isLoading,
+    isFetching,
     isError,
     error,
     refetch,
@@ -161,9 +165,10 @@ export function OrderTransactionHistoryPage() {
             size="sm"
             asChild
             className="mb-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+            aria-label="Navigate back to Settings"
           >
             <Link to="/dashboard/settings">
-              <ArrowLeft className="h-4 w-4 mr-1" />
+              <ArrowLeft className="h-4 w-4 mr-1" aria-hidden />
               Back to Settings
             </Link>
           </Button>
@@ -182,8 +187,9 @@ export function OrderTransactionHistoryPage() {
             onClick={handleExport}
             disabled={items.length === 0}
             className="transition-transform duration-200 hover:scale-[1.02]"
+            aria-label="Export transaction history to CSV file"
           >
-            <Download className="h-4 w-4 mr-1" />
+            <Download className="h-4 w-4 mr-1" aria-hidden />
             Export CSV
           </Button>
           <Button
@@ -191,8 +197,9 @@ export function OrderTransactionHistoryPage() {
             size="sm"
             onClick={handleManagePaymentMethods}
             className="transition-transform duration-200 hover:scale-[1.02]"
+            aria-label="Manage payment methods in billing portal"
           >
-            <CreditCard className="h-4 w-4 mr-1" />
+            <CreditCard className="h-4 w-4 mr-1" aria-hidden />
             Manage payment methods
           </Button>
           <Button
@@ -200,10 +207,11 @@ export function OrderTransactionHistoryPage() {
             size="sm"
             asChild
             className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg shadow-primary/25 transition-transform duration-200 hover:scale-[1.02]"
+            aria-label="Go to Billing and plans page"
           >
             <Link to="/dashboard/checkout-/-payment">
               Billing & plans
-              <ExternalLink className="h-4 w-4 ml-1" />
+              <ExternalLink className="h-4 w-4 ml-1" aria-hidden />
             </Link>
           </Button>
         </div>
@@ -224,17 +232,24 @@ export function OrderTransactionHistoryPage() {
           {/* Filters */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
             <div className="flex items-center gap-2">
-              <span className="text-small font-medium text-muted-foreground">Sort:</span>
+              <label htmlFor="transaction-sort" className="text-small font-medium text-muted-foreground">
+                Sort:
+              </label>
               <Select
+                id="transaction-sort"
                 options={SORT_OPTIONS}
                 value={sortValue}
                 onChange={(e) => setSortValue(e.target.value)}
                 className="w-[180px]"
+                aria-label="Sort transactions by date, amount, status, or description"
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-small font-medium text-muted-foreground">Status:</span>
+              <label htmlFor="transaction-status-filter" className="text-small font-medium text-muted-foreground">
+                Status:
+              </label>
               <Select
+                id="transaction-status-filter"
                 options={STATUS_OPTIONS}
                 value={statusFilter}
                 onChange={(e) => {
@@ -242,24 +257,23 @@ export function OrderTransactionHistoryPage() {
                   setPage(1)
                 }}
                 className="w-[140px]"
+                aria-label="Filter transactions by status"
               />
             </div>
           </div>
 
           {isError && (
-            <div
-              className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive"
-              role="alert"
-            >
-              {error}
-              <Button variant="outline" size="sm" className="mt-2" onClick={() => refetch()}>
-                Retry
-              </Button>
-            </div>
+            <ErrorState
+              title="Failed to load transactions"
+              description={error ?? 'We couldn\'t load your transaction history. Please try again.'}
+              onRetry={() => refetch()}
+              retryLabel="Retry"
+              buttonAriaLabel="Retry loading transaction history"
+            />
           )}
 
-          {isLoading ? (
-            <div className="space-y-4">
+          {!isError && isLoading ? (
+            <div className="space-y-4" role="status" aria-live="polite" aria-label="Loading transaction history">
               <Skeleton className="h-10 w-full" shimmer />
               <Skeleton className="h-10 w-full" shimmer />
               <Skeleton className="h-10 w-full" shimmer />
@@ -267,29 +281,65 @@ export function OrderTransactionHistoryPage() {
               <Skeleton className="h-10 w-full" shimmer />
               <Skeleton className="h-10 w-48" shimmer />
             </div>
-          ) : items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                <Receipt className="h-10 w-10 text-primary" />
+          ) : !isError && items.length === 0 ? (
+            statusFilter ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <FilterX className="h-10 w-10 text-primary" aria-hidden />
+                </div>
+                <p className="mt-6 font-semibold text-h3">No transactions match your filters</p>
+                <p className="mt-2 text-small text-muted-foreground max-w-sm">
+                  Try clearing the status filter or adjusting your search to see more results.
+                </p>
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                  onClick={() => {
+                    setStatusFilter('')
+                    setPage(1)
+                  }}
+                  aria-label="Clear status filter to show all transactions"
+                >
+                  <FilterX className="h-4 w-4 mr-2" aria-hidden />
+                  Clear filters
+                </Button>
               </div>
-              <p className="mt-6 font-semibold text-h3">No transactions yet</p>
-              <p className="mt-2 text-small text-muted-foreground max-w-sm">
-                Your transaction history will appear here after your first payment. Upgrade your plan to get started.
-              </p>
-              <Button
-                variant="default"
-                size="lg"
-                className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
-                asChild
-              >
-                <Link to="/dashboard/checkout-/-payment#plans">
-                  Upgrade plan
-                  <ChevronRight className="h-4 w-4 ml-1" />
-                </Link>
-              </Button>
-            </div>
-          ) : (
-            <>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Receipt className="h-10 w-10 text-primary" aria-hidden />
+                </div>
+                <p className="mt-6 font-semibold text-h3">No transactions yet</p>
+                <p className="mt-2 text-small text-muted-foreground max-w-sm">
+                  Your transaction history will appear here after your first payment. Upgrade your plan to get started.
+                </p>
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                  asChild
+                  aria-label="Upgrade plan to get started"
+                >
+                  <Link to="/dashboard/checkout-/-payment#plans">
+                    Upgrade plan
+                    <ChevronRight className="h-4 w-4 ml-1" aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+            )
+          ) : !isError ? (
+            <div className="relative">
+              {isFetching && (
+                <div
+                  className="absolute inset-0 z-20 flex items-center justify-center rounded-lg bg-background/60 backdrop-blur-[2px]"
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Refreshing transaction list"
+                >
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+                </div>
+              )}
               <div className="overflow-x-auto rounded-lg border">
                 <Table>
                   <TableHeader>
@@ -335,6 +385,7 @@ export function OrderTransactionHistoryPage() {
                               size="sm"
                               asChild
                               className="h-8 px-2"
+                              aria-label={`View invoice for ${tx.title}`}
                             >
                               <a
                                 href={tx.invoice_url}
@@ -356,9 +407,9 @@ export function OrderTransactionHistoryPage() {
                             onClick={() => setDeleteId(tx.id)}
                             disabled={isDeleting}
                             className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                            aria-label="Delete transaction"
+                            aria-label={`Delete transaction: ${tx.title}`}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" aria-hidden />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -373,17 +424,18 @@ export function OrderTransactionHistoryPage() {
                   <p className="text-small text-muted-foreground">
                     Showing {start}–{end} of {total}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <nav className="flex items-center gap-2" aria-label="Transaction history pagination">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                       disabled={page <= 1}
                       className="transition-transform duration-200 hover:scale-[1.02]"
+                      aria-label="Go to previous page"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-4 w-4" aria-hidden />
                     </Button>
-                    <span className="text-small font-medium px-2">
+                    <span className="text-small font-medium px-2" aria-live="polite">
                       Page {page} of {totalPages}
                     </span>
                     <Button
@@ -392,14 +444,15 @@ export function OrderTransactionHistoryPage() {
                       onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                       disabled={page >= totalPages}
                       className="transition-transform duration-200 hover:scale-[1.02]"
+                      aria-label="Go to next page"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-4 w-4" aria-hidden />
                     </Button>
-                  </div>
+                  </nav>
                 </div>
               )}
-            </>
-          )}
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
