@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, Image, Hash, Tag, ExternalLink, AlertCircle } from 'lucide-react'
+import {
+  Calendar,
+  Image,
+  Hash,
+  Tag,
+  ExternalLink,
+  AlertCircle,
+  Loader2,
+  X,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -23,6 +33,7 @@ export interface PublishControlsProps {
   onHashtagsChange?: (hashtags: string[]) => void
   onCtaChange?: (cta: string) => void
   isScheduling?: boolean
+  isPublishing?: boolean
   instagramConnected?: boolean
   className?: string
 }
@@ -51,6 +62,7 @@ export function PublishControls({
   onHashtagsChange,
   onCtaChange,
   isScheduling = false,
+  isPublishing = false,
   instagramConnected = false,
   className,
 }: PublishControlsProps) {
@@ -67,9 +79,17 @@ export function PublishControls({
 
   const addTag = () => {
     if (tagInput.trim()) {
-      onTagsChange?.([...tags, tagInput.trim()])
+      const newTag = tagInput.trim()
+      onTagsChange?.([...tags, newTag])
       setTagInput('')
+      toast.success(`Tag "${newTag}" added`)
     }
+  }
+
+  const removeTag = (index: number) => {
+    const updated = tags.filter((_, i) => i !== index)
+    onTagsChange?.(updated)
+    toast.success('Tag removed')
   }
 
   const addHashtag = () => {
@@ -77,8 +97,17 @@ export function PublishControls({
     if (value) {
       onHashtagsChange?.([...hashtags, value])
       setHashtagInput('')
+      toast.success(`Hashtag #${value} added`)
     }
   }
+
+  const removeHashtag = (index: number) => {
+    const updated = hashtags.filter((_, i) => i !== index)
+    onHashtagsChange?.(updated)
+    toast.success('Hashtag removed')
+  }
+
+  const isLoading = isScheduling || isPublishing
 
   const showInstagramWarning =
     platformKey === 'instagram' && !instagramConnected
@@ -106,32 +135,53 @@ export function PublishControls({
       )}
       <div className="p-4 border-b">
         <h3 className="font-semibold mb-3">Publish</h3>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Input
             type="datetime-local"
             value={scheduledDate}
             onChange={(e) => setScheduledDate(e.target.value)}
-            className="flex-1"
+            className="flex-1 min-w-0"
+            aria-label="Schedule date and time"
           />
-          <Button
-            variant="outline"
-            onClick={() =>
-              scheduledDate && onSchedule?.(new Date(scheduledDate))
-            }
-            disabled={!scheduledDate || isScheduling}
-            className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
-          >
-            <Calendar className="h-4 w-4" />
-            {isScheduling ? 'Scheduling...' : 'Schedule'}
-          </Button>
-          <Button
-            onClick={onPublish}
-            disabled={isScheduling}
-            className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
-          >
-            <ExternalLink className="h-4 w-4" />
-            Publish now
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() =>
+                scheduledDate && onSchedule?.(new Date(scheduledDate))
+              }
+              disabled={!scheduledDate || isLoading}
+              className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm shrink-0"
+              aria-label={
+                isLoading
+                  ? 'Scheduling post, please wait'
+                  : 'Schedule post for later'
+              }
+            >
+              {isScheduling ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <Calendar className="h-4 w-4" aria-hidden />
+              )}
+              {isScheduling ? 'Scheduling...' : 'Schedule'}
+            </Button>
+            <Button
+              onClick={onPublish}
+              disabled={isLoading}
+              className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm shrink-0"
+              aria-label={
+                isLoading
+                  ? 'Publishing post, please wait'
+                  : 'Publish post now'
+              }
+            >
+              {isPublishing ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : (
+                <ExternalLink className="h-4 w-4" aria-hidden />
+              )}
+              {isPublishing ? 'Publishing...' : 'Publish now'}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -149,6 +199,7 @@ export function PublishControls({
               onChange={(e) => onThumbnailChange?.(e.target.value)}
               placeholder="https://..."
               className="text-small"
+              aria-label="Thumbnail image URL"
             />
           </CardContent>
         </Card>
@@ -156,7 +207,7 @@ export function PublishControls({
         <Card>
           <CardHeader className="p-3">
             <p className="text-small font-medium flex items-center gap-2">
-              <Tag className="h-4 w-4" />
+              <Tag className="h-4 w-4" aria-hidden />
               Tags
             </p>
           </CardHeader>
@@ -167,22 +218,51 @@ export function PublishControls({
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addTag()}
                 placeholder="Add tag..."
-                className="text-small"
+                className="text-small flex-1 min-w-0"
+                aria-label="Add tag"
               />
-              <Button size="sm" variant="outline" onClick={addTag}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={addTag}
+                aria-label="Add tag"
+              >
                 Add
               </Button>
             </div>
-            {tags.length > 0 && (
+            {tags.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {tags.map((t, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-micro"
+                    className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-micro group"
                   >
                     {t}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(i)}
+                      className="rounded p-0.5 hover:bg-muted-foreground/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={`Remove tag ${t}`}
+                    >
+                      <X className="h-3 w-3" aria-hidden />
+                    </button>
                   </span>
                 ))}
+              </div>
+            ) : (
+              <div
+                role="status"
+                aria-label="No tags added yet"
+                className={cn(
+                  'flex flex-col items-center justify-center gap-2 rounded-lg',
+                  'border-2 border-dashed border-muted bg-muted/20 p-4 text-center',
+                  'animate-fade-in min-h-[72px]'
+                )}
+              >
+                <Tag className="h-8 w-8 text-muted-foreground/50" aria-hidden />
+                <p className="text-small text-muted-foreground">
+                  No tags yet. Add tags to organize your content.
+                </p>
               </div>
             )}
           </CardContent>
@@ -191,7 +271,7 @@ export function PublishControls({
         <Card>
           <CardHeader className="p-3">
             <p className="text-small font-medium flex items-center gap-2">
-              <Hash className="h-4 w-4" />
+              <Hash className="h-4 w-4" aria-hidden />
               Hashtags
             </p>
           </CardHeader>
@@ -202,22 +282,51 @@ export function PublishControls({
                 onChange={(e) => setHashtagInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addHashtag()}
                 placeholder="#hashtag"
-                className="text-small"
+                className="text-small flex-1 min-w-0"
+                aria-label="Add hashtag"
               />
-              <Button size="sm" variant="outline" onClick={addHashtag}>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={addHashtag}
+                aria-label="Add hashtag"
+              >
                 Add
               </Button>
             </div>
-            {hashtags.length > 0 && (
+            {hashtags.length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {hashtags.map((h, i) => (
                   <span
                     key={i}
-                    className="inline-flex items-center rounded-md bg-primary/10 text-primary px-2 py-0.5 text-micro"
+                    className="inline-flex items-center gap-1 rounded-md bg-primary/10 text-primary px-2 py-0.5 text-micro group"
                   >
                     #{h}
+                    <button
+                      type="button"
+                      onClick={() => removeHashtag(i)}
+                      className="rounded p-0.5 hover:bg-primary/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      aria-label={`Remove hashtag #${h}`}
+                    >
+                      <X className="h-3 w-3" aria-hidden />
+                    </button>
                   </span>
                 ))}
+              </div>
+            ) : (
+              <div
+                role="status"
+                aria-label="No hashtags added yet"
+                className={cn(
+                  'flex flex-col items-center justify-center gap-2 rounded-lg',
+                  'border-2 border-dashed border-muted bg-muted/20 p-4 text-center',
+                  'animate-fade-in min-h-[72px]'
+                )}
+              >
+                <Hash className="h-8 w-8 text-muted-foreground/50" aria-hidden />
+                <p className="text-small text-muted-foreground">
+                  No hashtags yet. Add hashtags to improve discoverability.
+                </p>
               </div>
             )}
           </CardContent>
@@ -233,6 +342,7 @@ export function PublishControls({
               onChange={(e) => onCtaChange?.(e.target.value)}
               placeholder="Call to action..."
               className="text-small"
+              aria-label="Call to action text"
             />
           </CardContent>
         </Card>
@@ -242,14 +352,21 @@ export function PublishControls({
             <p className="text-small font-medium">Preview</p>
           </CardHeader>
           <CardContent className="p-3 pt-0">
-            <div className="flex gap-2 mb-2">
+            <div
+              className="flex gap-2 mb-2"
+              role="tablist"
+              aria-label="Preview platform"
+            >
               {(['instagram', 'x', 'youtube'] as const).map((ch) => (
                 <button
                   key={ch}
                   type="button"
+                  role="tab"
+                  aria-selected={previewChannel === ch}
+                  aria-label={`Preview as ${ch === 'x' ? 'X' : ch}`}
                   onClick={() => setPreviewChannel(ch)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-small font-medium transition-colors duration-200 hover:scale-[1.02]',
+                    'px-3 py-1.5 rounded-lg text-small font-medium transition-colors duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     previewChannel === ch
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted hover:bg-muted/80'

@@ -55,6 +55,7 @@ export function ContentEditorPage() {
   const [assignee, setAssignee] = useState<string | null>(null)
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [isScheduling, setIsScheduling] = useState(false)
+  const [isPublishing, setIsPublishing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isResearching, setIsResearching] = useState(false)
   const [isFactChecking, setIsFactChecking] = useState(false)
@@ -235,6 +236,7 @@ export function ContentEditorPage() {
         return
       }
       setIsScheduling(true)
+      setIsPublishing(false)
       try {
         let contentId = id
         if (!contentId) {
@@ -274,6 +276,7 @@ export function ContentEditorPage() {
         toast.error((e as Error).message)
       } finally {
         setIsScheduling(false)
+        setIsPublishing(false)
       }
     },
     [
@@ -306,6 +309,7 @@ export function ContentEditorPage() {
       return
     }
     setIsScheduling(true)
+    setIsPublishing(true)
     try {
       let contentId = id
       if (!contentId) {
@@ -357,6 +361,7 @@ export function ContentEditorPage() {
       toast.error((e as Error).message)
     } finally {
       setIsScheduling(false)
+      setIsPublishing(false)
     }
   }, [
     id,
@@ -567,6 +572,7 @@ export function ContentEditorPage() {
               onHashtagsChange={setHashtags}
               onCtaChange={setCta}
               isScheduling={isScheduling}
+              isPublishing={isPublishing}
               instagramConnected={instagramConnected}
             />
           </div>
