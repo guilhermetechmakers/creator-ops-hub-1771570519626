@@ -141,6 +141,18 @@ export default {
         '300': '300ms',
         '500': '500ms',
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': 'rgb(var(--muted-foreground))',
+            '--tw-prose-headings': 'rgb(var(--foreground))',
+            '--tw-prose-links': 'rgb(var(--primary))',
+            '--tw-prose-bold': 'rgb(var(--foreground))',
+            '--tw-prose-quotes': 'rgb(var(--muted-foreground))',
+            '--tw-prose-quote-borders': 'rgb(var(--border))',
+          },
+        },
+      },
     },
   },
   plugins: [require('@tailwindcss/typography')],

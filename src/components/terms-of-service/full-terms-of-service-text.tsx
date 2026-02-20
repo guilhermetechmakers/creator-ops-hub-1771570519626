@@ -1,10 +1,27 @@
+import { FileText, AlertCircle, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
+
+export interface TermsSection {
+  title: string
+  content: string
+}
 
 export interface FullTermsOfServiceTextProps {
   className?: string
+  /** Sections to display. If empty, shows empty state. If undefined, uses default. */
+  sections?: TermsSection[]
+  /** Show loading skeleton */
+  isLoading?: boolean
+  /** Show error state with retry */
+  error?: string | null
+  /** Callback when retry is clicked */
+  onRetry?: () => void
 }
 
-const TERMS_SECTIONS = [
+const DEFAULT_TERMS_SECTIONS: TermsSection[] = [
   {
     title: 'Agreement to Terms',
     content:
@@ -52,15 +69,118 @@ const TERMS_SECTIONS = [
   },
 ]
 
-export function FullTermsOfServiceText({ className }: FullTermsOfServiceTextProps) {
+function TermsContentSkeleton() {
+  return (
+    <div className="space-y-8 mt-4">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-full" shimmer />
+          <Skeleton className="h-4 w-full" shimmer />
+          <Skeleton className="h-4 w-[80%]" shimmer />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TermsEmptyState() {
+  return (
+    <Card className="overflow-hidden border-dashed border-2">
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
+        <div className="rounded-2xl bg-muted/50 p-8">
+          <FileText className="h-16 w-16 text-muted-foreground/70 mx-auto" aria-hidden />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-body font-medium text-foreground">
+            Terms of Service content is unavailable
+          </p>
+          <p className="text-small text-muted-foreground max-w-sm">
+            We&apos;re unable to load the full terms at this time. Please check back later or
+            contact us at legal@creatoropshub.com for assistance.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          asChild
+        >
+          <a href="mailto:legal@creatoropshub.com">Contact us</a>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function TermsErrorState({ onRetry }: { onRetry?: () => void }) {
+  return (
+    <Card className="overflow-hidden border-destructive/30">
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
+        <div className="rounded-2xl bg-destructive/10 p-8">
+          <AlertCircle className="h-16 w-16 text-destructive mx-auto" aria-hidden />
+        </div>
+        <div className="text-center space-y-2">
+          <p className="text-body font-medium text-foreground">
+            Something went wrong
+          </p>
+          <p className="text-small text-muted-foreground max-w-sm">
+            We couldn&apos;t load the terms. Please try again.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={onRetry ?? (() => window.location.reload())}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Retry
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function FullTermsOfServiceText({
+  className,
+  sections = DEFAULT_TERMS_SECTIONS,
+  isLoading = false,
+  error = null,
+  onRetry,
+}: FullTermsOfServiceTextProps) {
+  if (isLoading) {
+    return (
+      <article className={cn('max-w-none', className)}>
+        <TermsContentSkeleton />
+      </article>
+    )
+  }
+
+  if (error) {
+    return (
+      <article className={cn('max-w-none', className)}>
+        <TermsErrorState onRetry={onRetry} />
+      </article>
+    )
+  }
+
+  if (!sections || sections.length === 0) {
+    return (
+      <article className={cn('max-w-none', className)}>
+        <TermsEmptyState />
+      </article>
+    )
+  }
+
   return (
     <article
       className={cn(
-        'prose prose-slate dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:text-muted-foreground prose-p:leading-relaxed',
+        'prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground',
         className
       )}
     >
-      {TERMS_SECTIONS.map((section, index) => (
+      {sections.map((section, index) => (
         <section
           key={section.title}
           className="animate-slide-up opacity-0"
