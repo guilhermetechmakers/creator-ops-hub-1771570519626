@@ -60,12 +60,14 @@ export function AssetDetailPanel({
 
   useEffect(() => {
     if (!item?.storage_path || !open) {
-      setShareLink(null)
-      setUrlState('idle')
+      queueMicrotask(() => {
+        setShareLink(null)
+        setUrlState('idle')
+      })
       return
     }
     let cancelled = false
-    setUrlState('loading')
+    queueMicrotask(() => setUrlState('loading'))
     getSignedUrl(item.storage_path)
       .then((url) => {
         if (!cancelled) {
