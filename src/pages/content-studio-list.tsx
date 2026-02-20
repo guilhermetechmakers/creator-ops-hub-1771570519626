@@ -280,6 +280,21 @@ export function ContentStudioListPage() {
             searchQuery={filters.search ?? ''}
             onItemClick={handleItemClick}
             emptyMessage={emptyMessage}
+            hasActiveFilters={hasActiveFilters(filters)}
+            onClearFilters={
+              hasActiveFilters(filters)
+                ? () =>
+                    setFilters({
+                      page: 1,
+                      limit: filters.limit ?? DEFAULT_PAGE_SIZE,
+                      search: undefined,
+                      status: undefined,
+                      channel: undefined,
+                      assignee: undefined,
+                      tags: undefined,
+                    })
+                : undefined
+            }
           />
 
           <ContentPagination

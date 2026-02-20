@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronUp, ChevronDown, Sparkles, Eye, FileEdit } from 'lucide-react'
+import { ChevronUp, ChevronDown, Sparkles, Eye, FileText, Plus, FilterX } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -74,6 +74,10 @@ export interface ContentTableCardsProps {
   searchQuery?: string
   onItemClick?: (item: ContentEditor) => void
   emptyMessage?: string
+  /** When true, shows secondary "Clear filters" CTA in empty state */
+  hasActiveFilters?: boolean
+  /** Callback for clearing filters when empty state is shown with active filters */
+  onClearFilters?: () => void
 }
 
 export function ContentTableCards({
@@ -84,6 +88,8 @@ export function ContentTableCards({
   searchQuery = '',
   onItemClick,
   emptyMessage = 'No content items yet',
+  hasActiveFilters = false,
+  onClearFilters,
 }: ContentTableCardsProps) {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -175,6 +181,7 @@ export function ContentTableCards({
               to={`/dashboard/content-editor/${item.id}`}
               onClick={(e) => e.stopPropagation()}
               className="font-medium hover:text-primary block truncate"
+              aria-label={`View and edit ${item.title ?? 'Untitled'}`}
             >
               <span
                 dangerouslySetInnerHTML={{
@@ -207,7 +214,7 @@ export function ContentTableCards({
               size="icon-sm"
               onClick={(e) => handlePreviewClick(e, item)}
               className="shrink-0"
-              aria-label="Quick preview (hover or click)"
+              aria-label={`Open quick preview for ${item.title ?? 'Untitled'}`}
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -219,52 +226,160 @@ export function ContentTableCards({
 
   if (isLoading) {
     return (
-      <div className="space-y-4" role="status" aria-label="Loading content">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" shimmer={true} />
-        ))}
-      </div>
+      <section
+        className="space-y-4"
+        role="status"
+        aria-label="Loading content"
+        aria-busy="true"
+      >
+        {/* Mobile: card skeletons */}
+        <div className="block lg:hidden space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-xl" shimmer />
+          ))}
+        </div>
+        {/* Desktop: table skeleton */}
+        <Card className="hidden lg:block overflow-hidden">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50 border-b">
+                    <TableHead className="w-12">
+                      <Skeleton className="h-4 w-4 rounded" shimmer />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-20" shimmer />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" shimmer />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-20" shimmer />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-14" shimmer />
+                    </TableHead>
+                    <TableHead>
+                      <Skeleton className="h-4 w-16" shimmer />
+                    </TableHead>
+                    <TableHead className="w-24" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <Skeleton className="h-4 w-4 rounded" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-48" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-20" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-16" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-5 w-14 rounded-full" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-4 w-12" shimmer />
+                      </TableCell>
+                      <TableCell>
+                        <Skeleton className="h-8 w-8 rounded" shimmer />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     )
   }
 
   if (sortedItems.length === 0) {
     return (
-      <Card className="overflow-hidden border-dashed border-2 border-muted animate-fade-in" role="status">
-        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
-          <div className="rounded-2xl bg-muted/50 p-8">
-            <FileEdit className="h-16 w-16 text-muted-foreground/70 mx-auto" aria-hidden />
-          </div>
-          <div className="text-center space-y-2">
-            <p className="text-body font-medium">{emptyMessage}</p>
-            <p className="text-small text-muted-foreground max-w-sm">
-              Create your first content item to get started. Use the editor to draft posts, scripts, and outlines with templates and AI assistance.
-            </p>
-          </div>
-          <Link
-            to="/dashboard/content-editor/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-primary-foreground font-medium text-small transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            aria-label="Create new content"
-          >
-            <FileEdit className="h-4 w-4" aria-hidden />
-            New Content
-          </Link>
-        </CardContent>
-      </Card>
+      <section
+        className="animate-fade-in"
+        aria-labelledby="content-empty-heading"
+        role="region"
+      >
+        <Card className="overflow-hidden border-dashed border-2 border-muted min-h-[320px] flex flex-col">
+          <CardContent className="flex flex-1 flex-col items-center justify-center gap-6 py-16 px-6 sm:px-8">
+            <div
+              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5"
+              aria-hidden
+            >
+              <FileText className="h-12 w-12 text-primary/80" aria-hidden />
+            </div>
+            <div className="text-center space-y-2 max-w-sm">
+              <h2
+                id="content-empty-heading"
+                className="text-h3 font-semibold text-foreground"
+              >
+                {emptyMessage}
+              </h2>
+              <p className="text-small text-muted-foreground">
+                {hasActiveFilters
+                  ? 'Try adjusting your search or filters to see more results.'
+                  : 'Create your first content item to get started. Use the editor to draft posts, scripts, and outlines with templates and AI assistance.'}
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button
+                asChild
+                size="lg"
+                className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                aria-label="Create new content"
+              >
+                <Link to="/dashboard/content-editor/new" className="inline-flex items-center gap-2">
+                  <Plus className="h-4 w-4" aria-hidden />
+                  Create New Content
+                </Link>
+              </Button>
+              {hasActiveFilters && onClearFilters && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={onClearFilters}
+                  className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                  aria-label="Clear filters to show all content"
+                >
+                  <FilterX className="h-4 w-4 mr-2" aria-hidden />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </section>
     )
   }
 
   return (
     <>
-      {/* Mobile: cards */}
-      <div className="block lg:hidden space-y-4">
-        {sortedItems.map(renderCard)}
-      </div>
+      <section
+        aria-labelledby="content-list-heading"
+        role="region"
+        className="space-y-4"
+      >
+        <h2 id="content-list-heading" className="sr-only">
+          Content list
+        </h2>
+        {/* Mobile: cards */}
+        <div className="block lg:hidden space-y-4">
+          {sortedItems.map(renderCard)}
+        </div>
 
-      {/* Desktop: table */}
-      <Card className="hidden lg:block overflow-hidden transition-shadow duration-200 hover:shadow-card-hover">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+        {/* Desktop: table */}
+        <Card className="hidden lg:block overflow-hidden transition-shadow duration-200 hover:shadow-card-hover">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table aria-label="Content items">
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50 border-b sticky top-0 z-10">
                   <TableHead className="w-12">
@@ -305,6 +420,7 @@ export function ContentTableCards({
                           to={`/dashboard/content-editor/${item.id}`}
                           onClick={(e) => e.stopPropagation()}
                           className="hover:text-primary transition-colors"
+                          aria-label={`View and edit ${item.title ?? 'Untitled'}`}
                         >
                           <span
                             dangerouslySetInnerHTML={{
@@ -338,7 +454,7 @@ export function ContentTableCards({
                                 e.stopPropagation()
                                 handlePreviewClick(e, item)
                               }}
-                              aria-label="Quick preview (hover or click)"
+                              aria-label={`Open quick preview for ${item.title ?? 'Untitled'}`}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -361,6 +477,7 @@ export function ContentTableCards({
           </div>
         </CardContent>
       </Card>
+      </section>
 
       {previewItem && (
         <QuickPreview

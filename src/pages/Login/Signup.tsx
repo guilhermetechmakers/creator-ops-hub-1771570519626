@@ -12,7 +12,7 @@ import {
   SSOEnterpriseCTA,
   type LoginFormData,
   type SignupFormData,
-} from '@/components/login-signup'
+} from '@/components/login-/-signup'
 import { login, signup, signInWithGoogle } from '@/api/auth'
 import { Apple, Link2, Mail } from 'lucide-react'
 
