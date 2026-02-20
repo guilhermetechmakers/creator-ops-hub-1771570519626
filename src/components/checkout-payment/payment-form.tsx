@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { AlertCircle, CreditCard, MapPin, Tag, Lock } from 'lucide-react'
+import { toast } from 'sonner'
+import { AlertCircle, CreditCard, Loader2, MapPin, Tag, Lock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -60,9 +61,15 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
       const success = await onPromoApply?.(promoCode.trim())
       setPromoStatus(success ? 'success' : 'error')
       setPromoMessage(success ? 'Promo code applied' : 'Invalid or expired promo code')
+      if (success) {
+        toast.success('Promo code applied', { description: 'Your discount has been applied to the order.' })
+      } else {
+        toast.error('Invalid promo code', { description: 'The code may be expired or incorrect. Please check and try again.' })
+      }
     } catch {
       setPromoStatus('error')
       setPromoMessage('Failed to apply promo code')
+      toast.error('Failed to apply promo code', { description: 'Something went wrong. Please try again.' })
     }
   }
 
@@ -193,9 +200,9 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         </div>
 
         {/* Billing info */}
-        <div className="space-y-4">
-          <Label className="flex items-center gap-2">
-            <MapPin className="h-4 w-4" />
+        <div className="space-y-4" role="group" aria-labelledby="billing-address-label">
+          <Label id="billing-address-label" className="flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-primary" aria-hidden />
             Billing address
           </Label>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -302,9 +309,9 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         </div>
 
         {/* Promo code */}
-        <div className="space-y-2">
-          <Label htmlFor="promo-code" className="flex items-center gap-2">
-            <Tag className="h-4 w-4" />
+        <div className="space-y-2" role="group" aria-labelledby="promo-code-label">
+          <Label id="promo-code-label" htmlFor="promo-code" className="flex items-center gap-2">
+            <Tag className="h-4 w-4 text-primary" aria-hidden />
             Promo code
           </Label>
           <div className="flex gap-2">
@@ -331,8 +338,17 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               onClick={handlePromoApply}
               disabled={isLoading || !promoCode.trim() || promoStatus === 'applying'}
               className="shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              aria-label={promoStatus === 'applying' ? 'Applying promo code' : 'Apply promo code'}
+              aria-busy={promoStatus === 'applying'}
             >
-              {promoStatus === 'applying' ? 'Applying...' : 'Apply'}
+              {promoStatus === 'applying' ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Applying...
+                </>
+              ) : (
+                'Apply'
+              )}
             </Button>
           </div>
           {promoMessage && (
