@@ -40,7 +40,7 @@ const navItems = [
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/publishing-queue-logs', icon: Send, label: 'Publishing Queue' },
-  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard/settings', icon: Settings, label: 'Settings & Preferences' },
 ]
 
 export function AppShell() {

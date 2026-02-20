@@ -10,7 +10,7 @@ import { ResearchPage } from '@/pages/research'
 import { CalendarPage } from '@/pages/calendar'
 import { IntegrationsPage } from '@/pages/integrations'
 import { AnalyticsPage } from '@/pages/analytics'
-import { SettingsPage } from '@/pages/settings'
+import { SettingsPreferencesPage } from '@/pages/SettingsPreferences'
 import { NotFoundPage } from '@/pages/not-found'
 import { PrivacyPage } from '@/pages/privacy'
 import { TermsPage } from '@/pages/terms'
@@ -52,7 +52,7 @@ function App() {
             <Route path="content-editor" element={<ContentEditorPage />} />
             <Route path="content-editor/new" element={<ContentEditorPage />} />
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings" element={<SettingsPreferencesPage />} />
           </Route>
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

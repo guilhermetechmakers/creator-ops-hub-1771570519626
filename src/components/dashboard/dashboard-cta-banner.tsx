@@ -12,9 +12,9 @@ interface DashboardCtaBannerProps {
 }
 
 export function DashboardCtaBanner({
-  title = 'Upgrade to Pro',
-  description = 'Unlock unlimited research credits and team features.',
-  ctaText = 'Upgrade',
+  title = 'Upgrade or add seats',
+  description = 'Unlock unlimited research credits and team features. Add seats for your team.',
+  ctaText = 'Upgrade or add seats',
   onCtaClick,
   className,
 }: DashboardCtaBannerProps) {

@@ -3,10 +3,11 @@ import {
   Calendar,
   Clock,
   Search,
-  Plus,
   FolderOpen,
   Mail,
   ChevronRight,
+  FileText,
+  LayoutTemplate,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -202,13 +203,19 @@ export function DashboardMainWidgets({
           <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10">
             <CardHeader>
               <CardTitle>Quick Create</CardTitle>
-              <CardDescription>Start creating content</CardDescription>
+              <CardDescription>New brief, template, or content</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-4">
               <Button asChild className="hover:scale-[1.02] transition-transform">
                 <Link to="/dashboard/studio/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Content
+                  <FileText className="h-4 w-4 mr-2" />
+                  New Brief
+                </Link>
+              </Button>
+              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform">
+                <Link to="/dashboard/studio/new">
+                  <LayoutTemplate className="h-4 w-4 mr-2" />
+                  New Template
                 </Link>
               </Button>
               <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform">
