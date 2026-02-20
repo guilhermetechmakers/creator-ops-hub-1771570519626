@@ -3,8 +3,11 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cache-bypass',
 }
+
+const SEARCH_CACHE_TTL = 120
+const memoryCache = new Map<string, { data: SearchResult[]; expiresAt: number }>()
 
 interface SearchParams {
   query?: string
@@ -55,6 +58,22 @@ serve(async (req) => {
     const types = body.types ?? ['library', 'content', 'research']
     const tags = body.tags ?? []
     const limit = Math.min(body.limit ?? 20, 50)
+    const cacheBypass = req.headers.get('x-cache-bypass') === 'true'
+
+    const cacheKey = `${user.id}:${query}:${types.join(',')}:${limit}`
+    if (!cacheBypass) {
+      const cached = memoryCache.get(cacheKey)
+      if (cached && cached.expiresAt > Date.now()) {
+        return new Response(JSON.stringify({ results: cached.data }), {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+            'X-Cache-Status': 'HIT',
+          },
+        })
+      }
+    }
 
     const results: SearchResult[] = []
 
@@ -148,9 +167,21 @@ serve(async (req) => {
       })
       .slice(0, limit)
 
+    memoryCache.set(cacheKey, {
+      data: sorted,
+      expiresAt: Date.now() + SEARCH_CACHE_TTL * 1000,
+    })
+
     return new Response(
       JSON.stringify({ results: sorted }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+          'X-Cache-Status': 'MISS',
+        },
+      }
     )
   } catch (err) {
     return new Response(

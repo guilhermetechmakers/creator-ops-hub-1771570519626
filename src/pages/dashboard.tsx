@@ -31,7 +31,7 @@ export function DashboardPage() {
   }, [])
 
   const handleRetry = useCallback(() => {
-    refetch()
+    refetch(true)
   }, [refetch])
 
   return (
