@@ -1,11 +1,14 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { login } from '@/api/auth'
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -15,6 +18,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>
 
 export function LoginPage() {
+  const navigate = useNavigate()
   const {
     register,
     handleSubmit,
@@ -23,9 +27,14 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
   })
 
-  const onSubmit = async (_data: LoginForm) => {
-    // TODO: API integration
-    await new Promise((r) => setTimeout(r, 500))
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      await login({ email: data.email, password: data.password })
+      toast.success('Welcome back!')
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    }
   }
 
   return (
@@ -46,11 +55,16 @@ export function LoginPage() {
                   id="email"
                   type="email"
                   placeholder="you@example.com"
+                  aria-label="Email address"
+                  aria-invalid={!!errors.email}
+                  aria-describedby={errors.email ? 'email-error' : undefined}
                   {...register('email')}
                   className={errors.email ? 'border-destructive' : ''}
                 />
                 {errors.email && (
-                  <p className="text-small text-destructive">{errors.email.message}</p>
+                  <p id="email-error" className="text-small text-destructive" role="alert">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -58,11 +72,16 @@ export function LoginPage() {
                 <Input
                   id="password"
                   type="password"
+                  aria-label="Password"
+                  aria-invalid={!!errors.password}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
                   {...register('password')}
                   className={errors.password ? 'border-destructive' : ''}
                 />
                 {errors.password && (
-                  <p className="text-small text-destructive">{errors.password.message}</p>
+                  <p id="password-error" className="text-small text-destructive" role="alert">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
               <Link
@@ -71,8 +90,21 @@ export function LoginPage() {
                 >
                   Forgot password?
                 </Link>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+                aria-label={isSubmitting ? 'Signing in, please wait' : 'Sign in'}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
             </form>
             <div className="mt-4">
