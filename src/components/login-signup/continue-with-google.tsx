@@ -75,12 +75,13 @@ export function ContinueWithGoogle({
         {isLoading ? (
           <Loader2
             className="h-5 w-5 mr-2 animate-spin"
-            aria-hidden="true"
+            aria-hidden
           />
         ) : (
           <Chromium
             className="h-5 w-5 mr-2 shrink-0"
-            aria-hidden="true"
+            role="img"
+            aria-label="Google"
           />
         )}
         {isLoading
