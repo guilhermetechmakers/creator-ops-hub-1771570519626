@@ -67,6 +67,7 @@ export function SettingsPage() {
   const [notificationsError, setNotificationsError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<NotificationPreferences>(defaultNotifications)
   const [isLoadingTeam, setIsLoadingTeam] = useState(true)
+  const [teamError, setTeamError] = useState<string | null>(null)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -167,24 +168,29 @@ export function SettingsPage() {
     }
   }
 
-  useEffect(() => {
-    const loadTeamMembers = async () => {
-      setIsLoadingTeam(true)
-      try {
-        // Placeholder - would fetch from Edge Function; using mock data for now
-        await new Promise((r) => setTimeout(r, 400))
-        setTeamMembers([
-          { id: '1', email: 'you@example.com', role: 'owner', status: 'active', joined_at: '2024-01-15' },
-          { id: '2', email: 'teammate@example.com', role: 'member', status: 'active', joined_at: '2024-02-01' },
-        ])
-      } catch {
-        setTeamMembers([])
-      } finally {
-        setIsLoadingTeam(false)
-      }
+  const loadTeamMembers = useCallback(async () => {
+    setIsLoadingTeam(true)
+    setTeamError(null)
+    try {
+      // Placeholder - would fetch from Edge Function; using mock data for now
+      await new Promise((r) => setTimeout(r, 400))
+      setTeamMembers([
+        { id: '1', email: 'you@example.com', role: 'owner', status: 'active', joined_at: '2024-01-15' },
+        { id: '2', email: 'teammate@example.com', role: 'member', status: 'active', joined_at: '2024-02-01' },
+      ])
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to load team members'
+      setTeamError(message)
+      setTeamMembers([])
+      toast.error('Could not load team members')
+    } finally {
+      setIsLoadingTeam(false)
     }
-    loadTeamMembers()
   }, [])
+
+  useEffect(() => {
+    loadTeamMembers()
+  }, [loadTeamMembers])
 
   const handleRemoveMember = async () => {
     if (!deleteMemberId) return
@@ -351,13 +357,21 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               {isLoadingTeam ? (
-                <div className="space-y-4 animate-fade-in">
+                <div className="space-y-4 animate-fade-in" role="status" aria-label="Loading team members">
                   <Skeleton className="h-10 w-full" shimmer />
                   <Skeleton className="h-12 w-full" shimmer />
                   <Skeleton className="h-12 w-full" shimmer />
                   <Skeleton className="h-12 w-full" shimmer />
                   <Skeleton className="h-12 w-full" shimmer />
                 </div>
+              ) : teamError ? (
+                <ErrorState
+                  title="Could not load team members"
+                  description={teamError}
+                  onRetry={loadTeamMembers}
+                  retryLabel="Try again"
+                  buttonAriaLabel="Retry loading team members"
+                />
               ) : teamMembers.length === 0 ? (
                 <div
                   className="flex flex-col items-center justify-center py-12 sm:py-16 text-center border-2 border-dashed border-muted rounded-lg bg-muted/5 animate-fade-in"
