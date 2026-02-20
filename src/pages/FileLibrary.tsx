@@ -48,7 +48,7 @@ export function FileLibraryPage() {
   ).slice(0, 8)
 
   const handleUpload = useCallback(
-    async (files: File[]) => {
+    async (files: File[], tags?: string[]) => {
       try {
         for (const file of files) {
           const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
@@ -59,7 +59,7 @@ export function FileLibraryPage() {
             file_type: file.type || undefined,
             file_size: file.size,
             storage_path: path,
-            tags: [],
+            tags: tags ?? [],
           })
         }
         toast.success(`${files.length} file(s) uploaded`)
@@ -158,7 +158,9 @@ export function FileLibraryPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-h1 font-bold">File Library</h1>
+          <h1 className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            File Library
+          </h1>
           <p className="text-muted-foreground mt-1">
             Central asset manager for uploading, tagging, versioning, and linking
             assets to content projects

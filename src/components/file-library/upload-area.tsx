@@ -12,8 +12,20 @@ export interface UploadProgress {
   error?: string
 }
 
+/** Derive tag suggestions from file names (e.g. "hero-banner.png" -> ["hero", "banner"]) */
+function getAutoTagsFromFiles(files: File[]): string[] {
+  const words = new Set<string>()
+  for (const f of files) {
+    const base = f.name.replace(/\.[^.]+$/, '').toLowerCase()
+    base.split(/[-_\s.]+/).forEach((w) => {
+      if (w.length >= 2) words.add(w)
+    })
+  }
+  return Array.from(words).slice(0, 5)
+}
+
 export interface UploadAreaProps {
-  onUpload: (files: File[]) => Promise<void>
+  onUpload: (files: File[], tags?: string[]) => Promise<void>
   disabled?: boolean
   suggestedTags?: string[]
   onTagSuggestionClick?: (tag: string) => void
@@ -30,6 +42,7 @@ export function UploadArea({
   const [isDragging, setIsDragging] = useState(false)
   const [uploads, setUploads] = useState<UploadProgress[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [tagsToApply, setTagsToApply] = useState<Set<string>>(new Set())
 
   const handleDragOver = useCallback(
     (e: React.DragEvent) => {
@@ -72,6 +85,16 @@ export function UploadArea({
     []
   )
 
+  const toggleTag = useCallback((tag: string) => {
+    setTagsToApply((prev) => {
+      const next = new Set(prev)
+      if (next.has(tag)) next.delete(tag)
+      else next.add(tag)
+      return next
+    })
+    onTagSuggestionClick?.(tag)
+  }, [onTagSuggestionClick])
+
   const processFiles = async (files: File[]) => {
     setIsUploading(true)
     const progressItems: UploadProgress[] = files.map((f) => ({
@@ -81,6 +104,9 @@ export function UploadArea({
     }))
     setUploads(progressItems)
 
+    const autoTags = getAutoTagsFromFiles(files)
+    const mergedTags = [...new Set([...tagsToApply, ...autoTags])]
+
     try {
       for (let i = 0; i < progressItems.length; i++) {
         setUploads((prev) =>
@@ -89,10 +115,11 @@ export function UploadArea({
           )
         )
       }
-      await onUpload(files)
+      await onUpload(files, mergedTags.length > 0 ? mergedTags : undefined)
       setUploads((prev) =>
         prev.map((p) => ({ ...p, status: 'done', progress: 100 }))
       )
+      setTagsToApply(new Set())
       setTimeout(() => setUploads([]), 2000)
     } catch (err) {
       setUploads((prev) =>
@@ -128,9 +155,10 @@ export function UploadArea({
       <Card
         className={cn(
           'border-2 border-dashed transition-all duration-300 cursor-pointer',
-          isDragging && !disabled && 'border-primary bg-primary/5 scale-[1.01]',
+          'bg-gradient-to-br from-card to-muted/30',
+          isDragging && !disabled && 'border-primary bg-primary/5 scale-[1.01] shadow-lg shadow-primary/10',
           disabled && 'opacity-50 cursor-not-allowed',
-          'hover:border-primary/50 hover:bg-muted/30'
+          'hover:border-primary/50 hover:bg-muted/30 hover:shadow-card-hover'
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -155,17 +183,24 @@ export function UploadArea({
         </label>
       </Card>
 
-      {suggestedTags.length > 0 && (
+      {(suggestedTags.length > 0 || tagsToApply.size > 0) && (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-micro text-muted-foreground">Suggested tags:</span>
+          <span className="text-micro text-muted-foreground">
+            Auto-tagging: click to apply to uploads
+          </span>
           {suggestedTags.map((tag) => (
             <Badge
               key={tag}
-              variant="outline"
-              className="cursor-pointer transition-all duration-200 hover:bg-primary/10 hover:border-primary/50"
-              onClick={() => onTagSuggestionClick?.(tag)}
+              variant={tagsToApply.has(tag) ? 'default' : 'outline'}
+              className={cn(
+                'cursor-pointer transition-all duration-200 hover:scale-105',
+                tagsToApply.has(tag)
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-primary/10 hover:border-primary/50'
+              )}
+              onClick={() => toggleTag(tag)}
             >
-              + {tag}
+              {tagsToApply.has(tag) ? '✓ ' : '+ '}{tag}
             </Badge>
           ))}
         </div>

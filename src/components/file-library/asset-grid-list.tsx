@@ -156,7 +156,8 @@ export function AssetGridList({
         key={item.id}
         className={cn(
           'overflow-hidden cursor-pointer transition-all duration-200',
-          'hover:shadow-card-hover hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]'
+          'hover:shadow-card-hover hover:shadow-primary/5 hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]',
+          'border border-transparent hover:border-primary/20'
         )}
         onClick={() => onItemClick?.(item)}
       >

@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Search, Filter, X } from 'lucide-react'
+
+const SEARCH_DEBOUNCE_MS = 300
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -49,14 +51,37 @@ export function SearchFilters({
 }: SearchFiltersProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(true)
   const [tagInput, setTagInput] = useState('')
+  const [searchInput, setSearchInput] = useState(filters.search ?? '')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const filtersRef = useRef(filters)
+  filtersRef.current = filters
 
-  const handleSearchChange = (value: string) => {
-    onFiltersChange({
-      ...filters,
-      search: value || undefined,
-      page: 1,
-    })
-  }
+  useEffect(() => {
+    setSearchInput(filters.search ?? '')
+  }, [filters.search])
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
+
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearchInput(value)
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      const trimmed = value.trim()
+      debounceRef.current = setTimeout(() => {
+        onFiltersChange({
+          ...filtersRef.current,
+          search: trimmed || undefined,
+          page: 1,
+        })
+        debounceRef.current = null
+      }, SEARCH_DEBOUNCE_MS)
+    },
+    [onFiltersChange]
+  )
 
   const handleFileTypeChange = (value: string) => {
     onFiltersChange({
@@ -151,7 +176,7 @@ export function SearchFilters({
           <Input
             type="search"
             placeholder="Search by name, tags, or description..."
-            value={filters.search ?? ''}
+            value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9 transition-colors duration-200 focus:border-primary/50"
             aria-label="Global search"

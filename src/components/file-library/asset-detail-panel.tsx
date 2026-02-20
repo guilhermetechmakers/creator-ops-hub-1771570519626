@@ -99,7 +99,7 @@ export function AssetDetailPanel({
 
         <div className="space-y-6 pt-6">
           {/* Preview */}
-          <div className="rounded-xl border bg-muted overflow-hidden">
+          <div className="rounded-xl border border-primary/10 bg-muted overflow-hidden shadow-sm">
             {previewUrl ? (
               <img
                 src={previewUrl}

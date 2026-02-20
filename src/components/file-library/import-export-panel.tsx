@@ -130,7 +130,8 @@ export function ImportExportPanel({
     <Card
       className={cn(
         'overflow-hidden border-2 transition-all duration-300',
-        'hover:shadow-card-hover hover:border-primary/20',
+        'bg-gradient-to-br from-card to-muted/20',
+        'hover:shadow-card-hover hover:shadow-primary/5 hover:border-primary/30',
         className
       )}
     >
