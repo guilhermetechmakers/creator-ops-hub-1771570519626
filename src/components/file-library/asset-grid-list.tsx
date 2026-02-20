@@ -5,6 +5,7 @@ import {
   FileImage,
   FileText,
   ImageIcon,
+  FolderSearch,
   ChevronUp,
   ChevronDown,
 } from 'lucide-react'
@@ -218,46 +219,124 @@ export function AssetGridList({
     )
   }
 
-  if (isLoading) {
+  const renderLoadingState = () => {
+    if (viewMode === 'grid') {
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Skeleton
+              key={i}
+              className="aspect-square rounded-xl"
+              shimmer
+            />
+          ))}
+        </div>
+      )
+    }
     return (
-      <div
-        className={
-          viewMode === 'grid'
-            ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'
-            : 'space-y-4'
-        }
-      >
-        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-          <Skeleton
-            key={i}
-            className={
-              viewMode === 'grid'
-                ? 'aspect-square rounded-xl'
-                : 'h-20 w-full rounded-xl'
-            }
-          />
-        ))}
-      </div>
+      <Card className="overflow-hidden transition-shadow duration-200">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50 border-b">
+                  <TableHead className="w-12">
+                    <Skeleton className="h-4 w-4 rounded" shimmer />
+                  </TableHead>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Last used</TableHead>
+                  <TableHead>Version</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                  <TableRow key={i} className="border-b">
+                    <TableCell>
+                      <Skeleton className="h-4 w-4 rounded" shimmer />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-24" shimmer />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16" shimmer />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" shimmer />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-8 rounded-full" shimmer />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
-  if (sortedItems.length === 0) {
+  const renderEmptyState = () => {
+    const isFiltered = Boolean(searchQuery?.trim())
+    const Icon = isFiltered ? FolderSearch : ImageIcon
+    const title = isFiltered ? 'No results found' : emptyMessage
+    const description = isFiltered
+      ? `No assets match "${searchQuery}". Try a different search term or clear filters.`
+      : 'Upload your first asset to get started. Drag and drop files above or click to browse.'
+
     return (
-      <Card className="overflow-hidden border-dashed">
-        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
-          <div className="rounded-2xl bg-muted/50 p-8">
-            <ImageIcon className="h-16 w-16 text-muted-foreground/70 mx-auto" />
+      <Card
+        className="overflow-hidden border-dashed border-2 animate-fade-in"
+        role="status"
+        aria-live="polite"
+      >
+        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8 min-h-[280px]">
+          <div className="rounded-2xl bg-muted/50 p-8 ring-1 ring-muted/80">
+            <Icon
+              className="h-16 w-16 text-muted-foreground/70 mx-auto"
+              aria-hidden
+            />
           </div>
-          <div className="text-center space-y-2">
-            <p className="text-body font-medium">{emptyMessage}</p>
-            <p className="text-small text-muted-foreground max-w-sm">
-              Upload your first asset to get started. Drag and drop files above
-              or click to browse.
+          <div className="text-center space-y-2 max-w-sm">
+            <p className="text-body font-semibold text-foreground">{title}</p>
+            <p className="text-small text-muted-foreground leading-relaxed">
+              {description}
             </p>
           </div>
         </CardContent>
       </Card>
     )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            size="icon-sm"
+            onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="icon-sm"
+            onClick={() => setViewMode('list')}
+            aria-label="List view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+        {renderLoadingState()}
+      </div>
+    )
+  }
+
+  if (sortedItems.length === 0) {
+    return renderEmptyState()
   }
 
   return (
