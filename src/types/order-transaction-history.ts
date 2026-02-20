@@ -25,4 +25,5 @@ export interface OrderTransactionHistoryParams {
   sortBy?: 'created_at' | 'amount_cents' | 'status' | 'title'
   sortOrder?: 'asc' | 'desc'
   status?: string
+  search?: string
 }

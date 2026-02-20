@@ -122,7 +122,7 @@ serve(async (req) => {
       )
     }
 
-    if (req.method === 'DELETE' && action === 'delete') {
+    if ((req.method === 'DELETE' || req.method === 'POST') && action === 'delete') {
       const { id } = body
       if (!id || typeof id !== 'string') {
         return new Response(

@@ -52,11 +52,20 @@ serve(async (req) => {
     const statusFilter = typeof body?.status === 'string' && body.status
       ? body.status
       : undefined
+    const searchRaw = typeof body?.search === 'string' ? body.search.trim().replace(/,/g, ' ') : undefined
+    const search = searchRaw
+      ? searchRaw.replace(/[%_\\]/g, (c) => (c === '\\' ? '\\\\' : `\\${c}`))
+      : undefined
 
     let query = supabase
       .from('checkout_payment')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
+
+    if (search) {
+      const pattern = `%${search}%`
+      query = query.or(`title.ilike.${pattern},description.ilike.${pattern}`)
+    }
 
     if (statusFilter && STATUS_VALUES.includes(statusFilter as typeof STATUS_VALUES[number])) {
       const dbStatus = statusFilter === 'succeeded' ? 'active' : statusFilter

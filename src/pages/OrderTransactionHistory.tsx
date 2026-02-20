@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -12,6 +12,9 @@ import {
   ArrowUpDown,
   FilterX,
   Loader2,
+  Search,
+  FileText,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,6 +40,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ErrorState } from '@/components/ui/error-state'
+import { Input } from '@/components/ui/input'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useOrderTransactionHistory } from '@/hooks/use-order-transaction-history'
 import { createStripeCustomerPortal } from '@/lib/stripe-ops'
 import { toast } from 'sonner'
@@ -85,13 +90,27 @@ function exportToCsv(items: OrderTransaction[]) {
   URL.revokeObjectURL(url)
 }
 
+const DEBOUNCE_MS = 300
+
 export function OrderTransactionHistoryPage() {
   const [page, setPage] = useState(1)
   const [sortValue, setSortValue] = useState('created_at-desc')
   const [statusFilter, setStatusFilter] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [detailTx, setDetailTx] = useState<OrderTransaction | null>(null)
 
   const [sortBy, sortOrder] = sortValue.split('-') as ['created_at' | 'amount_cents' | 'status' | 'title', 'asc' | 'desc']
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchInput), DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [searchInput])
+
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, statusFilter])
 
   const {
     items,
@@ -111,7 +130,20 @@ export function OrderTransactionHistoryPage() {
     sortBy: sortBy ?? 'created_at',
     sortOrder: sortOrder ?? 'desc',
     status: statusFilter || undefined,
+    search: debouncedSearch || undefined,
   })
+
+  const hasActiveFilters = useMemo(
+    () => !!statusFilter || !!debouncedSearch,
+    [statusFilter, debouncedSearch]
+  )
+
+  const clearAllFilters = useCallback(() => {
+    setStatusFilter('')
+    setSearchInput('')
+    setDebouncedSearch('')
+    setPage(1)
+  }, [])
 
   useEffect(() => {
     document.title = 'Order & Transaction History | Creator Ops Hub'
@@ -230,9 +262,33 @@ export function OrderTransactionHistoryPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Filters */}
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden />
+              <Input
+                type="search"
+                placeholder="Search by description..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-9 pr-9"
+                aria-label="Search transactions by description"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('')
+                    setDebouncedSearch('')
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                  aria-label="Clear search"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="transaction-sort" className="text-small font-medium text-muted-foreground">
+              <label htmlFor="transaction-sort" className="text-small font-medium text-muted-foreground shrink-0">
                 Sort:
               </label>
               <Select
@@ -245,7 +301,7 @@ export function OrderTransactionHistoryPage() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <label htmlFor="transaction-status-filter" className="text-small font-medium text-muted-foreground">
+              <label htmlFor="transaction-status-filter" className="text-small font-medium text-muted-foreground shrink-0">
                 Status:
               </label>
               <Select
@@ -260,6 +316,18 @@ export function OrderTransactionHistoryPage() {
                 aria-label="Filter transactions by status"
               />
             </div>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearAllFilters}
+                className="text-muted-foreground hover:text-foreground"
+                aria-label="Clear all filters"
+              >
+                <FilterX className="h-4 w-4 mr-1" />
+                Clear filters
+              </Button>
+            )}
           </div>
 
           {isError && (
@@ -282,7 +350,7 @@ export function OrderTransactionHistoryPage() {
               <Skeleton className="h-10 w-48" shimmer />
             </div>
           ) : !isError && items.length === 0 ? (
-            statusFilter ? (
+            hasActiveFilters ? (
               <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                   <FilterX className="h-10 w-10 text-primary" aria-hidden />
@@ -295,11 +363,8 @@ export function OrderTransactionHistoryPage() {
                   variant="default"
                   size="lg"
                   className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
-                  onClick={() => {
-                    setStatusFilter('')
-                    setPage(1)
-                  }}
-                  aria-label="Clear status filter to show all transactions"
+                  onClick={clearAllFilters}
+                  aria-label="Clear all filters to show all transactions"
                 >
                   <FilterX className="h-4 w-4 mr-2" aria-hidden />
                   Clear filters
@@ -340,7 +405,58 @@ export function OrderTransactionHistoryPage() {
                   <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
                 </div>
               )}
-              <div className="overflow-x-auto rounded-lg border">
+
+              {/* Mobile: card layout */}
+              <div className="md:hidden space-y-4">
+                {items.map((tx) => (
+                  <Card
+                    key={tx.id}
+                    className="overflow-hidden border-primary/10 transition-all duration-200 hover:shadow-card-hover hover:border-primary/20 cursor-pointer"
+                    onClick={() => setDetailTx(tx)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{tx.title}</p>
+                          <p className="text-small text-muted-foreground mt-0.5">
+                            {new Date(tx.created_at).toLocaleDateString()}
+                          </p>
+                          <Badge
+                            variant={STATUS_VARIANTS[tx.status] ?? 'secondary'}
+                            className="mt-2 capitalize"
+                          >
+                            {tx.status}
+                          </Badge>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="font-semibold">${tx.amount.toFixed(2)}</p>
+                          {tx.invoice_url ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              asChild
+                              className="h-8 px-2 mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <a
+                                href={tx.invoice_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary"
+                              >
+                                View invoice
+                              </a>
+                            </Button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Desktop: table */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -361,7 +477,8 @@ export function OrderTransactionHistoryPage() {
                     {items.map((tx) => (
                       <TableRow
                         key={tx.id}
-                        className="transition-colors duration-200 hover:bg-muted/50 hover:shadow-sm"
+                        className="transition-colors duration-200 hover:bg-muted/50 hover:shadow-sm cursor-pointer"
+                        onClick={() => setDetailTx(tx)}
                       >
                         <TableCell className="font-medium">
                           {new Date(tx.created_at).toLocaleDateString()}
@@ -378,7 +495,7 @@ export function OrderTransactionHistoryPage() {
                             {tx.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           {tx.invoice_url ? (
                             <Button
                               variant="ghost"
@@ -400,7 +517,7 @@ export function OrderTransactionHistoryPage() {
                             <span className="text-muted-foreground text-small">—</span>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
                           <Button
                             variant="ghost"
                             size="icon-sm"
@@ -475,6 +592,77 @@ export function OrderTransactionHistoryPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Transaction detail sheet */}
+      <Sheet open={!!detailTx} onOpenChange={(open) => !open && setDetailTx(null)}>
+        <SheetContent side="right" className="w-full max-w-md sm:max-w-lg">
+          {detailTx && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Transaction details
+                </SheetTitle>
+              </SheetHeader>
+              <div className="p-6 pt-0 space-y-6">
+                <div>
+                  <p className="text-small font-medium text-muted-foreground">Description</p>
+                  <p className="mt-1 font-medium">{detailTx.title}</p>
+                  {detailTx.description && (
+                    <p className="mt-1 text-small text-muted-foreground">{detailTx.description}</p>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-small font-medium text-muted-foreground">Date</p>
+                    <p className="mt-1">{new Date(detailTx.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <p className="text-small font-medium text-muted-foreground">Amount</p>
+                    <p className="mt-1 font-semibold">${detailTx.amount.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="text-small font-medium text-muted-foreground">Status</p>
+                    <Badge
+                      variant={STATUS_VARIANTS[detailTx.status] ?? 'secondary'}
+                      className="mt-1 capitalize"
+                    >
+                      {detailTx.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 pt-4 border-t">
+                  {detailTx.invoice_url && (
+                    <Button asChild variant="default" className="w-full">
+                      <a
+                        href={detailTx.invoice_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-center gap-2"
+                      >
+                        <FileText className="h-4 w-4" />
+                        View invoice
+                      </a>
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDeleteId(detailTx.id)
+                      setDetailTx(null)
+                    }}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remove from history
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }
