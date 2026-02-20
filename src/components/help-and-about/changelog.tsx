@@ -1,21 +1,25 @@
-import { GitBranch, CheckCircle, FileText } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { GitBranch, CheckCircle, FileText, Home } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { ChangelogEntry } from '@/types/help-and-about'
 
+/** Empty state when no changelog entries - per Design Reference: icon, helpful copy, clear CTA */
 function ChangelogEmptyState() {
   return (
     <div
       role="status"
       aria-live="polite"
+      aria-label="No changelog entries"
       className={cn(
         'flex flex-col items-center justify-center gap-6 rounded-xl',
-        'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
+        'border-2 border-dashed border-muted bg-muted/20 p-6 sm:p-8 text-center',
         'animate-fade-in min-h-[200px] sm:min-h-[240px]'
       )}
     >
-      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80 transition-transform duration-200 hover:scale-[1.02]">
         <FileText className="h-12 w-12 text-muted-foreground/70" aria-hidden />
       </div>
       <div className="space-y-2 max-w-[280px]">
@@ -28,6 +32,18 @@ function ChangelogEmptyState() {
           improvements.
         </p>
       </div>
+      <Button
+        asChild
+        variant="default"
+        size="lg"
+        aria-label="Go to Dashboard"
+        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <Link to="/dashboard">
+          <Home className="h-5 w-5" aria-hidden />
+          Go to Dashboard
+        </Link>
+      </Button>
     </div>
   )
 }
