@@ -20,9 +20,11 @@ import { AIPanel } from '@/components/content-editor/ai-panel'
 import { PublishControls } from '@/components/content-editor/publish-controls'
 import { VersionHistorySheet } from '@/components/content-editor/version-history-sheet'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Select } from '@/components/ui/select'
+import { ErrorState } from '@/components/ui/error-state'
 import { PanelRightOpen } from 'lucide-react'
 import type { Comment } from '@/components/content-editor/comments-mentions'
 
@@ -363,14 +365,29 @@ export function ContentEditorPage() {
 
   if (loading && id) {
     return (
-      <div className="h-full flex flex-col animate-fade-in">
-        <div className="border-b p-4">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-48 mt-2" />
+      <div
+        className="h-full flex flex-col animate-fade-in -m-4 md:-m-6"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading content editor"
+      >
+        <div className="border-b p-4 space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-8 flex-1 min-w-[200px] max-w-md" shimmer />
+            <Skeleton className="h-10 w-28" shimmer />
+          </div>
+          <Skeleton className="h-4 w-48" shimmer />
         </div>
-        <div className="flex-1 flex gap-4 p-4">
-          <Skeleton className="flex-1 h-96" />
-          <Skeleton className="w-72 h-96" />
+        <div className="flex-1 flex gap-4 p-4 min-h-0">
+          <div className="flex-1 flex flex-col gap-4 min-w-0">
+            <Skeleton className="h-64 w-full rounded-lg" shimmer />
+            <Skeleton className="h-32 w-full rounded-lg" shimmer />
+          </div>
+          <Skeleton className="hidden lg:block w-72 h-96 rounded-lg shrink-0" shimmer />
+        </div>
+        <div className="flex items-center justify-end gap-2 p-4 border-t">
+          <Skeleton className="h-9 w-20" shimmer />
+          <Skeleton className="h-9 w-16" shimmer />
         </div>
       </div>
     )
@@ -378,19 +395,14 @@ export function ContentEditorPage() {
 
   if (error && id) {
     return (
-      <div className="p-6 animate-fade-in">
-        <Card className="border-destructive/30">
-          <CardContent className="p-6">
-            <p className="text-destructive">{error}</p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="mt-4 text-primary hover:underline"
-            >
-              Retry
-            </button>
-          </CardContent>
-        </Card>
+      <div className="p-4 md:p-6 animate-fade-in" role="alert">
+        <ErrorState
+          title="Failed to load content"
+          description={error}
+          onRetry={refetch}
+          retryLabel="Retry"
+          buttonAriaLabel="Retry loading content editor"
+        />
       </div>
     )
   }
@@ -419,32 +431,33 @@ export function ContentEditorPage() {
         <div className="flex-1 flex flex-col min-w-0">
           <div className="p-4 border-b">
             <div className="flex flex-wrap items-center gap-2 mb-2">
-              <input
+              <Input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Untitled"
-                className="flex-1 min-w-0 text-h2 font-bold bg-transparent border-none outline-none placeholder:text-muted-foreground focus:ring-0"
-                aria-label="Title"
+                className="flex-1 min-w-0 text-h2 font-bold border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 h-auto"
+                aria-label="Content title"
               />
-              <select
+              <Select
                 value={channel}
                 onChange={(e) => setChannel(e.target.value)}
-                className="rounded-lg border border-input bg-muted/30 px-3 py-1.5 text-small font-medium focus:outline-none focus:ring-2 focus:ring-ring"
-                aria-label="Channel"
-              >
-                <option value="instagram">Instagram</option>
-                <option value="x">X</option>
-                <option value="youtube">YouTube</option>
-              </select>
+                options={[
+                  { value: 'instagram', label: 'Instagram' },
+                  { value: 'x', label: 'X' },
+                  { value: 'youtube', label: 'YouTube' },
+                ]}
+                className="w-auto min-w-[120px]"
+                aria-label="Publishing channel"
+              />
             </div>
-            <input
+            <Input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Add description..."
-              className="w-full text-small text-muted-foreground bg-transparent border-none outline-none placeholder:text-muted-foreground/70 focus:ring-0"
-              aria-label="Description"
+              className="w-full text-small text-muted-foreground border-0 bg-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-0 h-auto placeholder:text-muted-foreground/70"
+              aria-label="Content description"
             />
           </div>
 
@@ -558,6 +571,7 @@ export function ContentEditorPage() {
           onClick={saveContent}
           disabled={saveStatus === 'saving'}
           size="sm"
+          aria-label={saveStatus === 'saving' ? 'Saving content' : 'Save content'}
         >
           {saveStatus === 'saving' ? 'Saving...' : 'Save'}
         </Button>
@@ -569,6 +583,7 @@ export function ContentEditorPage() {
           variant="outline"
           size="sm"
           onClick={() => navigate(-1)}
+          aria-label="Cancel and go back"
         >
           Cancel
         </Button>
@@ -577,6 +592,7 @@ export function ContentEditorPage() {
           size="sm"
           onClick={saveContent}
           disabled={saveStatus === 'saving'}
+          aria-label={saveStatus === 'saving' ? 'Saving content' : 'Save content'}
         >
           {saveStatus === 'saving' ? 'Saving...' : 'Save'}
         </Button>
