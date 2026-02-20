@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Check, Loader2, Unplug, Instagram } from 'lucide-react'
+import { Plus, Check, Loader2, Unplug, Instagram, PlugZap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -20,6 +20,32 @@ const otherIntegrations = [
   { id: 'twitter', name: 'X (Twitter)', description: 'Publishing' },
   { id: 'youtube', name: 'YouTube', description: 'Publishing' },
 ]
+
+/** Empty state when other integrations list is empty - per Design Reference: icon, helpful copy */
+function OtherIntegrationsEmptyState() {
+  return (
+    <Card
+      className="overflow-hidden border-2 border-dashed border-muted bg-muted/5 animate-fade-in"
+      role="status"
+      aria-live="polite"
+    >
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8 min-h-[240px] sm:min-h-[280px]">
+        <div className="rounded-2xl bg-muted/50 p-8 ring-1 ring-muted/80 transition-transform duration-200 hover:scale-[1.02]">
+          <PlugZap className="h-16 w-16 text-muted-foreground/70 mx-auto" aria-hidden />
+        </div>
+        <div className="text-center space-y-2 max-w-sm">
+          <h3 className="text-body font-semibold text-foreground">
+            No other integrations yet
+          </h3>
+          <p className="text-small text-muted-foreground leading-relaxed">
+            All available integrations are shown above. More platforms like X (Twitter),
+            YouTube, and others will be available soon. Check back for updates.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function IntegrationsPage() {
   return (
@@ -160,20 +186,30 @@ function IntegrationsPageContent() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-4">
-        {otherIntegrations.map(({ id, name, description }) => (
-          <Card key={id}>
-            <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6">
-              <div>
-                <h3 className="font-semibold">{name}</h3>
-                <p className="text-small text-muted-foreground">{description}</p>
-              </div>
-              <Button variant="outline" size="sm" disabled>
-                Coming soon
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-4">
+        <h2 className="text-h3 font-semibold text-foreground">Other integrations</h2>
+        {otherIntegrations.length === 0 ? (
+          <OtherIntegrationsEmptyState />
+        ) : (
+          <div className="grid gap-4">
+            {otherIntegrations.map(({ id, name, description }) => (
+              <Card
+                key={id}
+                className="transition-all duration-200 hover:shadow-card-hover hover:border-primary/20"
+              >
+                <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6">
+                  <div>
+                    <h3 className="font-semibold">{name}</h3>
+                    <p className="text-small text-muted-foreground">{description}</p>
+                  </div>
+                  <Button variant="outline" size="sm" disabled>
+                    Coming soon
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       <AlertDialog open={revokeOpen} onOpenChange={setRevokeOpen}>
