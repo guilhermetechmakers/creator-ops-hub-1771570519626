@@ -108,7 +108,7 @@ export function PrivacySettings({
             id="data-retention"
             options={DATA_RETENTION_OPTIONS}
             value={dataRetention}
-            onChange={(e) => handleDataRetentionChange((e.target as HTMLSelectElement).value)}
+            onChange={(e) => handleDataRetentionChange(e.target.value)}
             disabled={isSavingData}
             className="mt-2 max-w-xs focus:border-primary/50"
           />
@@ -127,7 +127,7 @@ export function PrivacySettings({
             id="snapshot-retention"
             options={SNAPSHOT_RETENTION_OPTIONS}
             value={snapshotRetention}
-            onChange={(e) => handleSnapshotRetentionChange((e.target as HTMLSelectElement).value)}
+            onChange={(e) => handleSnapshotRetentionChange(e.target.value)}
             disabled={isSavingSnapshot}
             className="mt-2 max-w-xs focus:border-primary/50"
           />

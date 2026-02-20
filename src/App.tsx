@@ -55,6 +55,7 @@ function App() {
             <Route path="content-editor/new" element={<ContentEditorPage />} />
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
             <Route path="settings" element={<SettingsPreferencesPage />} />
+            <Route path="settings-&-preferences" element={<SettingsPreferencesPage />} />
             <Route path="checkout-/-payment" element={<PaymentPage />} />
           </Route>
           <Route path="/privacy" element={<PrivacyPage />} />

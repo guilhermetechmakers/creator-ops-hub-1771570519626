@@ -7,6 +7,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export interface NotificationPreferences {
   emailDigest: boolean
@@ -46,6 +56,7 @@ export function NotificationsPreferences({
   const [webhookUrl, setWebhookUrl] = useState('')
   const [showWebhookForm, setShowWebhookForm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [webhookToRemove, setWebhookToRemove] = useState<WebhookEndpoint | null>(null)
 
   const handlePrefChange = async (key: keyof NotificationPreferences, value: boolean) => {
     const next = { ...prefs, [key]: value }
@@ -75,6 +86,17 @@ export function NotificationsPreferences({
     }
   }
 
+  const handleRemoveWebhook = async () => {
+    if (!webhookToRemove) return
+    try {
+      await onRemoveWebhook?.(webhookToRemove.id)
+      toast.success('Webhook removed')
+      setWebhookToRemove(null)
+    } catch {
+      toast.error('Failed to remove webhook')
+    }
+  }
+
   if (isLoading) {
     return (
       <Card className="overflow-hidden transition-all duration-300">
@@ -92,6 +114,7 @@ export function NotificationsPreferences({
   }
 
   return (
+    <>
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -205,9 +228,24 @@ export function NotificationsPreferences({
             </form>
           )}
           {webhooks.length === 0 && !showWebhookForm ? (
-            <p className="text-small text-muted-foreground py-4">
-              No webhook endpoints. Add one to receive events.
-            </p>
+            <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/20 border-dashed">
+              <Webhook className="h-12 w-12 text-muted-foreground mb-4 opacity-60" />
+              <p className="text-small font-medium text-muted-foreground">
+                No webhook endpoints
+              </p>
+              <p className="text-micro text-muted-foreground mt-1 max-w-[240px]">
+                Add a webhook URL to receive real-time events from your workspace
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => setShowWebhookForm(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add your first endpoint
+              </Button>
+            </div>
           ) : (
             <div className="space-y-2">
               {webhooks.map((wh) => (
@@ -225,7 +263,7 @@ export function NotificationsPreferences({
                     variant="ghost"
                     size="sm"
                     className="text-destructive hover:text-destructive"
-                    onClick={() => onRemoveWebhook?.(wh.id)}
+                    onClick={() => setWebhookToRemove(wh)}
                   >
                     Remove
                   </Button>
@@ -236,5 +274,26 @@ export function NotificationsPreferences({
         </div>
       </CardContent>
     </Card>
+
+    <AlertDialog open={!!webhookToRemove} onOpenChange={() => setWebhookToRemove(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Remove webhook endpoint?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will stop sending events to {webhookToRemove?.url}. Any integrations using this endpoint will no longer receive updates.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleRemoveWebhook}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            Remove
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }

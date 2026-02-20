@@ -8,6 +8,17 @@ import type {
   ApiKey,
 } from '@/types/settings-preferences'
 
+export interface AccountFormData {
+  name: string
+  email: string
+}
+
+export interface PasswordFormData {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 
 export function useSettingsPreferences() {
@@ -70,6 +81,21 @@ export function useSettingsPreferences() {
     fetchAll()
   }, [fetchAll])
 
+  const onSaveAccount = useCallback(async (data: AccountFormData) => {
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: data.name },
+    })
+    if (error) throw error
+    await fetchProfile()
+  }, [fetchProfile])
+
+  const onChangePassword = useCallback(async (data: PasswordFormData) => {
+    const { error } = await supabase.auth.updateUser({
+      password: data.newPassword,
+    })
+    if (error) throw error
+  }, [])
+
   return {
     profile,
     plan,
@@ -79,5 +105,7 @@ export function useSettingsPreferences() {
     isLoading,
     twoFactorEnabled,
     refetch: fetchAll,
+    onSaveAccount,
+    onChangePassword,
   }
 }

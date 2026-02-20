@@ -148,9 +148,15 @@ export function SecuritySettings({
               Active sessions
             </p>
             {sessions.length === 0 ? (
-              <p className="text-small text-muted-foreground py-4">
-                No active sessions
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/20 border-dashed">
+                <Monitor className="h-12 w-12 text-muted-foreground mb-4 opacity-60" />
+                <p className="text-small font-medium text-muted-foreground">
+                  No active sessions
+                </p>
+                <p className="text-micro text-muted-foreground mt-1 max-w-[240px]">
+                  When you sign in on other devices, they will appear here
+                </p>
+              </div>
             ) : (
               <div className="space-y-2">
                 {sessions.map((session) => (
@@ -234,9 +240,24 @@ export function SecuritySettings({
               </form>
             )}
             {apiKeys.length === 0 && !showApiKeyForm ? (
-              <p className="text-small text-muted-foreground py-4">
-                No API keys. Create one to integrate with external services.
-              </p>
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/20 border-dashed">
+                <Key className="h-12 w-12 text-muted-foreground mb-4 opacity-60" />
+                <p className="text-small font-medium text-muted-foreground">
+                  No API keys yet
+                </p>
+                <p className="text-micro text-muted-foreground mt-1 max-w-[240px]">
+                  Create an API key to integrate with external services and automation
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => setShowApiKeyForm(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create your first key
+                </Button>
+              </div>
             ) : (
               <div className="space-y-2">
                 {apiKeys.map((key) => (

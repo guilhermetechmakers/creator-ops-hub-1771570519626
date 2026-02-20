@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { User, CreditCard, Users, Shield, Bell, Lock } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettingsPreferences } from '@/hooks/use-settings-preferences'
@@ -18,6 +19,10 @@ const tabItems = [
 ] as const
 
 export function SettingsPreferencesPage() {
+  useEffect(() => {
+    document.title = 'Settings & Preferences | Creator Ops Hub'
+  }, [])
+
   const {
     profile,
     plan,
@@ -26,12 +31,16 @@ export function SettingsPreferencesPage() {
     apiKeys,
     isLoading,
     twoFactorEnabled,
+    onSaveAccount,
+    onChangePassword,
   } = useSettingsPreferences()
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-4xl">
-      <div>
-        <h1 className="text-h1 font-bold">Settings & Preferences</h1>
+    <div className="space-y-8 max-w-4xl">
+      <div className="animate-fade-in">
+        <h1 className="text-h1 font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          Settings & Preferences
+        </h1>
         <p className="text-muted-foreground mt-1">
           Manage account, workspace, team, security, notifications, and privacy
         </p>
@@ -51,25 +60,27 @@ export function SettingsPreferencesPage() {
           ))}
         </TabsList>
 
-        <TabsContent value="account" className="mt-6">
+        <TabsContent value="account" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <AccountProfile
             key={profile?.id ?? 'loading'}
             name={profile?.full_name ?? profile?.email?.split('@')[0] ?? ''}
             email={profile?.email ?? ''}
             avatarUrl={profile?.avatar_url}
             isLoading={isLoading}
+            onSaveAccount={onSaveAccount}
+            onChangePassword={onChangePassword}
           />
         </TabsContent>
 
-        <TabsContent value="workspace" className="mt-6">
+        <TabsContent value="workspace" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <WorkspaceBilling plan={plan ?? undefined} isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="team" className="mt-6">
+        <TabsContent value="team" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <TeamManagement members={members} isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="security" className="mt-6">
+        <TabsContent value="security" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <SecuritySettings
             twoFactorEnabled={twoFactorEnabled}
             sessions={sessions}
@@ -78,11 +89,11 @@ export function SettingsPreferencesPage() {
           />
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6">
+        <TabsContent value="notifications" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <NotificationsPreferences isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="privacy" className="mt-6">
+        <TabsContent value="privacy" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
           <PrivacySettings isLoading={isLoading} />
         </TabsContent>
       </Tabs>
