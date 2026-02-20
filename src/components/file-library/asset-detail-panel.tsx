@@ -6,6 +6,7 @@ import {
   FileText,
   Check,
   ExternalLink,
+  FileSearch,
 } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -78,12 +79,10 @@ export function AssetDetailPanel({
     toast.success('Download started')
   }
 
-  if (!item) return null
-
-  const displayName = item.file_name ?? item.title
-  const isImage = item.file_type?.startsWith('image/')
+  const displayName = item?.file_name ?? item?.title ?? ''
+  const isImage = item?.file_type?.startsWith('image/')
   const previewUrl =
-    item.storage_path && isImage
+    item?.storage_path && isImage
       ? `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/file-library/${item.storage_path}`
       : null
 
@@ -92,36 +91,62 @@ export function AssetDetailPanel({
       <SheetContent
         side="right"
         className={cn('w-full max-w-md overflow-y-auto sm:max-w-lg', className)}
+        aria-label={item ? 'Asset details' : 'Asset details panel'}
       >
+        {!item ? (
+          <div
+            className="flex flex-col items-center justify-center gap-6 py-16 px-6 text-center animate-fade-in"
+            role="status"
+            aria-live="polite"
+            aria-label="No asset selected"
+          >
+            <div className="rounded-2xl bg-muted/50 p-8">
+              <FileSearch
+                className="h-16 w-16 text-muted-foreground/70 mx-auto"
+                aria-hidden
+              />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-body font-semibold text-foreground">
+                No asset selected
+              </h2>
+              <p className="text-small text-muted-foreground max-w-sm">
+                Select an asset from the library to view its details, metadata,
+                and actions.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
         <SheetHeader className="border-b pb-4">
-          <SheetTitle className="text-left truncate pr-8">
+          <SheetTitle className="text-left truncate pr-8" id="asset-detail-title">
             {displayName}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-6 pt-6">
+        <div className="space-y-6 pt-6" aria-labelledby="asset-detail-title">
           {/* Preview */}
           <div className="rounded-xl border border-primary/10 bg-muted overflow-hidden shadow-sm">
             {previewUrl ? (
               <img
                 src={previewUrl}
-                alt={displayName}
+                alt={`Preview of ${displayName}`}
                 className="w-full aspect-video object-contain"
               />
             ) : (
               <div className="aspect-video flex items-center justify-center">
                 {isImage ? (
-                  <FileImage className="h-16 w-16 text-muted-foreground" />
+                  <FileImage className="h-16 w-16 text-muted-foreground" aria-hidden />
                 ) : (
-                  <FileText className="h-16 w-16 text-muted-foreground" />
+                  <FileText className="h-16 w-16 text-muted-foreground" aria-hidden />
                 )}
               </div>
             )}
           </div>
 
           {/* Metadata */}
-          <div className="space-y-3">
-            <h3 className="text-small font-semibold">Metadata</h3>
+          <section className="space-y-3" aria-labelledby="metadata-heading">
+            <h3 id="metadata-heading" className="text-small font-semibold">Metadata</h3>
             <dl className="grid grid-cols-1 gap-2 text-small">
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Type</dt>
@@ -154,7 +179,7 @@ export function AssetDetailPanel({
                 </div>
               )}
             </dl>
-          </div>
+          </section>
 
           {/* Tags */}
           {(item.tags ?? []).length > 0 && (
@@ -201,13 +226,14 @@ export function AssetDetailPanel({
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-2 pt-4 border-t">
+          <div className="flex flex-col gap-2 pt-4 border-t" role="group" aria-label="Asset actions">
             <Button
               className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               onClick={handleDownload}
               disabled={!shareLink}
+              aria-label={shareLink ? `Download ${displayName}` : 'Download unavailable'}
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="h-4 w-4 mr-2" aria-hidden />
               Download
             </Button>
             <Button
@@ -215,11 +241,18 @@ export function AssetDetailPanel({
               className="w-full"
               onClick={handleCopyLink}
               disabled={!shareLink}
+              aria-label={
+                copied
+                  ? 'Link copied to clipboard'
+                  : shareLink
+                    ? 'Copy share link to clipboard'
+                    : 'Copy link unavailable'
+              }
             >
               {copied ? (
-                <Check className="h-4 w-4 mr-2 text-success" />
+                <Check className="h-4 w-4 mr-2 text-success" aria-hidden />
               ) : (
-                <Link2 className="h-4 w-4 mr-2" />
+                <Link2 className="h-4 w-4 mr-2" aria-hidden />
               )}
               {copied ? 'Copied!' : 'Copy share link'}
             </Button>
@@ -231,13 +264,16 @@ export function AssetDetailPanel({
                   onInsertIntoEditor(item)
                   onOpenChange(false)
                 }}
+                aria-label={`Insert ${displayName} into Content Editor`}
               >
-                <ExternalLink className="h-4 w-4 mr-2" />
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden />
                 Insert into Content Editor
               </Button>
             )}
           </div>
         </div>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   )
