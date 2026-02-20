@@ -152,3 +152,39 @@ export async function uploadFile(
   if (error) throw error
   return { path: data.path }
 }
+
+export type ExportFormat = 'json' | 'csv'
+
+export interface ExportResult {
+  data: unknown
+  format: ExportFormat
+}
+
+export async function exportFileLibrary(
+  format: ExportFormat,
+  ids?: string[]
+): Promise<ExportResult> {
+  const { data, error } = await supabase.functions.invoke('file-library-import-export', {
+    body: { action: 'export', format, ids: ids ?? [] },
+  })
+  if (error) throw error
+  if (!data?.data) throw new Error('Export failed')
+  return { data: data.data, format: data.format ?? format }
+}
+
+export interface ImportResult {
+  imported: number
+  ids: string[]
+}
+
+export async function importFileLibrary(
+  format: 'json' | 'csv',
+  content: string
+): Promise<ImportResult> {
+  const { data, error } = await supabase.functions.invoke('file-library-import-export', {
+    body: { action: 'import', format, content },
+  })
+  if (error) throw error
+  if (!data?.imported && data?.imported !== 0) throw new Error(data?.error ?? 'Import failed')
+  return { imported: data.imported, ids: data.ids ?? [] }
+}

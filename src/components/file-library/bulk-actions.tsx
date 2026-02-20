@@ -35,6 +35,7 @@ export interface BulkActionsProps {
   onExport?: () => void
   isDeleting?: boolean
   isTagging?: boolean
+  isExporting?: boolean
   className?: string
 }
 
@@ -46,6 +47,7 @@ export function BulkActions({
   onExport,
   isDeleting = false,
   isTagging = false,
+  isExporting = false,
   className,
 }: BulkActionsProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -95,11 +97,17 @@ export function BulkActions({
             <Button
               variant="outline"
               size="sm"
-              disabled={isDeleting || isTagging}
+              disabled={isDeleting || isTagging || isExporting}
               className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <MoreHorizontal className="h-4 w-4 mr-1" />
-              {isDeleting ? 'Deleting...' : isTagging ? 'Tagging...' : 'Bulk actions'}
+              {isDeleting
+                ? 'Deleting...'
+                : isTagging
+                  ? 'Tagging...'
+                  : isExporting
+                    ? 'Exporting...'
+                    : 'Bulk actions'}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-[200px]">
@@ -120,7 +128,10 @@ export function BulkActions({
               </DropdownMenuItem>
             )}
             {onExport && (
-              <DropdownMenuItem onClick={onExport}>
+              <DropdownMenuItem
+                onClick={onExport}
+                disabled={isExporting}
+              >
                 <Download className="h-4 w-4 mr-2" />
                 Export
               </DropdownMenuItem>

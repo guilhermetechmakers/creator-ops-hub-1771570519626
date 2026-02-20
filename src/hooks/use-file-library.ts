@@ -89,6 +89,12 @@ export function useFileLibrary(
         result = result.filter((item) => new Date(item.created_at).getTime() <= to)
       }
 
+      if (filters.usage === 'used') {
+        result = result.filter((item) => item.last_used_at != null)
+      } else if (filters.usage === 'unused') {
+        result = result.filter((item) => item.last_used_at == null)
+      }
+
       const filteredTotal = result.length
       const offset = (page - 1) * limit
       const paginated = result.slice(offset, offset + limit)
@@ -106,6 +112,7 @@ export function useFileLibrary(
     filters.search,
     filters.tags?.join(','),
     filters.fileType,
+    filters.usage,
     filters.dateFrom,
     filters.dateTo,
     filters.dateRange,
