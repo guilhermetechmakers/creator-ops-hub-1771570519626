@@ -102,9 +102,10 @@ export function Searchboxandsuggestedlinks() {
   const isEmpty = links.length === 0
 
   return (
-    <div
+    <section
       className="w-full max-w-xl mx-auto animate-slide-up opacity-0"
       style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}
+      aria-labelledby="suggested-links-heading"
     >
       <form onSubmit={handleSubmit} className="relative">
         <Search
@@ -122,19 +123,19 @@ export function Searchboxandsuggestedlinks() {
       </form>
 
       <div className="mt-6">
-        <p
-          className="text-small font-medium text-muted-foreground mb-3"
-          id="suggested-links-label"
+        <h2
+          id="suggested-links-heading"
+          className="text-base font-semibold text-foreground mb-3 sm:text-lg"
         >
           Suggested links
-        </p>
+        </h2>
         {isEmpty ? (
           <SuggestedLinksEmptyState onGoToDashboard={handleGoToDashboard} />
         ) : (
           <div
             className="grid gap-2 sm:grid-cols-2"
             role="list"
-            aria-labelledby="suggested-links-label"
+            aria-labelledby="suggested-links-heading"
           >
             {links.map((link, i) => {
               const Icon = link.icon
@@ -162,6 +163,6 @@ export function Searchboxandsuggestedlinks() {
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }
