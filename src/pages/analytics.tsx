@@ -42,7 +42,7 @@ function AnalyticsPageContent() {
         to: filters.dateTo ?? '',
       })
       toast.success('Report exported as CSV')
-    } catch (err) {
+    } catch {
       toast.error('Failed to export CSV')
     }
   }, [data, filters.dateFrom, filters.dateTo])
@@ -58,7 +58,7 @@ function AnalyticsPageContent() {
         to: filters.dateTo ?? '',
       })
       toast.success('Opening print dialog for PDF')
-    } catch (err) {
+    } catch {
       toast.error('Failed to export PDF')
     }
   }, [data, filters.dateFrom, filters.dateTo])

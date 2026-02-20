@@ -29,11 +29,11 @@ export function SignupPage() {
     resolver: zodResolver(signupSchema),
   })
 
-  const onSubmit = async (_data: SignupForm) => {
+  const onSubmit = async (data: SignupForm) => {
     try {
-      // TODO: API integration - replace with actual signup call
+      // TODO: API integration - replace with actual signup call using data.email, data.password
       await new Promise((r) => setTimeout(r, 500))
-      toast.success('Account created! Please verify your email.')
+      toast.success(`Account created! Please check ${data.email} for verification.`)
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       throw err

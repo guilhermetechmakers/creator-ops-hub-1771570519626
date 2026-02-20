@@ -105,13 +105,12 @@ export function OrderTransactionHistoryPage() {
   const [sortBy, sortOrder] = sortValue.split('-') as ['created_at' | 'amount_cents' | 'status' | 'title', 'asc' | 'desc']
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchInput), DEBOUNCE_MS)
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchInput)
+      setPage(1)
+    }, DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [searchInput])
-
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch, statusFilter])
 
   const {
     items,
