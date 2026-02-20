@@ -1,0 +1,7 @@
+export { HeroSection } from './hero-section'
+export { FeatureHighlights } from './feature-highlights'
+export { UseCases } from './use-cases'
+export { PricingTeaser } from './pricing-teaser'
+export { IntegrationsRow } from './integrations-row'
+export { SocialProof } from './social-proof'
+export { LandingFooter } from './landing-footer'
