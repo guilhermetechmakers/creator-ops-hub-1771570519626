@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Send,
   Settings,
+  Sliders,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { useNotifications } from '@/hooks/use-notifications'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/types/notifications'
@@ -94,7 +96,7 @@ function NotificationItem({
 }
 
 export function NotificationsDropdown() {
-  const { notifications, unreadCount, isLoading, markRead, refetch } = useNotifications({
+  const { notifications, unreadCount, isLoading, error, markRead, refetch } = useNotifications({
     limit: 10,
     unreadOnly: false,
   })
@@ -138,12 +140,23 @@ export function NotificationsDropdown() {
             </Button>
           )}
         </div>
-        <div className="overflow-y-auto max-h-[360px]">
+        <div className="overflow-y-auto max-h-[360px] min-h-[200px]">
           {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+            <div className="p-4 space-y-3 animate-fade-in" role="status" aria-live="polite" aria-label="Loading notifications">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" shimmer />
               ))}
+            </div>
+          ) : error ? (
+            <div className="p-4">
+              <ErrorState
+                title="Couldn't load notifications"
+                description={error.message}
+                onRetry={refetch}
+                retryLabel="Try again"
+                buttonAriaLabel="Retry loading notifications"
+                className="py-8"
+              />
             </div>
           ) : notifications.length > 0 ? (
             <div className="p-2 space-y-1">
@@ -157,13 +170,26 @@ export function NotificationsDropdown() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-              <Bell className="h-12 w-12 text-muted-foreground/50 mb-3" />
+              <Bell className="h-12 w-12 text-muted-foreground/50 mb-3" aria-hidden />
               <p className="text-small font-medium text-muted-foreground">
                 No notifications yet
               </p>
               <p className="text-micro text-muted-foreground mt-1 max-w-[240px]">
                 You'll see new content, review actions, and publish status here
               </p>
+              <Button
+                asChild
+                size="sm"
+                className="mt-4 w-full max-w-[200px] transition-transform hover:scale-[1.02] active:scale-[0.98]"
+              >
+                <Link
+                  to="/dashboard/settings-&-preferences"
+                  className="inline-flex items-center justify-center gap-2"
+                >
+                  <Sliders className="h-4 w-4" aria-hidden />
+                  Customize notifications
+                </Link>
+              </Button>
             </div>
           )}
         </div>
