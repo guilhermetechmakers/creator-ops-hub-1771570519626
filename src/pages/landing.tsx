@@ -133,8 +133,9 @@ export function LandingPage() {
       <footer className="border-t py-12">
         <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="text-muted-foreground text-small">© Creator Ops Hub</span>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap gap-6">
             <Link to="/privacy-policy" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Privacy Policy</Link>
+            <Link to="/cookie-policy" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Cookie Policy</Link>
             <Link to="/terms" className="text-small text-muted-foreground hover:text-foreground transition-colors duration-200">Terms of Service</Link>
           </div>
         </div>

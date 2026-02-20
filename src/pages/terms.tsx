@@ -87,6 +87,19 @@ export function TermsPage() {
           <FullTermsOfServiceText />
         </section>
 
+        {/* Related legal links */}
+        <div className="mt-12 pt-8 border-t border-border flex flex-wrap gap-4 animate-fade-in no-print">
+          <p className="text-small text-muted-foreground w-full">
+            Related policies:
+          </p>
+          <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+            <Link to="/privacy-policy">Privacy Policy</Link>
+          </Button>
+          <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+            <Link to="/cookie-policy">Cookie Policy</Link>
+          </Button>
+        </div>
+
         {/* Footer CTA */}
         <div className="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center animate-fade-in no-print">
           <p className="text-small text-muted-foreground">

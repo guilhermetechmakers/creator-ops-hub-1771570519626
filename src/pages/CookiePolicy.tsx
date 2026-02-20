@@ -2,15 +2,15 @@ import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { FullPrivacyPolicyText } from '@/components/privacy-policy/full-privacy-policy-text'
-import { PrivacyHighlights } from '@/components/privacy-policy/privacy-highlights'
-import { DownloadPrintOption } from '@/components/privacy-policy/download-print-option'
+import { FullCookiePolicyText } from '@/components/cookie-policy/full-cookie-policy-text'
+import { CookieHighlights } from '@/components/cookie-policy/cookie-highlights'
+import { CookieDownloadPrintOption } from '@/components/cookie-policy/download-print-option'
 
-export function PrivacyPolicyPage() {
+export function CookiePolicyPage() {
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    document.title = 'Privacy Policy | Creator Ops Hub'
+    document.title = 'Cookie Policy | Creator Ops Hub'
   }, [])
 
   return (
@@ -56,7 +56,7 @@ export function PrivacyPolicyPage() {
         {/* Title and meta */}
         <div className="animate-fade-in">
           <h1 className="text-hero font-bold tracking-tight bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Privacy Policy
+            Cookie Policy
           </h1>
           <p className="text-muted-foreground mt-2 text-small">
             Last updated: February 2025
@@ -68,15 +68,15 @@ export function PrivacyPolicyPage() {
           <h2 className="text-h2 font-bold text-foreground mb-6">
             At a glance
           </h2>
-          <PrivacyHighlights />
+          <CookieHighlights />
         </section>
 
         {/* Download/Print actions */}
         <section className="mt-12 flex flex-wrap items-center gap-4 animate-fade-in no-print">
-          <DownloadPrintOption contentRef={contentRef} />
+          <CookieDownloadPrintOption contentRef={contentRef} />
         </section>
 
-        {/* Full privacy policy text */}
+        {/* Full cookie policy text */}
         <section
           ref={contentRef}
           className="mt-16 pt-12 border-t border-border print:border-0"
@@ -84,7 +84,7 @@ export function PrivacyPolicyPage() {
           <h2 className="text-h2 font-bold text-foreground mb-8">
             Full policy
           </h2>
-          <FullPrivacyPolicyText />
+          <FullCookiePolicyText />
         </section>
 
         {/* Related legal links */}
@@ -93,7 +93,7 @@ export function PrivacyPolicyPage() {
             Related policies:
           </p>
           <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link to="/cookie-policy">Cookie Policy</Link>
+            <Link to="/privacy-policy">Privacy Policy</Link>
           </Button>
           <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
             <Link to="/terms">Terms of Service</Link>
@@ -116,7 +116,6 @@ export function PrivacyPolicyPage() {
           </Button>
         </div>
       </main>
-
     </div>
   )
 }

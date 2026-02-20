@@ -16,6 +16,7 @@ import { SettingsPreferencesPage } from '@/pages/SettingsPreferences'
 import { NotFoundPage } from '@/pages/404NotFound'
 import { ServerErrorPage } from '@/pages/500ServerError'
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicy'
+import { CookiePolicyPage } from '@/pages/CookiePolicy'
 import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { ResetPasswordPage } from '@/pages/reset-password'
@@ -68,6 +69,7 @@ function App() {
           </Route>
           <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/cookie-policy" element={<CookiePolicyPage />} />
           <Route path="/terms-of-service" element={<Navigate to="/terms" replace />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/404" element={<NotFoundPage />} />
