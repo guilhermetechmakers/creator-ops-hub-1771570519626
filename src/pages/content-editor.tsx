@@ -170,7 +170,6 @@ export function ContentEditorPage() {
         createdAt: new Date().toLocaleDateString(),
       },
     ])
-    toast.success('Comment added')
   }, [])
 
   const handleResolveComment = useCallback((commentId: string) => {

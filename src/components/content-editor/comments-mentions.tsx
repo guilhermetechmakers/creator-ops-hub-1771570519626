@@ -1,9 +1,11 @@
 import { useState, useRef } from 'react'
 import { MessageSquare, Check, AtSign, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export interface Comment {
@@ -18,6 +20,8 @@ export interface Comment {
 
 export interface CommentsMentionsProps {
   comments?: Comment[]
+  /** When true, shows skeleton loaders instead of the comments list */
+  isLoading?: boolean
   onAddComment?: (content: string) => void | Promise<void>
   onResolveComment?: (id: string) => void | Promise<void>
   onReply?: (parentId: string, content: string) => void | Promise<void>
@@ -27,6 +31,7 @@ export interface CommentsMentionsProps {
 
 export function CommentsMentions({
   comments = [],
+  isLoading = false,
   onAddComment,
   onResolveComment,
   onReply,
@@ -41,6 +46,8 @@ export function CommentsMentions({
   const [resolvingCommentId, setResolvingCommentId] = useState<string | null>(null)
   const commentTextareaRef = useRef<HTMLTextAreaElement>(null)
 
+  const items = comments ?? []
+
   const handleSubmit = async () => {
     if (replyingTo) {
       if (!replyContent.trim()) return
@@ -49,6 +56,9 @@ export function CommentsMentions({
         await Promise.resolve(onReply?.(replyingTo, replyContent))
         setReplyingTo(null)
         setReplyContent('')
+        toast.success('Reply added')
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to add reply')
       } finally {
         setIsReplying(false)
       }
@@ -57,6 +67,9 @@ export function CommentsMentions({
       try {
         await Promise.resolve(onAddComment?.(newComment))
         setNewComment('')
+        toast.success('Comment added')
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to add comment')
       } finally {
         setIsAddingComment(false)
       }
@@ -67,6 +80,9 @@ export function CommentsMentions({
     setResolvingCommentId(id)
     try {
       await Promise.resolve(onResolveComment?.(id))
+      toast.success('Comment status updated')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to resolve comment')
     } finally {
       setResolvingCommentId(null)
     }
@@ -110,12 +126,34 @@ export function CommentsMentions({
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {comments.length === 0 ? (
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" role="list" aria-label="Comments list">
+        {isLoading ? (
+          <div className="space-y-4" role="status" aria-live="polite" aria-label="Loading comments">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardHeader className="p-3 pb-1">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded-full shrink-0" shimmer />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-24" shimmer />
+                      <Skeleton className="h-3 w-16" shimmer />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-3 pt-0 space-y-2">
+                  <Skeleton className="h-4 w-full" shimmer />
+                  <Skeleton className="h-4 w-3/4" shimmer />
+                  <Skeleton className="h-8 w-16 mt-2" shimmer />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : items.length === 0 ? (
           <div
-            className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-input bg-muted/30 p-8 text-center animate-fade-in"
+            className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-input bg-muted/30 p-8 text-center animate-fade-in min-h-[200px]"
             role="status"
             aria-live="polite"
+            aria-label="No comments yet"
           >
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
               <MessageSquare className="h-7 w-7 text-primary opacity-80" aria-hidden />
@@ -133,7 +171,7 @@ export function CommentsMentions({
                 size="sm"
                 className="gap-2 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md"
                 onClick={() => focusCommentInput()}
-                aria-label="Add a comment"
+                aria-label="Add your first comment"
               >
                 <MessageSquare className="h-4 w-4" aria-hidden />
                 Add comment
@@ -151,9 +189,10 @@ export function CommentsMentions({
             </div>
           </div>
         ) : (
-          comments.map((comment) => (
+          items.map((comment) => (
             <Card
               key={comment.id}
+              role="listitem"
               className={cn(
                 'transition-all duration-200 hover:shadow-card-hover',
                 comment.resolved && 'opacity-60'
@@ -200,13 +239,14 @@ export function CommentsMentions({
               <CardContent className="p-3 pt-0">
                 <p className="text-small">{comment.content}</p>
                 {replyingTo === comment.id ? (
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex gap-2" role="group" aria-label="Reply form">
                     <Textarea
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       placeholder="Write a reply..."
                       className="min-h-[60px] text-small"
                       disabled={isReplying}
+                      aria-label="Write a reply to this comment"
                     />
                     <div className="flex flex-col gap-1">
                       <Button
@@ -214,6 +254,7 @@ export function CommentsMentions({
                         onClick={handleSubmit}
                         disabled={!replyContent.trim() || isReplying}
                         className="transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                        aria-label={isReplying ? 'Submitting reply' : 'Submit reply'}
                       >
                         {isReplying ? (
                           <>
@@ -232,6 +273,7 @@ export function CommentsMentions({
                           setReplyContent('')
                         }}
                         disabled={isReplying}
+                        aria-label="Cancel reply"
                       >
                         Cancel
                       </Button>
@@ -243,6 +285,7 @@ export function CommentsMentions({
                     size="sm"
                     className="mt-2 text-small transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     onClick={() => setReplyingTo(comment.id)}
+                    aria-label={`Reply to ${comment.author}'s comment`}
                   >
                     Reply
                   </Button>
