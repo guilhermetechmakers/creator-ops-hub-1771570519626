@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
-import { FileText, ExternalLink } from 'lucide-react'
+import { FileText, ExternalLink, FileQuestion, AlertCircle } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { ContentEditor } from '@/types/content-editor'
 import { highlightSearchText } from '@/hooks/use-content-studio-list'
+import { cn } from '@/lib/utils'
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'success' | 'warning' | 'outline'> = {
   draft: 'secondary',
@@ -23,6 +24,58 @@ function truncate(str: string | null | undefined, len: number): string {
   return str.length > len ? str.slice(0, len) + '…' : str
 }
 
+function isValidItem(item: ContentEditor | null): item is ContentEditor {
+  return Boolean(item && typeof item.id === 'string' && item.id.length > 0)
+}
+
+/** Empty state when no item is selected - per Design Reference: icon, helpful copy */
+function QuickPreviewEmptyState() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-label="No content selected"
+      className={cn(
+        'flex flex-col items-center justify-center gap-6 rounded-xl',
+        'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
+        'animate-fade-in min-h-[200px] sm:min-h-[240px]'
+      )}
+    >
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80" aria-hidden>
+        <FileQuestion className="h-12 w-12 text-muted-foreground/70" />
+      </div>
+      <div className="space-y-2 max-w-[280px]">
+        <h3 className="text-base font-semibold text-foreground">No content selected</h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Select a content item from the list to preview its details here.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+/** Error state when item data is invalid or corrupted */
+function QuickPreviewErrorState({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className={cn(
+        'flex flex-col items-center justify-center gap-4 rounded-lg',
+        'border border-destructive/20 bg-destructive/5 p-6 text-center',
+        'animate-fade-in'
+      )}
+    >
+      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-destructive/10">
+        <AlertCircle className="h-5 w-5 text-destructive" aria-hidden />
+      </div>
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-foreground">Unable to load preview</h3>
+        <p className="text-sm text-muted-foreground">{message}</p>
+      </div>
+    </div>
+  )
+}
+
 export interface QuickPreviewProps {
   item: ContentEditor | null
   open: boolean
@@ -36,75 +89,96 @@ export function QuickPreview({
   onOpenChange,
   searchQuery = '',
 }: QuickPreviewProps) {
-  if (!item) return null
-
-  const brief = item.description ?? 'No brief summary'
-  const latestDraft = truncate(item.content_body ?? '', 300)
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full max-w-md sm:max-w-lg overflow-y-auto">
+      <SheetContent
+        side="right"
+        className="w-full max-w-md sm:max-w-lg overflow-y-auto"
+        aria-describedby={item ? 'quick-preview-content' : 'quick-preview-empty'}
+      >
         <SheetHeader>
-          <SheetTitle className="pr-8">
-            <span
-              dangerouslySetInnerHTML={{
-                __html: highlightSearchText(item.title ?? 'Untitled', searchQuery) || (item.title ?? 'Untitled'),
-              }}
-            />
+          <SheetTitle className="pr-8" id="quick-preview-title">
+            {item ? (
+              <span
+                dangerouslySetInnerHTML={{
+                  __html: highlightSearchText(item.title ?? 'Untitled', searchQuery) || (item.title ?? 'Untitled'),
+                }}
+              />
+            ) : (
+              'Quick preview'
+            )}
           </SheetTitle>
         </SheetHeader>
-        <div className="mt-6 space-y-6">
-          <div className="flex flex-wrap gap-2">
-            <Badge variant={STATUS_VARIANTS[item.status ?? ''] ?? 'default'}>
-              {item.status ?? 'draft'}
-            </Badge>
-            {item.channel && (
-              <Badge variant="outline" className="capitalize">
-                {item.channel}
-              </Badge>
-            )}
-            {item.is_ai_generated && (
-              <Badge variant="outline" className="border-primary/30 text-primary">
-                OpenClaw
-              </Badge>
-            )}
-          </div>
 
-          <div>
-            <h4 className="text-small font-medium text-muted-foreground mb-2 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Brief summary
-            </h4>
-            <p className="text-body text-foreground/90 leading-relaxed">
-              {brief}
-            </p>
+        {!item ? (
+          <div id="quick-preview-empty" className="mt-6" aria-label="Empty preview state">
+            <QuickPreviewEmptyState />
           </div>
-
-          <div>
-            <h4 className="text-small font-medium text-muted-foreground mb-2">
-              Latest draft
-            </h4>
-            <div className="rounded-lg border bg-muted/30 p-4 text-small text-foreground/80 leading-relaxed max-h-48 overflow-y-auto">
-              {latestDraft || 'No content yet'}
+        ) : !isValidItem(item) ? (
+          <div id="quick-preview-error" className="mt-6" aria-label="Preview error">
+            <QuickPreviewErrorState message="This content item could not be loaded. It may be missing required data." />
+          </div>
+        ) : (
+          <div id="quick-preview-content" className="mt-6 space-y-6" aria-label="Content preview">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant={STATUS_VARIANTS[item.status ?? ''] ?? 'default'}>
+                {item.status ?? 'draft'}
+              </Badge>
+              {item.channel && (
+                <Badge variant="outline" className="capitalize">
+                  {item.channel}
+                </Badge>
+              )}
+              {item.is_ai_generated && (
+                <Badge variant="outline" className="border-primary/30 text-primary">
+                  OpenClaw
+                </Badge>
+              )}
             </div>
+
+            <section aria-labelledby="brief-heading">
+              <h3
+                id="brief-heading"
+                className="text-small font-medium text-muted-foreground mb-2 flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" aria-hidden />
+                Brief summary
+              </h3>
+              <p className="text-body text-foreground/90 leading-relaxed">
+                {item.description ?? 'No brief summary'}
+              </p>
+            </section>
+
+            <section aria-labelledby="draft-heading">
+              <h3
+                id="draft-heading"
+                className="text-small font-medium text-muted-foreground mb-2"
+              >
+                Latest draft
+              </h3>
+              <div className="rounded-lg border bg-muted/30 p-4 text-small text-foreground/80 leading-relaxed max-h-48 overflow-y-auto">
+                {truncate(item.content_body ?? '', 300) || 'No content yet'}
+              </div>
+            </section>
+
+            {item.due_date && (
+              <p className="text-micro text-muted-foreground">
+                Due: {formatDate(item.due_date)}
+              </p>
+            )}
+
+            <Button asChild className="w-full transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <Link
+                to={`/dashboard/content-editor/${item.id}`}
+                onClick={() => onOpenChange(false)}
+                aria-label="Open this content in the editor"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" aria-hidden />
+                Open in editor
+              </Link>
+            </Button>
           </div>
-
-          {item.due_date && (
-            <p className="text-micro text-muted-foreground">
-              Due: {formatDate(item.due_date)}
-            </p>
-          )}
-
-          <Button asChild className="w-full transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link
-              to={`/dashboard/content-editor/${item.id}`}
-              onClick={() => onOpenChange(false)}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open in editor
-            </Link>
-          </Button>
-        </div>
+        )}
       </SheetContent>
     </Sheet>
   )
