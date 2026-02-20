@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Mail, ArrowLeft } from 'lucide-react'
+import { Mail, ArrowLeft, AlertCircle } from 'lucide-react'
 import {
   StatusMessage,
   ResendButton,
@@ -16,6 +16,10 @@ import { resendVerificationEmail } from '@/lib/email-verification-ops'
 import { supabase } from '@/lib/supabase'
 
 const RESEND_COOLDOWN_SEC = 60
+
+/** Inline error styling for API/fetch errors during verification status check. */
+const errorBoxClasses =
+  'flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-small text-destructive animate-fade-in'
 
 const SUPABASE_CONFIGURED =
   typeof import.meta.env.VITE_SUPABASE_URL === 'string' &&
@@ -38,6 +42,7 @@ export function EmailVerificationPage() {
   const [status, setStatus] = useState<VerificationStatus>('pending')
   const [isResending, setIsResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
+  const [checkError, setCheckError] = useState<string | null>(null)
 
   useEffect(() => {
     document.title = 'Verify your email | Creator Ops Hub'
@@ -60,11 +65,12 @@ export function EmailVerificationPage() {
     return () => clearInterval(t)
   }, [resendCooldown])
 
-  const checkVerificationStatus = async () => {
+  const checkVerificationStatus = async (isManualCheck = false) => {
     if (!SUPABASE_CONFIGURED) {
       setStatus('pending')
       return
     }
+    setCheckError(null)
     setStatus('checking')
     try {
       const {
@@ -83,9 +89,16 @@ export function EmailVerificationPage() {
       } else {
         setStatus('pending')
         if (user?.email && !email) setEmail(user.email)
+        if (isManualCheck) {
+          toast.info('Not verified yet. Click the link in your email to verify.')
+        }
       }
-    } catch {
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to check verification status'
+      setCheckError(message)
       setStatus('pending')
+      toast.error(message)
     }
   }
 
@@ -142,13 +155,16 @@ export function EmailVerificationPage() {
         />
       </div>
 
-      <Card className="relative w-full max-w-md animate-fade-in shadow-card border-2 border-primary/10 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:shadow-lg hover:border-primary/20">
+      <Card className="relative w-full max-w-md animate-fade-in shadow-card border-2 border-primary/10 overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-50" />
         <CardHeader className="relative text-center space-y-4">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 text-primary shadow-sm">
-            <Mail className="h-7 w-7" aria-hidden />
+            <Mail className="h-5 w-5" aria-hidden />
           </div>
-          <CardTitle className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <CardTitle
+            as="h1"
+            className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+          >
             Verify your email
           </CardTitle>
           <CardDescription className="text-body">
@@ -156,6 +172,26 @@ export function EmailVerificationPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative space-y-6">
+          {checkError && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="space-y-2"
+            >
+              <div className={errorBoxClasses}>
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                <span>{checkError}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                onClick={() => checkVerificationStatus(true)}
+              >
+                Try again
+              </Button>
+            </div>
+          )}
           <StatusMessage status={status} email={email} />
 
           {status === 'pending' && (
@@ -172,7 +208,7 @@ export function EmailVerificationPage() {
               <Button
                 variant="outline"
                 className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                onClick={checkVerificationStatus}
+                onClick={() => checkVerificationStatus(true)}
               >
                 I&apos;ve verified — check again
               </Button>
