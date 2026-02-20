@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { History, RotateCcw, Save } from 'lucide-react'
+import { History, Loader2, RotateCcw, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
@@ -31,57 +31,94 @@ function formatVersionDate(iso: string): string {
   }
 }
 
-function EmptyStateSaveFirst() {
+interface EmptyStateProps {
+  onClose?: () => void
+}
+
+function EmptyStateSaveFirst({ onClose }: EmptyStateProps) {
   return (
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-muted bg-muted/20 p-8 text-center animate-fade-in min-h-[200px]"
+      className="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-border bg-muted/20 p-8 text-center animate-fade-in min-h-[200px]"
     >
-      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-border/80">
         <Save className="h-12 w-12 text-muted-foreground/70" aria-hidden />
       </div>
       <div className="space-y-2 max-w-[260px]">
-        <h3 className="text-base font-semibold text-foreground">
+        <h2 className="text-base font-semibold text-foreground">
           Save to enable version history
-        </h3>
+        </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Save your content first to create versions. Each save creates a new version you can restore later.
         </p>
       </div>
+      {onClose && (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onClose}
+          className="mt-2 gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
+          aria-label="Close version history"
+        >
+          Got it
+        </Button>
+      )}
     </div>
   )
 }
 
-function EmptyStateNoVersions() {
+function EmptyStateNoVersions({ onClose }: EmptyStateProps) {
   return (
     <div
       role="status"
       aria-live="polite"
-      className="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-muted bg-muted/20 p-8 text-center animate-fade-in min-h-[200px]"
+      className="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-border bg-muted/20 p-8 text-center animate-fade-in min-h-[200px]"
     >
-      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-border/80">
         <History className="h-12 w-12 text-muted-foreground/70" aria-hidden />
       </div>
       <div className="space-y-2 max-w-[260px]">
-        <h3 className="text-base font-semibold text-foreground">
+        <h2 className="text-base font-semibold text-foreground">
           No versions yet
-        </h3>
+        </h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           Versions are created automatically when you save. Save your content to create your first version.
         </p>
       </div>
+      {onClose && (
+        <Button
+          variant="default"
+          size="sm"
+          onClick={onClose}
+          className="mt-2 gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-md"
+          aria-label="Close version history"
+        >
+          Got it
+        </Button>
+      )}
     </div>
   )
 }
 
 function LoadingState() {
   return (
-    <div className="space-y-4" role="status" aria-live="polite" aria-label="Loading version history">
-      <p className="text-sm text-muted-foreground animate-pulse">Loading versions…</p>
+    <div
+      className="space-y-4"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading version history"
+    >
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden />
+        <p className="text-sm text-muted-foreground">Loading versions…</p>
+      </div>
       <div className="space-y-3">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-lg animate-pulse" />
+          <Skeleton
+            key={i}
+            className="h-20 w-full rounded-lg animate-pulse bg-muted/60"
+          />
         ))}
       </div>
     </div>
@@ -97,6 +134,7 @@ export function VersionHistorySheet({
   const [versions, setVersions] = useState<ContentEditorVersionRecord[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [restoringId, setRestoringId] = useState<string | null>(null)
 
   const fetchVersions = useCallback(async () => {
     if (!contentEditorId) {
@@ -123,19 +161,25 @@ export function VersionHistorySheet({
     }
   }, [open, contentEditorId, fetchVersions])
 
-  const handleRestore = (v: ContentEditorVersionRecord) => {
-    if (v.content_body && onRestore) {
+  const handleRestore = async (v: ContentEditorVersionRecord) => {
+    if (!v.content_body || !onRestore) return
+    setRestoringId(v.id)
+    try {
       onRestore(v.content_body)
       toast.success('Version restored', {
         description: `Version ${v.version_number} has been restored to the editor.`,
       })
       onOpenChange(false)
+    } finally {
+      setRestoringId(null)
     }
   }
 
+  const handleClose = () => onOpenChange(false)
+
   const renderContent = () => {
     if (!contentEditorId) {
-      return <EmptyStateSaveFirst />
+      return <EmptyStateSaveFirst onClose={handleClose} />
     }
     if (loading) {
       return <LoadingState />
@@ -152,31 +196,31 @@ export function VersionHistorySheet({
       )
     }
     if (versions.length === 0) {
-      return <EmptyStateNoVersions />
+      return <EmptyStateNoVersions onClose={handleClose} />
     }
     return (
       <section
         aria-labelledby="versions-list-heading"
         className="space-y-3"
       >
-        <h3
+        <h2
           id="versions-list-heading"
-          className="sr-only"
+          className="text-sm font-medium text-foreground"
         >
           Previous versions
-        </h3>
+        </h2>
         <ul className="space-y-2" role="list">
           {versions.map((v) => (
             <li
               key={v.id}
               className={cn(
-                'rounded-lg border p-4 transition-all duration-200',
-                'hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5'
+                'rounded-lg border border-border bg-card p-4 transition-all duration-200',
+                'hover:shadow-card-hover hover:border-primary/30 hover:-translate-y-0.5'
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-sm">
+                  <p className="font-medium text-sm text-foreground">
                     Version {v.version_number}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -193,13 +237,18 @@ export function VersionHistorySheet({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="shrink-0 gap-1.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+                  className="shrink-0 gap-1.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm disabled:opacity-50"
                   onClick={() => handleRestore(v)}
-                  disabled={!v.content_body}
+                  disabled={!v.content_body || restoringId !== null}
                   aria-label={`Restore version ${v.version_number}`}
+                  aria-busy={restoringId === v.id}
                 >
-                  <RotateCcw className="h-4 w-4" aria-hidden />
-                  Restore
+                  {restoringId === v.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : (
+                    <RotateCcw className="h-4 w-4" aria-hidden />
+                  )}
+                  {restoringId === v.id ? 'Restoring…' : 'Restore'}
                 </Button>
               </div>
             </li>
@@ -216,8 +265,12 @@ export function VersionHistorySheet({
         className="w-full sm:max-w-md flex flex-col"
         aria-describedby="version-history-description"
       >
-        <SheetHeader className="border-b pb-4">
-          <SheetTitle id="version-history-title" className="flex items-center gap-2">
+        <SheetHeader className="border-b border-border pb-4">
+          <SheetTitle
+            as="h1"
+            id="version-history-title"
+            className="flex items-center gap-2"
+          >
             <History className="h-5 w-5 text-primary" aria-hidden />
             Version history
           </SheetTitle>

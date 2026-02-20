@@ -87,8 +87,12 @@ const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   <div className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
 )
 
-const SheetTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h2 className={cn('text-lg font-semibold', className)} {...props} />
+interface SheetTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+}
+
+const SheetTitle = ({ as: Component = 'h2', className, ...props }: SheetTitleProps) => (
+  <Component className={cn('text-lg font-semibold', className)} {...props} />
 )
 
 const SheetClose = React.forwardRef<
