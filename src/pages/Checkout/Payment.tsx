@@ -209,6 +209,8 @@ export function PaymentPage() {
         <InvoiceHistoryLink
           transactions={transactions}
           isLoading={isLoading}
+          error={error}
+          onRetry={refetch}
         />
       </div>
 
