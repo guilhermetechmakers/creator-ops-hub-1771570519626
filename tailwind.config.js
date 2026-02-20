@@ -35,6 +35,11 @@ export default {
         success: 'rgb(var(--success))',
         warning: 'rgb(var(--warning))',
         destructive: 'rgb(var(--error))',
+        channel: {
+          instagram: 'rgb(var(--channel-instagram))',
+          x: 'rgb(var(--channel-x))',
+          youtube: 'rgb(var(--channel-youtube))',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

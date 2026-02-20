@@ -25,6 +25,10 @@
     --success: 16 185 129; /* Teal #10B981 */
     --error: 239 68 68; /* Red #EF4444 */
     --warning: 245 158 11; /* Amber #F59E0B */
+    /* Channel colors for calendar legend - design tokens */
+    --channel-instagram: 236 72 153; /* Pink-500 #EC4899 */
+    --channel-x: 17 24 39; /* Gray-900 #111827 */
+    --channel-youtube: 239 68 68; /* Red-500 #EF4444 */
     --radius: 0.5rem;
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
