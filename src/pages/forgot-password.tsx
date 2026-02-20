@@ -18,22 +18,26 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
+/** Shared inline error styling for validation and API errors. */
+const errorBoxClasses =
+  'flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-small text-destructive animate-fade-in'
+
 /** Renders inline error message with consistent styling and accessibility. */
 function FieldError({ id, message }: { id: string; message: string }) {
   return (
-    <p
+    <div
       id={id}
       role="alert"
       aria-live="polite"
-      className="flex items-center gap-1.5 text-small text-destructive animate-fade-in"
+      className={errorBoxClasses}
     >
-      <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+      <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
       <span>{message}</span>
-    </p>
+    </div>
   )
 }
 
-/** Reserves space to prevent layout shift when validation errors appear. */
+/** Reserves space and displays validation error with consistent styling. */
 function FieldErrorSlot({
   id,
   error,
@@ -41,9 +45,10 @@ function FieldErrorSlot({
   id: string
   error?: { message?: string }
 }) {
+  if (!error?.message) return <div className="min-h-0 mt-0" aria-hidden />
   return (
-    <div className="min-h-[1.5rem] mt-1" aria-live="polite" aria-atomic="true">
-      {error?.message ? <FieldError id={id} message={error.message} /> : null}
+    <div className="mt-2" aria-live="polite" aria-atomic="true">
+      <FieldError id={id} message={error.message} />
     </div>
   )
 }
@@ -129,7 +134,7 @@ export function ForgotPasswordPage() {
                 <CheckCircle2 className="h-10 w-10 text-success" aria-hidden />
               </div>
             </div>
-            <CardTitle className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <CardTitle as="h1" className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Check your email
             </CardTitle>
             <CardDescription className="text-body">
@@ -193,7 +198,7 @@ export function ForgotPasswordPage() {
               <Mail className="h-10 w-10 text-primary" aria-hidden />
             </div>
           </div>
-          <CardTitle className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <CardTitle as="h1" id="forgot-password-heading" className="text-h2 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Forgot password
           </CardTitle>
           <CardDescription className="text-body">
@@ -201,21 +206,30 @@ export function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
+          {isSubmitting && (
+            <div
+              role="status"
+              aria-live="polite"
+              aria-label="Sending reset link"
+              className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-b-xl bg-background/80 backdrop-blur-[2px] animate-fade-in"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+                <p className="text-small font-medium text-muted-foreground">Sending reset link...</p>
+              </div>
+            </div>
+          )}
           <form
             onSubmit={handleFormSubmit}
             className="space-y-4"
-            aria-labelledby="forgot-form-heading"
+            aria-labelledby="forgot-password-heading"
             noValidate
           >
-            <h2 id="forgot-form-heading" className="sr-only">
-              Request password reset link
-            </h2>
-
             {apiError && (
               <div
                 role="alert"
                 aria-live="assertive"
-                className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-small text-destructive animate-fade-in"
+                className={errorBoxClasses}
               >
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
                 <span>{apiError}</span>
