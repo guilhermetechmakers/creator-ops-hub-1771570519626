@@ -37,6 +37,13 @@ export function PaymentPage() {
 
   useEffect(() => {
     document.title = 'Checkout & Payment | Creator Ops Hub'
+    const metaDesc = document.querySelector('meta[name="description"]')
+    if (metaDesc) {
+      metaDesc.setAttribute(
+        'content',
+        'Upgrade plans, enter payment details, and view invoices. Manage your subscription billing.'
+      )
+    }
     return () => {
       document.title = 'Creator Ops Hub'
     }
@@ -120,7 +127,7 @@ export function PaymentPage() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl">
+    <div className="space-y-8 max-w-6xl animate-fade-in" role="main">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <div>

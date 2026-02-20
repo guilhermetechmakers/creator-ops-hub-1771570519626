@@ -110,20 +110,25 @@ export function InvoiceHistoryLink({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {tx.invoice_url && (
+                        {tx.invoice_url ? (
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
                             className="h-8 px-2"
                           >
-                            <Link
-                              to={tx.invoice_url}
+                            <a
+                              href={tx.invoice_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="text-primary hover:text-primary/80"
+                              aria-label={`View invoice for ${tx.description}`}
                             >
                               View
-                            </Link>
+                            </a>
                           </Button>
+                        ) : (
+                          <span className="text-muted-foreground text-small">—</span>
                         )}
                       </TableCell>
                     </TableRow>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CreditCard, Users, BarChart3, ChevronRight, ExternalLink, Loader2 } from 'lucide-react'
+import { CreditCard, Users, BarChart3, ChevronRight, ExternalLink, Loader2, Receipt } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -149,6 +149,20 @@ export function WorkspaceBilling({
             Usage this period: {usagePercent}% of plan capacity
           </span>
         </div>
+
+        {/* Transaction history link */}
+        <Button
+          variant="ghost"
+          size="sm"
+          asChild
+          className="w-full justify-start text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Link to="/dashboard/order-transaction-history">
+            <Receipt className="h-4 w-4 mr-2" />
+            View transaction history
+            <ChevronRight className="h-4 w-4 ml-auto" />
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   )

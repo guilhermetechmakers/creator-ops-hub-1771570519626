@@ -147,6 +147,13 @@ export function OrderTransactionHistoryPage() {
 
   useEffect(() => {
     document.title = 'Order & Transaction History | Creator Ops Hub'
+    const metaDesc = document.querySelector('meta[name="description"]')
+    if (metaDesc) {
+      metaDesc.setAttribute(
+        'content',
+        'View invoices, subscription activity, and payment methods. Export and audit your billing history.'
+      )
+    }
     return () => {
       document.title = 'Creator Ops Hub'
     }
