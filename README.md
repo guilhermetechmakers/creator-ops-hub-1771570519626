@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# Creator Ops Hub
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An integrated workspace for creators, personal brands, and small content teams to centralize assets, planning, research, and AI-driven execution.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Landing Page** – Hero, feature highlights, CTA
+- **Auth** – Login, Signup, Forgot Password, Email Verification
+- **Dashboard** – Single-pane operational view with widgets
+- **File Library** – Asset management with search and grid/list views
+- **Content Studio** – Content list with status and channel filters
+- **Research Hub** – OpenClaw research with confidence scores
+- **Editorial Calendar** – Month view with channel color-coding
+- **Integrations** – Connected services management
+- **Analytics** – Impressions and engagement charts (Recharts)
+- **Settings** – Account, workspace, security
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- React 18+ with TypeScript
+- Vite with path aliases (`@/`)
+- Tailwind CSS v3 with design system (Deep Indigo, Coral)
+- React Router 6
+- Sonner (toasts), Recharts, React Hook Form + Zod
+- Lucide React icons
 
-## Expanding the ESLint configuration
+## Commands
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run build
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Routes
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Path | Page |
+|------|------|
+| `/` | Landing |
+| `/login` | Login |
+| `/signup` | Signup |
+| `/forgot-password` | Password reset |
+| `/verify-email` | Email verification |
+| `/dashboard` | Dashboard home |
+| `/dashboard/library` | File Library |
+| `/dashboard/studio` | Content Studio |
+| `/dashboard/research` | Research Hub |
+| `/dashboard/calendar` | Editorial Calendar |
+| `/dashboard/integrations` | Integrations |
+| `/dashboard/analytics` | Analytics |
+| `/dashboard/settings` | Settings |
+| `/privacy` | Privacy Policy |
+| `/terms` | Terms of Service |
