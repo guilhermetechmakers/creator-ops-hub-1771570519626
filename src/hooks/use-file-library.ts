@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import type { FileLibrary } from '@/types/file-library'
+import { listFileFolders } from '@/lib/file-library-ops'
+import type { FileLibrary, FileFolder } from '@/types/file-library'
 import type { FileLibraryFilters } from '@/types/file-library'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
@@ -56,6 +57,13 @@ export function useFileLibrary(
       }
       if (filters.status) {
         query = query.eq('status', filters.status)
+      }
+      if (filters.folderId !== undefined) {
+        if (filters.folderId === '' || filters.folderId === 'uncategorized') {
+          query = query.is('folder_id', null)
+        } else {
+          query = query.eq('folder_id', filters.folderId)
+        }
       }
 
       const { data, error: err } = await query
@@ -113,6 +121,7 @@ export function useFileLibrary(
     filters.tags?.join(','),
     filters.fileType,
     filters.usage,
+    filters.folderId,
     filters.dateFrom,
     filters.dateTo,
     filters.dateRange,
@@ -144,4 +153,31 @@ export function highlightSearchText(text: string, search: string): string {
   const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const regex = new RegExp(`(${escaped})`, 'gi')
   return text.replace(regex, '<mark class="bg-primary/20 text-primary rounded px-0.5">$1</mark>')
+}
+
+export function useFileFolders(): {
+  folders: FileFolder[]
+  loading: boolean
+  refetch: () => Promise<void>
+} {
+  const [folders, setFolders] = useState<FileFolder[]>([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchFolders = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await listFileFolders()
+      setFolders(data)
+    } catch {
+      setFolders([])
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchFolders()
+  }, [fetchFolders])
+
+  return { folders, loading, refetch: fetchFolders }
 }

@@ -40,13 +40,20 @@ export interface SearchFiltersProps {
   filters: FileLibraryFilters
   onFiltersChange: (filters: FileLibraryFilters) => void
   availableTags?: string[]
+  folders?: { id: string; name: string }[]
   className?: string
 }
+
+const FOLDER_OPTIONS_START = [
+  { value: 'all', label: 'All folders' },
+  { value: 'uncategorized', label: 'Uncategorized' },
+]
 
 export function SearchFilters({
   filters,
   onFiltersChange,
   availableTags = [],
+  folders = [],
   className,
 }: SearchFiltersProps) {
   const [filtersExpanded, setFiltersExpanded] = useState(true)
@@ -162,10 +169,24 @@ export function SearchFilters({
     })
   }
 
+  const folderOptions = [
+    ...FOLDER_OPTIONS_START,
+    ...folders.map((f) => ({ value: f.id, label: f.name })),
+  ]
+
+  const handleFolderChange = (value: string) => {
+    onFiltersChange({
+      ...filters,
+      folderId: value === 'all' ? undefined : value === 'uncategorized' ? 'uncategorized' : value,
+      page: 1,
+    })
+  }
+
   const activeFilterCount =
     (filters.fileType ? 1 : 0) +
     (filters.dateRange && filters.dateRange !== 'all' ? 1 : 0) +
     (filters.usage ? 1 : 0) +
+    (filters.folderId ? 1 : 0) +
     (filters.tags?.length ?? 0)
 
   return (
@@ -201,7 +222,19 @@ export function SearchFilters({
 
       {filtersExpanded && (
         <div className="rounded-lg border bg-card p-4 transition-all duration-200 animate-slide-up">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="space-y-2">
+              <Label htmlFor="filter-folder" className="text-micro font-medium">
+                Folder
+              </Label>
+              <Select
+                id="filter-folder"
+                options={folderOptions}
+                value={filters.folderId ?? 'all'}
+                onChange={(e) => handleFolderChange(e.target.value)}
+                aria-label="Filter by folder"
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="filter-file-type" className="text-micro font-medium">
                 File type

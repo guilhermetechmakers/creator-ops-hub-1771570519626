@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { FileLibrary } from '@/types/file-library'
+import type { FileLibrary, FileFolder } from '@/types/file-library'
 
 const STORAGE_BUCKET = 'file-library'
 
@@ -132,6 +132,50 @@ export async function bulkTagFileLibrary(
       .eq('id', row.id)
       .eq('user_id', session.user.id)
   }
+}
+
+export async function listFileFolders(): Promise<FileFolder[]> {
+  const session = await getSession()
+  const { data, error } = await supabase
+    .from('file_folders')
+    .select('*')
+    .eq('user_id', session.user.id)
+    .order('name')
+  if (error) throw error
+  return (data ?? []) as FileFolder[]
+}
+
+export async function createFileFolder(name: string): Promise<FileFolder> {
+  const session = await getSession()
+  const trimmed = name.trim()
+  if (!trimmed) throw new Error('Folder name is required')
+  const { data, error } = await supabase
+    .from('file_folders')
+    .insert({
+      user_id: session.user.id,
+      name: trimmed,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return data as FileFolder
+}
+
+export async function bulkMoveToFolder(
+  ids: string[],
+  folderId: string | null
+): Promise<void> {
+  const session = await getSession()
+  if (ids.length === 0) return
+  const { error } = await supabase
+    .from('file_library')
+    .update({
+      folder_id: folderId,
+      updated_at: new Date().toISOString(),
+    })
+    .in('id', ids)
+    .eq('user_id', session.user.id)
+  if (error) throw error
 }
 
 export async function getSignedUrl(storagePath: string): Promise<string> {

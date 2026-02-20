@@ -5,6 +5,7 @@ import {
   FolderInput,
   Download,
   MoreHorizontal,
+  FolderPlus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,15 +27,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import type { FileFolder } from '@/types/file-library'
 
 export interface BulkActionsProps {
   selectedCount: number
   onDelete?: () => void
   onTag?: (tags: string[]) => void
-  onMoveToFolder?: (folderId: string) => void
+  onMoveToFolder?: (folderId: string | null) => void
   onExport?: () => void
+  folders?: FileFolder[]
+  onCreateFolder?: (name: string) => Promise<FileFolder>
   isDeleting?: boolean
   isTagging?: boolean
+  isMoving?: boolean
   isExporting?: boolean
   className?: string
 }
@@ -45,14 +50,21 @@ export function BulkActions({
   onTag,
   onMoveToFolder,
   onExport,
+  folders = [],
+  onCreateFolder,
   isDeleting = false,
   isTagging = false,
+  isMoving = false,
   isExporting = false,
   className,
 }: BulkActionsProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [tagOpen, setTagOpen] = useState(false)
   const [tagInput, setTagInput] = useState('')
+  const [moveOpen, setMoveOpen] = useState(false)
+  const [moveFolderId, setMoveFolderId] = useState<string | 'uncategorized' | null>(null)
+  const [newFolderName, setNewFolderName] = useState('')
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false)
 
   const handleDeleteClick = () => {
     setDeleteOpen(true)
@@ -79,6 +91,32 @@ export function BulkActions({
     }
   }
 
+  const handleMoveClick = () => {
+    setMoveOpen(true)
+    setMoveFolderId(null)
+    setNewFolderName('')
+  }
+
+  const confirmMove = () => {
+    if (newFolderName.trim() && onCreateFolder) {
+      setIsCreatingFolder(true)
+      onCreateFolder(newFolderName.trim())
+        .then((folder) => {
+          onMoveToFolder?.(folder.id)
+          setMoveOpen(false)
+          setNewFolderName('')
+        })
+        .finally(() => setIsCreatingFolder(false))
+    } else {
+      const folderId = moveFolderId === 'uncategorized' ? null : moveFolderId
+      onMoveToFolder?.(folderId)
+      setMoveOpen(false)
+    }
+  }
+
+  const canConfirmMove =
+    moveFolderId !== null || (newFolderName.trim().length > 0 && !!onCreateFolder)
+
   if (selectedCount === 0) return null
 
   return (
@@ -97,7 +135,7 @@ export function BulkActions({
             <Button
               variant="outline"
               size="sm"
-              disabled={isDeleting || isTagging || isExporting}
+              disabled={isDeleting || isTagging || isMoving || isExporting}
               className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               <MoreHorizontal className="h-4 w-4 mr-1" />
@@ -105,9 +143,11 @@ export function BulkActions({
                 ? 'Deleting...'
                 : isTagging
                   ? 'Tagging...'
-                  : isExporting
-                    ? 'Exporting...'
-                    : 'Bulk actions'}
+                  : isMoving
+                    ? 'Moving...'
+                    : isExporting
+                      ? 'Exporting...'
+                      : 'Bulk actions'}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-[200px]">
@@ -118,13 +158,9 @@ export function BulkActions({
               </DropdownMenuItem>
             )}
             {onMoveToFolder && (
-              <DropdownMenuItem
-                onClick={() => onMoveToFolder('')}
-                className="opacity-50 cursor-not-allowed"
-                disabled
-              >
+              <DropdownMenuItem onClick={handleMoveClick}>
                 <FolderInput className="h-4 w-4 mr-2" />
-                Move to folder (coming soon)
+                Move to folder
               </DropdownMenuItem>
             )}
             {onExport && (
@@ -205,6 +241,109 @@ export function BulkActions({
               disabled={isTagging || !tagInput.trim()}
             >
               {isTagging ? 'Adding...' : 'Add tags'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={moveOpen} onOpenChange={setMoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Move to folder</AlertDialogTitle>
+            <AlertDialogDescription>
+              Choose a folder for {selectedCount} selected asset(s), or create a
+              new folder.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-small">Select folder</Label>
+              <div className="flex flex-col gap-2 max-h-40 overflow-y-auto rounded-lg border p-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMoveFolderId('uncategorized')
+                    setNewFolderName('')
+                  }}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-3 py-2 text-left text-small transition-all duration-200 hover:bg-muted',
+                    moveFolderId === 'uncategorized' && 'bg-primary/10 text-primary'
+                  )}
+                >
+                  <FolderInput className="h-4 w-4 shrink-0" />
+                  Uncategorized
+                </button>
+                {folders.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => {
+                      setMoveFolderId(f.id)
+                      setNewFolderName('')
+                    }}
+                    className={cn(
+                      'flex items-center gap-2 rounded-md px-3 py-2 text-left text-small transition-all duration-200 hover:bg-muted',
+                      moveFolderId === f.id && 'bg-primary/10 text-primary'
+                    )}
+                  >
+                    <FolderInput className="h-4 w-4 shrink-0" />
+                    {f.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {onCreateFolder && (
+              <div className="space-y-2">
+                <Label htmlFor="new-folder-name" className="text-small">
+                  Or create new folder
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="new-folder-name"
+                    placeholder="Folder name"
+                    value={newFolderName}
+                    onChange={(e) => {
+                      setNewFolderName(e.target.value)
+                      setMoveFolderId(null)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        confirmMove()
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (newFolderName.trim()) {
+                        setIsCreatingFolder(true)
+                        onCreateFolder(newFolderName.trim())
+                          .then((folder) => {
+                            setMoveFolderId(folder.id)
+                            setNewFolderName('')
+                          })
+                          .finally(() => setIsCreatingFolder(false))
+                      }
+                    }}
+                    disabled={!newFolderName.trim() || isCreatingFolder}
+                  >
+                    <FolderPlus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isMoving || isCreatingFolder}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmMove}
+              disabled={isMoving || isCreatingFolder || !canConfirmMove}
+            >
+              {isMoving || isCreatingFolder ? 'Moving...' : 'Move'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -35,6 +35,7 @@ export interface AssetDetailPanelProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onInsertIntoEditor?: (item: FileLibrary) => void
+  folderName?: string | null
   className?: string
 }
 
@@ -43,6 +44,7 @@ export function AssetDetailPanel({
   open,
   onOpenChange,
   onInsertIntoEditor,
+  folderName,
   className,
 }: AssetDetailPanelProps) {
   const [shareLink, setShareLink] = useState<string | null>(null)
@@ -132,6 +134,10 @@ export function AssetDetailPanel({
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Version</dt>
                 <dd>v{item.version ?? 1}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Folder</dt>
+                <dd>{folderName ?? (item.folder_id ? '—' : 'Uncategorized')}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Created</dt>

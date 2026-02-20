@@ -29,6 +29,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/file-library" element={<Navigate to="/dashboard/file-library" replace />} />
           <Route path="/login" element={<Navigate to="/login-/-signup?mode=login" replace />} />
           <Route path="/signup" element={<Navigate to="/login-/-signup?mode=signup" replace />} />
           <Route path="/login-/-signup" element={<LoginSignupPage />} />

@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useFileLibrary } from '@/hooks/use-file-library'
+import { useFileLibrary, useFileFolders } from '@/hooks/use-file-library'
 import {
   createFileLibrary,
   bulkDeleteFileLibrary,
   bulkTagFileLibrary,
+  bulkMoveToFolder,
+  createFileFolder,
   uploadFile,
   exportFileLibrary,
 } from '@/lib/file-library-ops'
@@ -32,10 +34,12 @@ export function FileLibraryPage() {
   const [detailOpen, setDetailOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isTagging, setIsTagging] = useState(false)
+  const [isMoving, setIsMoving] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
   const { items, loading, error, refetch, totalCount, page, totalPages } =
     useFileLibrary(filters)
+  const { folders, refetch: refetchFolders } = useFileFolders()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
 
@@ -108,6 +112,36 @@ export function FileLibraryPage() {
     [selectedItems, refetch]
   )
 
+  const handleBulkMoveToFolder = useCallback(
+    async (folderId: string | null) => {
+      if (selectedItems.length === 0) return
+      setIsMoving(true)
+      try {
+        await bulkMoveToFolder(selectedItems.map((i) => i.id), folderId)
+        toast.success(
+          `${selectedItems.length} asset(s) moved to ${folderId ? 'folder' : 'Uncategorized'}`
+        )
+        setSelectedIds(new Set())
+        refetch()
+        refetchFolders()
+      } catch (e) {
+        toast.error((e as Error).message)
+      } finally {
+        setIsMoving(false)
+      }
+    },
+    [selectedItems, refetch, refetchFolders]
+  )
+
+  const handleCreateFolder = useCallback(
+    async (name: string) => {
+      const folder = await createFileFolder(name)
+      await refetchFolders()
+      return folder
+    },
+    [refetchFolders]
+  )
+
   const handleExport = useCallback(async () => {
     if (selectedItems.length === 0) return
     setIsExporting(true)
@@ -172,6 +206,7 @@ export function FileLibraryPage() {
         filters={filters}
         onFiltersChange={setFilters}
         availableTags={allTags}
+        folders={folders}
       />
 
       <UploadArea
@@ -185,9 +220,13 @@ export function FileLibraryPage() {
             selectedCount={selectedIds.size}
             onDelete={selectedIds.size > 0 ? handleBulkDelete : undefined}
             onTag={selectedIds.size > 0 ? handleBulkTag : undefined}
+            onMoveToFolder={selectedIds.size > 0 ? handleBulkMoveToFolder : undefined}
             onExport={selectedIds.size > 0 ? handleExport : undefined}
+            folders={folders}
+            onCreateFolder={handleCreateFolder}
             isDeleting={isDeleting}
             isTagging={isTagging}
+            isMoving={isMoving}
             isExporting={isExporting}
           />
 
@@ -230,6 +269,11 @@ export function FileLibraryPage() {
             open={detailOpen}
             onOpenChange={setDetailOpen}
             onInsertIntoEditor={handleInsertIntoEditor}
+            folderName={
+              detailItem?.folder_id
+                ? folders.find((f) => f.id === detailItem.folder_id)?.name ?? null
+                : null
+            }
           />
         </div>
 
