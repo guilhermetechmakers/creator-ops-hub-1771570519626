@@ -15,28 +15,41 @@ const SEO_META = {
 
 export function HelpAndAboutContent() {
   return (
-    <>
-      <section className="animate-fade-in" aria-label="Searchable documentation">
+    <div className="space-y-8">
+      <section
+        className="animate-fade-in"
+        style={{ animationDelay: '0ms', animationFillMode: 'both' }}
+        aria-label="Searchable documentation"
+      >
         <SearchableDocs />
       </section>
 
       <section
         id="contact"
         className="grid gap-6 lg:grid-cols-2 animate-fade-in"
+        style={{ animationDelay: '100ms', animationFillMode: 'both' }}
         aria-label="FAQ and contact"
       >
         <FAQ />
         <ContactForm />
       </section>
 
-      <section className="animate-fade-in" aria-label="Changelog">
+      <section
+        className="animate-fade-in"
+        style={{ animationDelay: '200ms', animationFillMode: 'both' }}
+        aria-label="Changelog"
+      >
         <Changelog />
       </section>
 
-      <section className="animate-fade-in" aria-label="Community links">
+      <section
+        className="animate-fade-in"
+        style={{ animationDelay: '300ms', animationFillMode: 'both' }}
+        aria-label="Community links"
+      >
         <CommunityLinks />
       </section>
-    </>
+    </div>
   )
 }
 

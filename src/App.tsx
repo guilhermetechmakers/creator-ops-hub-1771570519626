@@ -76,6 +76,7 @@ function App() {
             <Route path="order-transaction-history" element={<OrderTransactionHistoryPage />} />
           </Route>
           <Route path="/help-and-about" element={<HelpAndAboutStandalonePage />} />
+          <Route path="/help-&-about" element={<HelpAndAboutStandalonePage />} />
           <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/cookie-policy" element={<CookiePolicyPage />} />
