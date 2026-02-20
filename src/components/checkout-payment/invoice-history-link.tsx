@@ -27,39 +27,12 @@ const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'destructive' | 
   refunded: 'outline',
 }
 
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: '1',
-    date: '2025-02-15',
-    description: 'Pro Plan - Monthly',
-    amount: 29,
-    status: 'succeeded',
-    invoice_url: '#',
-  },
-  {
-    id: '2',
-    date: '2025-01-15',
-    description: 'Pro Plan - Monthly',
-    amount: 29,
-    status: 'succeeded',
-    invoice_url: '#',
-  },
-  {
-    id: '3',
-    date: '2024-12-15',
-    description: 'Free to Pro upgrade',
-    amount: 29,
-    status: 'succeeded',
-    invoice_url: '#',
-  },
-]
-
 export function InvoiceHistoryLink({
-  transactions = MOCK_TRANSACTIONS,
+  transactions = [],
   isLoading = false,
   maxItems = 5,
 }: InvoiceHistoryLinkProps) {
-  const items = transactions.slice(0, maxItems)
+  const items = (transactions ?? []).slice(0, maxItems)
 
   return (
     <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">

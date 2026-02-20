@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { PlanSelector } from '@/components/checkout-payment/plan-selector'
 import { PaymentForm } from '@/components/checkout-payment/payment-form'
 import { ReviewConfirm } from '@/components/checkout-payment/review-confirm'
@@ -13,7 +23,17 @@ import type { PlanTier } from '@/types/checkout'
 
 export function PaymentPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const { currentPlanId, tiers, transactions, isLoading, error, refetch } = useStripeCheckout()
+
+  const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null)
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
+
+  const isPaymentInProgress =
+    (selectedPlan != null && selectedPlan.id !== 'free') || isSubmitting
 
   useEffect(() => {
     document.title = 'Checkout & Payment | Creator Ops Hub'
@@ -30,9 +50,14 @@ export function PaymentPage() {
     }
   }, [searchParams, refetch])
 
-  const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null)
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  useEffect(() => {
+    if (!isPaymentInProgress) return
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isPaymentInProgress])
 
   const handleSelectPlan = (tier: PlanTier) => {
     setSelectedPlan(tier)
@@ -72,6 +97,28 @@ export function PaymentPage() {
   const tax = Math.round(subtotal * 0.09 * 100) / 100
   const total = subtotal + tax
 
+  const handleBackClick = () => {
+    if (isPaymentInProgress) {
+      setPendingNavigation('/dashboard/settings')
+      setShowLeaveConfirm(true)
+    } else {
+      navigate('/dashboard/settings')
+    }
+  }
+
+  const handleConfirmLeave = () => {
+    if (pendingNavigation) {
+      navigate(pendingNavigation)
+      setPendingNavigation(null)
+    }
+    setShowLeaveConfirm(false)
+  }
+
+  const handleCancelLeave = () => {
+    setShowLeaveConfirm(false)
+    setPendingNavigation(null)
+  }
+
   return (
     <div className="space-y-8 max-w-6xl">
       {/* Header */}
@@ -80,13 +127,11 @@ export function PaymentPage() {
           <Button
             variant="ghost"
             size="sm"
-            asChild
+            onClick={handleBackClick}
             className="mb-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
-            <Link to="/dashboard/settings">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Back to Settings
-            </Link>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Settings
           </Button>
           <h1 className="text-h1 font-bold flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             <CreditCard className="h-8 w-8 text-primary" />
@@ -159,6 +204,24 @@ export function PaymentPage() {
           isLoading={isLoading}
         />
       </div>
+
+      {/* Leave confirmation dialog */}
+      <AlertDialog open={showLeaveConfirm} onOpenChange={(open) => !open && handleCancelLeave()}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Leave checkout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have selected a plan and your progress may be lost. Are you sure you want to leave this page?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelLeave}>Stay</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLeave} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

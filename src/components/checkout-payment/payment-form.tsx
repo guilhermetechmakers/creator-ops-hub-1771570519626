@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CreditCard, MapPin, Tag, Lock } from 'lucide-react'
+import { AlertCircle, CreditCard, MapPin, Tag, Lock } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,15 +10,15 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const billingSchema = z.object({
-  cardNumber: z.string().max(19).optional(),
+  cardNumber: z.string().max(19, 'Card number must be 19 digits or less').optional(),
   expiry: z.string().refine((v) => !v || /^\d{2}\/\d{2}$/.test(v), 'Use MM/YY format').optional(),
-  cvc: z.string().max(4).optional(),
-  fullName: z.string().max(100).optional(),
+  cvc: z.string().max(4, 'CVC must be 4 digits or less').optional(),
+  fullName: z.string().max(100, 'Name must be 100 characters or less').optional(),
   email: z.string().refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), 'Valid email required').optional(),
-  address: z.string().max(200).optional(),
-  city: z.string().max(100).optional(),
-  state: z.string().max(50).optional(),
-  zip: z.string().max(20).optional(),
+  address: z.string().max(200, 'Address must be 200 characters or less').optional(),
+  city: z.string().max(100, 'City must be 100 characters or less').optional(),
+  state: z.string().max(50, 'State must be 50 characters or less').optional(),
+  zip: z.string().max(20, 'ZIP must be 20 characters or less').optional(),
 })
 
 type BillingFormData = z.infer<typeof billingSchema>
@@ -78,9 +78,33 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Form-level error summary */}
+        {Object.keys(errors).length > 0 && (
+          <div
+            role="alert"
+            className="flex items-start gap-3 rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" aria-hidden />
+            <div className="space-y-1">
+              <p className="font-medium text-small">Please fix the following errors:</p>
+              <ul className="list-disc list-inside text-micro space-y-0.5">
+                {Object.entries(errors)
+                  .filter(([, err]) => err?.message)
+                  .map(([field, err]) => (
+                    <li key={field} id={`${field}-error-summary`}>
+                      {err!.message}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* Card entry - Stripe Elements style container */}
-        <div className="space-y-4">
-          <Label htmlFor="card-element">Card information</Label>
+        <div className="space-y-4" role="group" aria-labelledby="card-info-label">
+          <Label id="card-info-label" className="text-base font-medium">
+            Card information
+          </Label>
           <div
             id="card-element"
             className={cn(
@@ -90,7 +114,11 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
             )}
           >
             <div className="space-y-2">
+              <Label htmlFor="card-number" className="sr-only">
+                Card number
+              </Label>
               <Input
+                id="card-number"
                 {...register('cardNumber')}
                 placeholder="1234 5678 9012 3456"
                 className={cn(
@@ -100,14 +128,21 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 maxLength={19}
                 aria-label="Card number"
                 aria-invalid={!!errors.cardNumber}
+                aria-describedby={errors.cardNumber ? 'cardNumber-error' : undefined}
               />
               {errors.cardNumber && (
-                <p className="text-micro text-destructive">{errors.cardNumber.message}</p>
+                <p id="cardNumber-error" className="text-micro text-destructive" role="alert">
+                  {errors.cardNumber.message}
+                </p>
               )}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
+                <Label htmlFor="expiry-date" className="sr-only">
+                  Expiry date (MM/YY)
+                </Label>
                 <Input
+                  id="expiry-date"
                   {...register('expiry')}
                   placeholder="MM/YY"
                   className={cn(
@@ -115,15 +150,22 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                     errors.expiry && 'border-destructive focus-visible:ring-destructive animate-shake'
                   )}
                   maxLength={5}
-                  aria-label="Expiry date"
+                  aria-label="Expiry date (MM/YY)"
                   aria-invalid={!!errors.expiry}
+                  aria-describedby={errors.expiry ? 'expiry-error' : undefined}
                 />
                 {errors.expiry && (
-                  <p className="text-micro text-destructive">{errors.expiry.message}</p>
+                  <p id="expiry-error" className="text-micro text-destructive" role="alert">
+                    {errors.expiry.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
+                <Label htmlFor="cvc" className="sr-only">
+                  CVC
+                </Label>
                 <Input
+                  id="cvc"
                   {...register('cvc')}
                   placeholder="CVC"
                   type="password"
@@ -132,11 +174,14 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                     errors.cvc && 'border-destructive focus-visible:ring-destructive animate-shake'
                   )}
                   maxLength={4}
-                  aria-label="CVC"
+                  aria-label="CVC security code"
                   aria-invalid={!!errors.cvc}
+                  aria-describedby={errors.cvc ? 'cvc-error' : undefined}
                 />
                 {errors.cvc && (
-                  <p className="text-micro text-destructive">{errors.cvc.message}</p>
+                  <p id="cvc-error" className="text-micro text-destructive" role="alert">
+                    {errors.cvc.message}
+                  </p>
                 )}
               </div>
             </div>
@@ -160,12 +205,14 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 id="billing-name"
                 {...register('fullName')}
                 placeholder="John Doe"
-                className={cn(errors.fullName && 'border-destructive')}
-                aria-label="Full name"
+                className={cn(errors.fullName && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.fullName}
+                aria-describedby={errors.fullName ? 'fullName-error' : undefined}
               />
               {errors.fullName && (
-                <p className="text-micro text-destructive">{errors.fullName.message}</p>
+                <p id="fullName-error" className="text-micro text-destructive" role="alert">
+                  {errors.fullName.message}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -175,12 +222,14 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 type="email"
                 {...register('email')}
                 placeholder="john@example.com"
-                className={cn(errors.email && 'border-destructive')}
-                aria-label="Billing email"
+                className={cn(errors.email && 'border-destructive focus-visible:ring-destructive animate-shake')}
                 aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
               />
               {errors.email && (
-                <p className="text-micro text-destructive">{errors.email.message}</p>
+                <p id="email-error" className="text-micro text-destructive" role="alert">
+                  {errors.email.message}
+                </p>
               )}
             </div>
           </div>
@@ -190,8 +239,15 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
               id="billing-address"
               {...register('address')}
               placeholder="123 Main St, Apt 4"
-              aria-label="Street address"
+              aria-describedby={errors.address ? 'address-error' : undefined}
+              className={cn(errors.address && 'border-destructive focus-visible:ring-destructive animate-shake')}
+              aria-invalid={!!errors.address}
             />
+            {errors.address && (
+              <p id="address-error" className="text-micro text-destructive" role="alert">
+                {errors.address.message}
+              </p>
+            )}
           </div>
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
@@ -200,8 +256,15 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 id="billing-city"
                 {...register('city')}
                 placeholder="San Francisco"
-                aria-label="City"
+                aria-describedby={errors.city ? 'city-error' : undefined}
+                className={cn(errors.city && 'border-destructive focus-visible:ring-destructive animate-shake')}
+                aria-invalid={!!errors.city}
               />
+              {errors.city && (
+                <p id="city-error" className="text-micro text-destructive" role="alert">
+                  {errors.city.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="billing-state">State</Label>
@@ -209,8 +272,15 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 id="billing-state"
                 {...register('state')}
                 placeholder="CA"
-                aria-label="State"
+                aria-describedby={errors.state ? 'state-error' : undefined}
+                className={cn(errors.state && 'border-destructive focus-visible:ring-destructive animate-shake')}
+                aria-invalid={!!errors.state}
               />
+              {errors.state && (
+                <p id="state-error" className="text-micro text-destructive" role="alert">
+                  {errors.state.message}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="billing-zip">ZIP code</Label>
@@ -218,20 +288,28 @@ export function PaymentForm({ onPromoApply, isLoading = false }: PaymentFormProp
                 id="billing-zip"
                 {...register('zip')}
                 placeholder="94102"
-                aria-label="ZIP code"
+                aria-describedby={errors.zip ? 'zip-error' : undefined}
+                className={cn(errors.zip && 'border-destructive focus-visible:ring-destructive animate-shake')}
+                aria-invalid={!!errors.zip}
               />
+              {errors.zip && (
+                <p id="zip-error" className="text-micro text-destructive" role="alert">
+                  {errors.zip.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         {/* Promo code */}
         <div className="space-y-2">
-          <Label className="flex items-center gap-2">
+          <Label htmlFor="promo-code" className="flex items-center gap-2">
             <Tag className="h-4 w-4" />
             Promo code
           </Label>
           <div className="flex gap-2">
             <Input
+              id="promo-code"
               placeholder="Enter promo code"
               value={promoCode}
               onChange={(e) => {
