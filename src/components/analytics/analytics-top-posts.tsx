@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   Table,
   TableBody,
@@ -7,8 +8,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { TrendingUp } from 'lucide-react'
+import { FileText, TrendingUp } from 'lucide-react'
 import type { TopPost } from '@/types/analytics'
 import { cn } from '@/lib/utils'
 
@@ -58,9 +60,15 @@ export function AnalyticsTopPosts({ topPosts, isLoading }: AnalyticsTopPostsProp
               <TrendingUp className="h-8 w-8 text-muted-foreground" />
             </div>
             <p className="font-medium text-muted-foreground">No content data yet</p>
-            <p className="text-small text-muted-foreground mt-1">
+            <p className="text-small text-muted-foreground mt-1 max-w-[280px]">
               Publish content to see performance metrics here
             </p>
+            <Button className="mt-6" asChild>
+              <Link to="/dashboard/content-editor/new">
+                <FileText className="h-4 w-4" />
+                Create content
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>
