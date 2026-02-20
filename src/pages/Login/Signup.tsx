@@ -14,11 +14,12 @@ import {
   type SignupFormData,
 } from '@/components/login-signup'
 import { login, signup, signInWithGoogle } from '@/api/auth'
-import { Apple } from 'lucide-react'
+import { Apple, Mail } from 'lucide-react'
 
 export function LoginSignupPage() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const modeParam = searchParams.get('mode')
+  const invitationParam = searchParams.get('invitation') ?? searchParams.get('invite')
   const [mode, setMode] = useState<'login' | 'signup'>(
     modeParam === 'signup' ? 'signup' : 'login'
   )
@@ -29,6 +30,13 @@ export function LoginSignupPage() {
     if (modeParam === 'signup') setMode('signup')
     else if (modeParam === 'login') setMode('login')
   }, [modeParam])
+
+  const handleModeChange = (newMode: 'login' | 'signup') => {
+    setMode(newMode)
+    const next = new URLSearchParams(searchParams)
+    next.set('mode', newMode)
+    setSearchParams(next, { replace: true })
+  }
 
   useEffect(() => {
     document.title = mode === 'login' ? 'Sign In | Creator Ops Hub' : 'Sign Up | Creator Ops Hub'
@@ -47,13 +55,21 @@ export function LoginSignupPage() {
     }
   }, [mode])
 
+  const getPostLoginRedirect = () => {
+    const redirect = searchParams.get('redirect')
+    if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+      return redirect
+    }
+    return '/dashboard'
+  }
+
   const handleEmailSubmit = async (data: LoginFormData | SignupFormData) => {
     setIsSubmitting(true)
     try {
       if (mode === 'login') {
         await login(data as LoginFormData)
         toast.success('Welcome back!')
-        navigate('/dashboard', { replace: true })
+        navigate(getPostLoginRedirect(), { replace: true })
       } else {
         await signup(data as SignupFormData)
         const signupEmail = (data as SignupFormData).email
@@ -73,6 +89,12 @@ export function LoginSignupPage() {
   }
 
   const handleGoogleContinue = async () => {
+    const redirectTo = getPostLoginRedirect()
+    try {
+      sessionStorage.setItem('auth_redirect_after_login', redirectTo)
+    } catch {
+      /* ignore */
+    }
     setIsSubmitting(true)
     try {
       await signInWithGoogle([
@@ -81,7 +103,7 @@ export function LoginSignupPage() {
         'https://www.googleapis.com/auth/calendar',
       ])
       toast.success('Signed in with Google')
-      navigate('/dashboard', { replace: true })
+      navigate(redirectTo, { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Google sign-in failed')
     } finally {
@@ -137,8 +159,25 @@ export function LoginSignupPage() {
               : 'Create your account to get started'}
           </CardDescription>
           <div className="flex justify-center">
-            <ToggleLoginSignupSwitch mode={mode} onModeChange={setMode} />
+            <ToggleLoginSignupSwitch mode={mode} onModeChange={handleModeChange} />
           </div>
+          {invitationParam && (
+            <div
+              className="rounded-lg border border-primary/20 bg-primary/5 p-4 animate-fade-in flex items-start gap-3"
+              role="status"
+              aria-live="polite"
+            >
+              <Mail className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden />
+              <div>
+                <p className="text-small font-medium text-foreground">
+                  You&apos;ve been invited to join Creator Ops Hub
+                </p>
+                <p className="text-micro text-muted-foreground mt-1">
+                  Sign up or log in to accept your invitation and get started.
+                </p>
+              </div>
+            </div>
+          )}
         </CardHeader>
         <CardContent className="relative space-y-6">
           <div className="animate-slide-up" style={{ animationDelay: '50ms', animationFillMode: 'both' }}>

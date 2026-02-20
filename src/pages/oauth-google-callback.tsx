@@ -33,6 +33,17 @@ export function OAuthGoogleCallbackPage() {
 
     const run = async () => {
       try {
+        const getRedirect = () => {
+          try {
+            const stored = sessionStorage.getItem('auth_redirect_after_login')
+            if (stored && stored.startsWith('/') && !stored.startsWith('//')) return stored
+            sessionStorage.removeItem('auth_redirect_after_login')
+          } catch {
+            /* ignore */
+          }
+          return '/dashboard'
+        }
+
         // Handle hash-based redirect (implicit flow) - Supabase client parses hash on load
         if (hasHash && !code) {
           const { data: { session } } = await supabase.auth.getSession()
@@ -43,7 +54,7 @@ export function OAuthGoogleCallbackPage() {
             }
             setStatus('success')
             toast.success('Signed in with Google')
-            navigate('/dashboard', { replace: true })
+            navigate(getRedirect(), { replace: true })
             return
           }
         }
@@ -79,7 +90,7 @@ export function OAuthGoogleCallbackPage() {
         }
         setStatus('success')
         toast.success('Signed in with Google')
-        navigate('/dashboard', { replace: true })
+        navigate(getRedirect(), { replace: true })
       } catch (err) {
         setStatus('error')
         toast.error((err as Error).message ?? 'Connection failed')

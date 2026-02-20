@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, Home, FolderOpen, LayoutList, FileEdit, Search as SearchIcon, Calendar, BarChart3, Settings, HelpCircle } from 'lucide-react'
+import { Search, Home, FolderOpen, LayoutList, FileEdit, Search as SearchIcon, Calendar, BarChart3, Settings, HelpCircle, SearchX, ArrowRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const suggestedLinks = [
@@ -60,38 +61,58 @@ export function Searchboxandsuggestedlinks() {
         <p className="text-small font-medium text-muted-foreground mb-3" id="suggested-links-label">
           Suggested links
         </p>
-        <div
-          className="grid gap-2 sm:grid-cols-2"
-          role="list"
-          aria-labelledby="suggested-links-label"
-        >
-          {links.map((link, i) => {
-            const Icon = link.icon
-            return (
-              <button
-                key={link.to}
-                type="button"
-                onClick={() => navigate(link.to)}
-                className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl text-left',
-                  'border border-border bg-card hover:border-primary/30 hover:bg-primary/5',
-                  'transition-all duration-200 hover:scale-[1.02] hover:shadow-card-hover',
-                  'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2'
-                )}
-                style={{ animationDelay: `${150 + i * 50}ms` }}
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span className="font-medium text-foreground">{link.label}</span>
-              </button>
-            )
-          })}
-        </div>
-        {links.length === 0 && (
-          <p className="text-muted-foreground text-small py-4">
-            No matching pages. Try a different search or go to the dashboard.
-          </p>
+        {links.length > 0 ? (
+          <div
+            className="grid gap-2 sm:grid-cols-2"
+            role="list"
+            aria-labelledby="suggested-links-label"
+          >
+            {links.map((link, i) => {
+              const Icon = link.icon
+              return (
+                <Button
+                  key={link.to}
+                  type="button"
+                  variant="outline"
+                  onClick={() => navigate(link.to)}
+                  className={cn(
+                    'h-auto w-full justify-start gap-3 px-4 py-3 rounded-xl text-left',
+                    'border-border bg-card hover:border-primary/30 hover:bg-primary/5',
+                    'shadow-none hover:shadow-card-hover'
+                  )}
+                  style={{ animationDelay: `${150 + i * 50}ms` }}
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="font-medium text-foreground">{link.label}</span>
+                </Button>
+              )
+            })}
+          </div>
+        ) : (
+          <div
+            className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 px-6 py-12 text-center animate-fade-in"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
+              <SearchX className="h-7 w-7" aria-hidden />
+            </div>
+            <h3 className="text-h3 font-semibold text-foreground mb-2">
+              No matching pages
+            </h3>
+            <p className="text-body text-muted-foreground mb-6 max-w-sm">
+              We couldn&apos;t find any pages matching &quot;{query}&quot;. Try a different search term or browse from the dashboard.
+            </p>
+            <Button
+              onClick={() => navigate('/dashboard')}
+              className="gap-2"
+            >
+              Go to Dashboard
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Button>
+          </div>
         )}
       </div>
     </div>
