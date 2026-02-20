@@ -53,7 +53,7 @@ export function FullPrivacyPolicyText({ className }: FullPrivacyPolicyTextProps)
   return (
     <article
       className={cn(
-        'prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground',
+        'prose dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-links:text-primary prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground',
         className
       )}
     >

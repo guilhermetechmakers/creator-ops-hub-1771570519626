@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { PublicPageHeader } from '@/components/layout/public-page-header'
 import { FullPrivacyPolicyText } from '@/components/privacy-policy/full-privacy-policy-text'
 import { PrivacyHighlights } from '@/components/privacy-policy/privacy-highlights'
 import { DownloadPrintOption } from '@/components/privacy-policy/download-print-option'
@@ -34,31 +36,13 @@ export function PrivacyPolicyPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - matches landing style */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md no-print">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link
-            to="/"
-            className="text-h3 font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent transition-opacity hover:opacity-90"
-          >
-            Creator Ops Hub
-          </Link>
-          <nav className="flex items-center gap-4">
-            <Link
-              to="/login-/-signup?mode=login"
-              className="text-small font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
-            >
-              Sign In
-            </Link>
-            <Button asChild size="sm" className="font-medium">
-              <Link to="/login-/-signup?mode=signup">Get Started Free</Link>
-            </Button>
-          </nav>
-        </div>
-      </header>
+      <PublicPageHeader />
 
-      {/* Main content */}
-      <main className="container mx-auto max-w-4xl px-4 py-12 md:py-16" role="main" aria-label="Privacy Policy content">
+      <main
+        className="container mx-auto max-w-4xl px-4 py-12 md:py-16"
+        role="main"
+        aria-label="Privacy Policy content"
+      >
         {/* Back link */}
         <Button
           variant="ghost"
@@ -66,8 +50,12 @@ export function PrivacyPolicyPage() {
           className="mb-8 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200 no-print"
           asChild
         >
-          <Link to="/" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
+          <Link
+            to="/"
+            className="flex items-center gap-2"
+            aria-label="Return to home page"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
             Back to home
           </Link>
         </Button>
@@ -83,15 +71,18 @@ export function PrivacyPolicyPage() {
         </div>
 
         {/* Highlights - data collected, usage, retention, contact */}
-        <section className="mt-12 animate-fade-in">
-          <h2 className="text-h2 font-bold text-foreground mb-6">
+        <section className="mt-12 animate-fade-in" aria-labelledby="highlights-heading">
+          <h2 id="highlights-heading" className="text-h2 font-bold text-foreground mb-6">
             At a glance
           </h2>
           <PrivacyHighlights />
         </section>
 
         {/* Download/Print actions */}
-        <section className="mt-12 flex flex-wrap items-center gap-4 animate-fade-in no-print">
+        <section
+          className="mt-12 flex flex-wrap items-center gap-4 animate-fade-in no-print"
+          aria-label="Download or print privacy policy"
+        >
           <DownloadPrintOption contentRef={contentRef} />
         </section>
 
@@ -99,43 +90,57 @@ export function PrivacyPolicyPage() {
         <section
           ref={contentRef}
           className="mt-16 pt-12 border-t border-border print:border-0"
+          aria-labelledby="full-policy-heading"
         >
-          <h2 className="text-h2 font-bold text-foreground mb-8">
+          <h2 id="full-policy-heading" className="text-h2 font-bold text-foreground mb-8">
             Full policy
           </h2>
           <FullPrivacyPolicyText />
         </section>
 
         {/* Related legal links */}
-        <div className="mt-12 pt-8 border-t border-border flex flex-wrap gap-4 animate-fade-in no-print">
+        <div
+          className="mt-12 pt-8 border-t border-border flex flex-wrap gap-4 animate-fade-in no-print"
+          role="navigation"
+          aria-label="Related legal policies"
+        >
           <p className="text-small text-muted-foreground w-full">
             Related policies:
           </p>
           <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link to="/cookie-policy">Cookie Policy</Link>
+            <Link to="/cookie-policy" aria-label="View cookie policy">
+              Cookie Policy
+            </Link>
           </Button>
           <Button variant="outline" size="sm" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link to="/terms">Terms of Service</Link>
+            <Link to="/terms" aria-label="View terms of service">
+              Terms of Service
+            </Link>
           </Button>
         </div>
 
-        {/* Footer CTA */}
-        <div className="mt-16 pt-8 border-t border-border flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center animate-fade-in no-print">
-          <p className="text-small text-muted-foreground">
-            Questions? Contact us at{' '}
-            <a
-              href="mailto:privacy@creatoropshub.com"
-              className="text-primary hover:underline transition-colors"
-            >
-              privacy@creatoropshub.com
-            </a>
-          </p>
-          <Button variant="outline" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-            <Link to="/">Back to home</Link>
-          </Button>
-        </div>
+        {/* Footer CTA - uses shadcn Card */}
+        <Card className="mt-16 border-border bg-muted/20 no-print animate-fade-in">
+          <CardContent className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center pt-6 sm:pt-6">
+            <p className="text-small text-muted-foreground">
+              Questions? Contact us at{' '}
+              <a
+                href="mailto:privacy@creatoropshub.com"
+                className="inline-flex items-center gap-1.5 text-primary hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                aria-label="Email Creator Ops Hub privacy team at privacy@creatoropshub.com"
+              >
+                <Mail className="h-4 w-4 shrink-0" aria-hidden />
+                privacy@creatoropshub.com
+              </a>
+            </p>
+            <Button variant="outline" asChild className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shrink-0">
+              <Link to="/" aria-label="Return to home page">
+                Back to home
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </main>
-
     </div>
   )
 }
