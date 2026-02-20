@@ -2,7 +2,15 @@ import { ExternalLink, MessageCircle, Map, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
-const COMMUNITY_LINKS = [
+interface CommunityLinkItem {
+  id: string
+  title: string
+  description: string
+  href: string
+  icon: typeof MessageCircle
+}
+
+const COMMUNITY_LINKS: CommunityLinkItem[] = [
   {
     id: 'feedback',
     title: 'Feedback Forum',
@@ -19,7 +27,42 @@ const COMMUNITY_LINKS = [
   },
 ]
 
-export function CommunityLinks() {
+function CommunityLinksEmptyState() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        'flex flex-col items-center justify-center gap-6 rounded-xl',
+        'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
+        'animate-fade-in min-h-[200px] sm:min-h-[240px]'
+      )}
+    >
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+        <Users className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+      </div>
+      <div className="space-y-2 max-w-[280px]">
+        <h3 className="text-base font-semibold text-foreground">
+          No community links yet
+        </h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Community resources like feedback forums and roadmaps will appear here
+          once they are configured. Check back soon or contact support for
+          details.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+export interface CommunityLinksProps {
+  /** Override default links. When empty, shows empty state. */
+  links?: CommunityLinkItem[]
+}
+
+export function CommunityLinks({ links = COMMUNITY_LINKS }: CommunityLinksProps) {
+  const isEmpty = links.length === 0
+
   return (
     <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
@@ -34,41 +77,47 @@ export function CommunityLinks() {
         </p>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {COMMUNITY_LINKS.map((link) => {
-            const Icon = link.icon
-            return (
-              <a
-                key={link.id}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  'group flex flex-col rounded-xl border border-border bg-card p-4 transition-all duration-200',
-                  'hover:border-primary/50 hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
-                )}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {link.title}
-                  </span>
-                  <ExternalLink className="h-4 w-4 ml-auto text-muted-foreground group-hover:text-primary transition-colors" />
-                </div>
-                <p className="text-small text-muted-foreground flex-1">
-                  {link.description}
-                </p>
-              </a>
-            )
-          })}
-        </div>
-        <p className="text-micro text-muted-foreground mt-4">
-          Community links are placeholders. Replace with your actual forum and
-          roadmap URLs.
-        </p>
+        {isEmpty ? (
+          <CommunityLinksEmptyState />
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {links.map((link) => {
+                const Icon = link.icon
+                return (
+                  <a
+                    key={link.id}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'group flex flex-col rounded-xl border border-border bg-card p-4 transition-all duration-200',
+                      'hover:border-primary/50 hover:shadow-card-hover hover:scale-[1.02] active:scale-[0.98]',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                    )}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                        <Icon className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {link.title}
+                      </span>
+                      <ExternalLink className="h-4 w-4 ml-auto text-muted-foreground group-hover:text-primary transition-colors" />
+                    </div>
+                    <p className="text-small text-muted-foreground flex-1">
+                      {link.description}
+                    </p>
+                  </a>
+                )
+              })}
+            </div>
+            <p className="text-micro text-muted-foreground mt-4">
+              Community links are placeholders. Replace with your actual forum
+              and roadmap URLs.
+            </p>
+          </>
+        )}
       </CardContent>
     </Card>
   )
