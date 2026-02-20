@@ -72,6 +72,12 @@ const STATUS_OPTIONS: SelectOption[] = [
   { value: 'refunded', label: 'Refunded' },
 ]
 
+const ITEMS_PER_PAGE_OPTIONS: SelectOption[] = [
+  { value: '10', label: '10 per page' },
+  { value: '20', label: '20 per page' },
+  { value: '50', label: '50 per page' },
+]
+
 function exportToCsv(items: OrderTransaction[]) {
   const headers = ['Date', 'Description', 'Amount', 'Status', 'Invoice URL']
   const rows = items.map((t) => [
@@ -95,6 +101,7 @@ const DEBOUNCE_MS = 300
 
 export function OrderTransactionHistoryPage() {
   const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
   const [sortValue, setSortValue] = useState('created_at-desc')
   const [statusFilter, setStatusFilter] = useState('')
   const [searchInput, setSearchInput] = useState('')
@@ -112,11 +119,17 @@ export function OrderTransactionHistoryPage() {
     return () => clearTimeout(t)
   }, [searchInput])
 
+  const handleLimitChange = useCallback((value: string) => {
+    const newLimit = Math.min(50, Math.max(10, parseInt(value, 10))) || 20
+    setLimit(newLimit)
+    setPage(1)
+  }, [])
+
   const {
     items,
     total,
     totalPages,
-    limit,
+    limit: effectiveLimit,
     isLoading,
     isFetching,
     isError,
@@ -126,7 +139,7 @@ export function OrderTransactionHistoryPage() {
     isDeleting,
   } = useOrderTransactionHistory({
     page,
-    limit: 20,
+    limit,
     sortBy: sortBy ?? 'created_at',
     sortOrder: sortOrder ?? 'desc',
     status: statusFilter || undefined,
@@ -191,8 +204,8 @@ export function OrderTransactionHistoryPage() {
     }
   }, [deleteId, deleteTransaction, refetch])
 
-  const start = total === 0 ? 0 : (page - 1) * limit + 1
-  const end = Math.min(page * limit, total)
+  const start = total === 0 ? 0 : (page - 1) * effectiveLimit + 1
+  const end = Math.min(page * effectiveLimit, total)
 
   const errorMessage = useMemo(
     () => error ?? 'We couldn\'t load your transaction history. Please try again.',
@@ -639,11 +652,26 @@ export function OrderTransactionHistoryPage() {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between pt-4">
-                  <p className="text-small text-muted-foreground">
-                    Showing {start}–{end} of {total}
-                  </p>
+              {(totalPages > 1 || total > 0) && (
+                <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <p className="text-small text-muted-foreground">
+                      Showing {start}–{end} of {total}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="items-per-page" className="text-small font-medium text-muted-foreground shrink-0">
+                        Per page:
+                      </label>
+                      <Select
+                        id="items-per-page"
+                        options={ITEMS_PER_PAGE_OPTIONS}
+                        value={String(limit)}
+                        onChange={(e) => handleLimitChange(e.target.value)}
+                        className="w-[120px]"
+                        aria-label="Items per page"
+                      />
+                    </div>
+                  </div>
                   <nav className="flex items-center gap-2" aria-label="Transaction history pagination">
                     <Button
                       variant="outline"
