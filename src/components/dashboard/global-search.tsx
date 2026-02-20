@@ -1,8 +1,9 @@
 import { useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, FileText, FolderOpen, Search as SearchIcon, Loader2 } from 'lucide-react'
+import { Search, FileText, FolderOpen, Search as SearchIcon, Loader2, SearchX } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useGlobalSearch } from '@/hooks/use-global-search'
 import { cn } from '@/lib/utils'
 import type { GlobalSearchResult, SearchResultType } from '@/types/search'
@@ -116,9 +117,35 @@ export function GlobalSearch() {
                 <ResultItem key={`${r.type}-${r.id}`} result={r} onSelect={() => handleSelect(r)} />
               ))}
             </div>
+          ) : isSearching ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-10 px-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted/50">
+                <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" aria-hidden />
+              </div>
+              <p className="text-small font-medium text-foreground">Searching...</p>
+              <p className="text-micro text-muted-foreground text-center max-w-[240px]">
+                Searching library, content, and research
+              </p>
+            </div>
           ) : (
-            <div className="p-6 text-center text-muted-foreground text-small">
-              {isSearching ? 'Searching...' : 'No results found'}
+            <div className="flex flex-col items-center justify-center gap-4 py-8 px-6">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted/50">
+                <SearchX className="h-7 w-7 text-muted-foreground" aria-hidden />
+              </div>
+              <div className="space-y-1 text-center">
+                <p className="text-small font-medium text-foreground">No results found</p>
+                <p className="text-micro text-muted-foreground max-w-[240px]">
+                  Try different keywords or check your spelling. You can search library files, content, and research.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSearch}
+                className="mt-1 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Clear search
+              </Button>
             </div>
           )}
         </div>
