@@ -14,6 +14,7 @@ import { IntegrationsPage } from '@/pages/integrations'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SettingsPreferencesPage } from '@/pages/SettingsPreferences'
 import { NotFoundPage } from '@/pages/404NotFound'
+import { ServerErrorPage } from '@/pages/500ServerError'
 import { PrivacyPolicyPage } from '@/pages/PrivacyPolicy'
 import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
@@ -71,6 +72,8 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="/404-not-found" element={<NotFoundPage />} />
+          <Route path="/500" element={<ServerErrorPage />} />
+          <Route path="/500-server-error" element={<ServerErrorPage />} />
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </BrowserRouter>
