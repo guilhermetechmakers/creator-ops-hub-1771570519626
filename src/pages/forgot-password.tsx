@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, Mail, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Mail, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,14 +13,45 @@ import { requestPasswordReset } from '@/lib/password-reset-ops'
 import { cn } from '@/lib/utils'
 
 const schema = z.object({
-  email: z.string().email('Invalid email address'),
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
 })
 
 type FormData = z.infer<typeof schema>
 
+/** Renders inline error message with consistent styling and accessibility. */
+function FieldError({ id, message }: { id: string; message: string }) {
+  return (
+    <p
+      id={id}
+      role="alert"
+      aria-live="polite"
+      className="flex items-center gap-1.5 text-small text-destructive animate-fade-in"
+    >
+      <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+      <span>{message}</span>
+    </p>
+  )
+}
+
+/** Reserves space to prevent layout shift when validation errors appear. */
+function FieldErrorSlot({
+  id,
+  error,
+}: {
+  id: string
+  error?: { message?: string }
+}) {
+  return (
+    <div className="min-h-[1.5rem] mt-1" aria-live="polite" aria-atomic="true">
+      {error?.message ? <FieldError id={id} message={error.message} /> : null}
+    </div>
+  )
+}
+
 export function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false)
   const [hasValidationError, setHasValidationError] = useState(false)
+  const [apiError, setApiError] = useState<string | null>(null)
   const {
     register,
     handleSubmit,
@@ -44,17 +75,22 @@ export function ForgotPasswordPage() {
 
   const onSubmit = async (data: FormData) => {
     setHasValidationError(false)
+    setApiError(null)
     try {
       await requestPasswordReset(data.email)
       setEmailSent(true)
+      setApiError(null)
       toast.success('Reset link sent! Check your email.')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to send reset email')
+      const message = err instanceof Error ? err.message : 'Failed to send reset email'
+      setApiError(message)
+      toast.error(message)
     }
   }
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setHasValidationError(false)
+    setApiError(null)
     handleSubmit(
       onSubmit,
       () => {
