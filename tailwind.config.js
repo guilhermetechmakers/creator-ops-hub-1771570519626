@@ -33,6 +33,7 @@ export default {
           foreground: 'rgb(var(--muted-foreground))',
         },
         success: 'rgb(var(--success))',
+        warning: 'rgb(var(--warning))',
         destructive: 'rgb(var(--error))',
       },
       fontFamily: {

@@ -4,6 +4,7 @@ import {
   FolderOpen,
   FileEdit,
   FileText,
+  LayoutList,
   Search,
   Calendar,
   Plug,
@@ -18,7 +19,8 @@ import { Button } from '@/components/ui/button'
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Home' },
   { to: '/dashboard/library', icon: FolderOpen, label: 'Library' },
-  { to: '/dashboard/studio', icon: FileEdit, label: 'Content Studio' },
+  { to: '/dashboard/studio', icon: FileEdit, label: 'Studio' },
+  { to: '/dashboard/content-studio', icon: LayoutList, label: 'Content Studio' },
   { to: '/dashboard/research', icon: Search, label: 'Research' },
   { to: '/dashboard/calendar', icon: Calendar, label: 'Editorial Calendar' },
   { to: '/dashboard/content-editor', icon: FileText, label: 'Content Editor' },

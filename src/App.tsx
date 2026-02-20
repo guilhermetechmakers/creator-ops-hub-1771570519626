@@ -17,10 +17,12 @@ import { NotFoundPage } from '@/pages/not-found'
 import { PrivacyPage } from '@/pages/privacy'
 import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
+import { ResetPasswordPage } from '@/pages/reset-password'
 import { EmailVerificationPage } from '@/pages/email-verification'
 import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
 import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
 import { ContentEditorPage } from '@/pages/content-editor'
+import { ContentStudioListPage } from '@/pages/content-studio-list'
 
 function App() {
   return (
@@ -32,6 +34,7 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login-/-signup" element={<LoginSignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
           <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
           <Route path="/dashboard" element={<AppShell />}>
@@ -46,6 +49,7 @@ function App() {
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="publishing-queue-logs" element={<PublishingQueueLogsPage />} />
+            <Route path="content-studio" element={<ContentStudioListPage />} />
             <Route path="content-editor" element={<ContentEditorPage />} />
             <Route path="content-editor/new" element={<ContentEditorPage />} />
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
