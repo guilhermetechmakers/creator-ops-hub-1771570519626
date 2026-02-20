@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Play } from 'lucide-react'
+import { ArrowRight, Calendar, FileEdit, FolderOpen, Play, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -108,34 +108,15 @@ interface WorkflowNodeProps {
   style?: React.CSSProperties
 }
 
+const WORKFLOW_ICONS = {
+  library: FolderOpen,
+  research: Search,
+  editor: FileEdit,
+  calendar: Calendar,
+} as const
+
 function WorkflowNode({ icon, label, className, style }: WorkflowNodeProps) {
-  const icons = {
-    library: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8 text-primary">
-        <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-      </svg>
-    ),
-    research: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8 text-primary">
-        <circle cx="11" cy="11" r="8" />
-        <path d="M21 21l-4.35-4.35" />
-      </svg>
-    ),
-    editor: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8 text-primary">
-        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-      </svg>
-    ),
-    calendar: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8 text-primary">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-        <line x1="16" y1="2" x2="16" y2="6" />
-        <line x1="8" y1="2" x2="8" y2="6" />
-        <line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-  }
+  const IconComponent = WORKFLOW_ICONS[icon]
 
   return (
     <div
@@ -145,8 +126,15 @@ function WorkflowNode({ icon, label, className, style }: WorkflowNodeProps) {
       )}
       style={style}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2">
-        {icons[icon]}
+      <div
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary mb-2"
+        role="img"
+        aria-label={label}
+      >
+        <IconComponent
+          className="h-8 w-8 text-primary"
+          aria-hidden
+        />
       </div>
       <span className="text-small font-medium text-foreground text-center">{label}</span>
     </div>
