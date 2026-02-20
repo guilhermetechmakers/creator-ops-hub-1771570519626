@@ -183,6 +183,17 @@ function AnalyticsPageContent() {
       <AnalyticsCharts
         chartData={data?.chartData ?? []}
         isLoading={isLoading}
+        onRefresh={async () => {
+          const toastId = toast.loading('Refreshing charts...')
+          const result = await refetch()
+          toast.dismiss(toastId)
+          if (result.success) {
+            toast.success('Charts refreshed')
+          } else {
+            toast.error('Failed to refresh charts')
+          }
+        }}
+        isRefreshing={isLoading}
       />
 
       <AnalyticsTopPosts

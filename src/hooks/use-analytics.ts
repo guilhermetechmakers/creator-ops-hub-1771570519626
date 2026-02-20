@@ -20,7 +20,7 @@ export function useAnalytics(initialFilters?: AnalyticsFilters) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchAnalytics = useCallback(async () => {
+  const fetchAnalytics = useCallback(async (): Promise<{ success: boolean }> => {
     setIsLoading(true)
     setError(null)
     try {
@@ -28,7 +28,7 @@ export function useAnalytics(initialFilters?: AnalyticsFilters) {
       if (!session?.access_token) {
         setData(null)
         setIsLoading(false)
-        return
+        return { success: false }
       }
       const { data: result, error: fnError } = await supabase.functions.invoke('get-analytics', {
         body: filters,
@@ -37,12 +37,12 @@ export function useAnalytics(initialFilters?: AnalyticsFilters) {
       if (fnError) {
         setError(fnError.message ?? 'Failed to load analytics')
         setData(null)
-        return
+        return { success: false }
       }
       if (result?.error) {
         setError(result.error)
         setData(null)
-        return
+        return { success: false }
       }
       setData({
         overview: result.overview ?? {
@@ -54,9 +54,11 @@ export function useAnalytics(initialFilters?: AnalyticsFilters) {
         chartData: result.chartData ?? [],
         topPosts: result.topPosts ?? [],
       })
+      return { success: true }
     } catch (err) {
       setError((err as Error).message ?? 'An error occurred')
       setData(null)
+      return { success: false }
     } finally {
       setIsLoading(false)
     }
