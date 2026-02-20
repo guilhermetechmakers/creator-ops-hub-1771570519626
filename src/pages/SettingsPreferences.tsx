@@ -1,7 +1,10 @@
 import { useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { toast } from 'sonner'
 import { User, CreditCard, Users, Shield, Bell, Lock, ChevronRight, Home } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useSettingsPreferences } from '@/hooks/use-settings-preferences'
 import { AccountProfile } from '@/components/settings-preferences/account-profile'
 import { WorkspaceBilling } from '@/components/settings-preferences/workspace-billing'
@@ -59,19 +62,28 @@ export function SettingsPreferencesPage() {
     notificationPrefs,
   } = useSettingsPreferences()
 
-  const handleRetry = useCallback(() => {
-    refetch()
+  const handleRetry = useCallback(async () => {
+    const toastId = toast.loading('Retrying...')
+    try {
+      await refetch()
+      toast.dismiss(toastId)
+      toast.success('Settings loaded successfully')
+    } catch {
+      toast.dismiss(toastId)
+      toast.error('Failed to load settings. Please try again.')
+    }
   }, [refetch])
 
   return (
     <div className="space-y-8 max-w-4xl">
       {/* Breadcrumbs */}
       <nav
-        aria-label="Breadcrumb"
+        aria-label="Breadcrumb navigation"
         className="flex items-center gap-2 text-small text-muted-foreground animate-fade-in"
       >
         <Link
           to="/dashboard"
+          aria-label="Navigate to dashboard"
           className="hover:text-foreground transition-colors duration-200 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
         >
           <Home className="h-4 w-4" />
@@ -96,80 +108,109 @@ export function SettingsPreferencesPage() {
           description="Some data failed to load. You can retry or continue with available options."
           onRetry={handleRetry}
           retryLabel="Retry"
+          buttonAriaLabel="Retry loading settings"
         />
       )}
 
-      <Tabs defaultValue="account" className="w-full">
-        <TabsList className="flex flex-wrap h-auto gap-1 p-1 bg-muted/50 w-full sm:w-auto">
-          {tabItems.map(({ value, label, icon: Icon }) => (
-            <TabsTrigger
-              key={value}
-              value={value}
-              className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+      {isLoading ? (
+        <Card className="overflow-hidden transition-all duration-300 border-primary/5">
+          <CardHeader className="space-y-2">
+            <Skeleton className="h-8 w-48" shimmer />
+            <Skeleton className="h-4 w-72" shimmer />
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-wrap gap-2">
+              {tabItems.map(({ value }) => (
+                <Skeleton key={value} className="h-10 w-24 rounded-md" shimmer />
+              ))}
+            </div>
+            <div className="space-y-4 pt-4">
+              <Skeleton className="h-32 w-full rounded-lg" shimmer />
+              <Skeleton className="h-48 w-full rounded-lg" shimmer />
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover border-primary/5">
+          <CardContent className="pt-6">
+            <Tabs defaultValue="account" className="w-full">
+              <TabsList
+                aria-label="Settings sections"
+                className="flex flex-wrap h-auto gap-1 p-1 bg-muted/50 w-full sm:w-auto"
+              >
+                {tabItems.map(({ value, label, icon: Icon }) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    aria-label={`Open ${label} settings`}
+                    className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                  >
+                    <Icon className="h-4 w-4" aria-hidden />
+                    {label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-        <TabsContent value="account" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <AccountProfile
-            key={profile?.id ?? 'loading'}
-            name={profile?.full_name ?? profile?.email?.split('@')[0] ?? ''}
-            email={profile?.email ?? ''}
-            avatarUrl={profile?.avatar_url}
-            isLoading={isLoading}
-            onSaveAccount={onSaveAccount}
-            onChangePassword={onChangePassword}
-          />
-        </TabsContent>
+              <TabsContent value="account" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <AccountProfile
+                  key={profile?.id ?? 'loading'}
+                  name={profile?.full_name ?? profile?.email?.split('@')[0] ?? ''}
+                  email={profile?.email ?? ''}
+                  avatarUrl={profile?.avatar_url}
+                  isLoading={false}
+                  onSaveAccount={onSaveAccount}
+                  onChangePassword={onChangePassword}
+                />
+              </TabsContent>
 
-        <TabsContent value="workspace" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <WorkspaceBilling plan={plan ?? undefined} isLoading={isLoading} />
-        </TabsContent>
+              <TabsContent value="workspace" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <WorkspaceBilling plan={plan ?? undefined} isLoading={false} />
+              </TabsContent>
 
-        <TabsContent value="team" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <TeamManagement
-            members={members}
-            isLoading={isLoading}
-            onInvite={onInvite}
-            onRemoveMember={onRemoveMember}
-            onUpdateRole={onUpdateRole}
-          />
-        </TabsContent>
+              <TabsContent value="team" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <TeamManagement
+                  members={members}
+                  isLoading={false}
+                  onInvite={onInvite}
+                  onRemoveMember={onRemoveMember}
+                  onUpdateRole={onUpdateRole}
+                />
+              </TabsContent>
 
-        <TabsContent value="security" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <SecuritySettings
-            twoFactorEnabled={twoFactorEnabled}
-            sessions={sessions}
-            apiKeys={apiKeys}
-            isLoading={isLoading}
-            onToggle2FA={onToggle2FA}
-            onRevokeSession={onRevokeSession}
-            onCreateApiKey={onCreateApiKey}
-            onRevokeApiKey={onRevokeApiKey}
-          />
-        </TabsContent>
+              <TabsContent value="security" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <SecuritySettings
+                  twoFactorEnabled={twoFactorEnabled}
+                  sessions={sessions}
+                  apiKeys={apiKeys}
+                  isLoading={false}
+                  onToggle2FA={onToggle2FA}
+                  onRevokeSession={onRevokeSession}
+                  onCreateApiKey={onCreateApiKey}
+                  onRevokeApiKey={onRevokeApiKey}
+                />
+              </TabsContent>
 
-        <TabsContent value="notifications" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <NotificationsPreferences
-            preferences={notificationPrefs}
-            isLoading={isLoading}
-            onUpdatePreferences={onUpdatePreferences}
-            onAddWebhook={onAddWebhook}
-            onRemoveWebhook={onRemoveWebhook}
-          />
-        </TabsContent>
+              <TabsContent value="notifications" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <NotificationsPreferences
+                  preferences={notificationPrefs}
+                  isLoading={false}
+                  onUpdatePreferences={onUpdatePreferences}
+                  onAddWebhook={onAddWebhook}
+                  onRemoveWebhook={onRemoveWebhook}
+                />
+              </TabsContent>
 
-        <TabsContent value="privacy" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
-          <PrivacySettings
-            isLoading={isLoading}
-            onUpdateDataRetention={onUpdateDataRetention}
-            onUpdateSnapshotRetention={onUpdateSnapshotRetention}
-          />
-        </TabsContent>
-      </Tabs>
+              <TabsContent value="privacy" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
+                <PrivacySettings
+                  isLoading={isLoading}
+                  onUpdateDataRetention={onUpdateDataRetention}
+                  onUpdateSnapshotRetention={onUpdateSnapshotRetention}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

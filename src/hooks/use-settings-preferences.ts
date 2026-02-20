@@ -131,9 +131,10 @@ export function useSettingsPreferences() {
         },
       ])
       setApiKeys([])
-    } catch {
+    } catch (err) {
       setHasError(true)
       setPlan(DEFAULT_PLAN)
+      throw err
     } finally {
       setIsLoading(false)
     }
