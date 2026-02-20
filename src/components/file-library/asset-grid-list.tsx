@@ -1,0 +1,358 @@
+import { useState } from 'react'
+import {
+  Grid3X3,
+  List,
+  FileImage,
+  FileText,
+  ImageIcon,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
+import type { FileLibrary } from '@/types/file-library'
+import { highlightSearchText } from '@/hooks/use-file-library'
+import { cn } from '@/lib/utils'
+
+type SortKey = 'title' | 'file_type' | 'updated_at' | 'last_used_at' | 'version'
+type SortDir = 'asc' | 'desc'
+
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  const now = new Date()
+  const diff = now.getTime() - d.getTime()
+  if (diff < 60000) return 'Just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d ago`
+  return d.toLocaleDateString(undefined, { dateStyle: 'short' })
+}
+
+function getThumbnailIcon(item: FileLibrary) {
+  const type = item.file_type ?? ''
+  if (type.startsWith('image/')) return FileImage
+  return FileText
+}
+
+export interface AssetGridListProps {
+  items: FileLibrary[]
+  isLoading?: boolean
+  selectedIds: Set<string>
+  onSelectionChange: (ids: Set<string>) => void
+  searchQuery?: string
+  onItemClick?: (item: FileLibrary) => void
+  emptyMessage?: string
+}
+
+export function AssetGridList({
+  items,
+  isLoading,
+  selectedIds,
+  onSelectionChange,
+  searchQuery = '',
+  onItemClick,
+  emptyMessage = 'No assets yet',
+}: AssetGridListProps) {
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [sortKey, setSortKey] = useState<SortKey>('updated_at')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const toggleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(key)
+      setSortDir('desc')
+    }
+  }
+
+  const sortedItems = [...items].sort((a, b) => {
+    let aVal: string | number | null = null
+    let bVal: string | number | null = null
+    switch (sortKey) {
+      case 'title':
+        aVal = a.title ?? ''
+        bVal = b.title ?? ''
+        break
+      case 'file_type':
+        aVal = a.file_type ?? ''
+        bVal = b.file_type ?? ''
+        break
+      case 'updated_at':
+        aVal = new Date(a.updated_at).getTime()
+        bVal = new Date(b.updated_at).getTime()
+        break
+      case 'last_used_at':
+        aVal = a.last_used_at ? new Date(a.last_used_at).getTime() : 0
+        bVal = b.last_used_at ? new Date(b.last_used_at).getTime() : 0
+        break
+      case 'version':
+        aVal = a.version ?? 0
+        bVal = b.version ?? 0
+        break
+    }
+    const cmp = (aVal ?? '') < (bVal ?? '') ? -1 : (aVal ?? '') > (bVal ?? '') ? 1 : 0
+    return sortDir === 'asc' ? cmp : -cmp
+  })
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === items.length) {
+      onSelectionChange(new Set())
+    } else {
+      onSelectionChange(new Set(items.map((i) => i.id)))
+    }
+  }
+
+  const toggleSelect = (id: string) => {
+    const next = new Set(selectedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    onSelectionChange(next)
+  }
+
+  const SortHeader = ({
+    label,
+    sortKey: sk,
+  }: {
+    label: string
+    sortKey: SortKey
+  }) => (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => toggleSort(sk)}
+        className="flex items-center gap-1 font-medium hover:text-primary transition-colors duration-200"
+        aria-label={`Sort by ${label}`}
+      >
+        {label}
+        {sortKey === sk ? (
+          sortDir === 'asc' ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        ) : null}
+      </button>
+    </TableHead>
+  )
+
+  const renderGridCard = (item: FileLibrary) => {
+    const Icon = getThumbnailIcon(item)
+    const displayName = item.file_name ?? item.title
+    return (
+      <Card
+        key={item.id}
+        className={cn(
+          'overflow-hidden cursor-pointer transition-all duration-200',
+          'hover:shadow-card-hover hover:border-primary/30 hover:scale-[1.02] active:scale-[0.98]'
+        )}
+        onClick={() => onItemClick?.(item)}
+      >
+        <div className="aspect-square bg-muted flex items-center justify-center relative group">
+          {item.storage_path && item.file_type?.startsWith('image/') ? (
+            <img
+              src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/file-library/${item.storage_path}`}
+              alt={displayName}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <Icon className="h-16 w-16 text-muted-foreground" />
+          )}
+          {item.version && item.version > 1 && (
+            <Badge
+              variant="secondary"
+              className="absolute bottom-2 right-2 text-micro"
+            >
+              v{item.version}
+            </Badge>
+          )}
+        </div>
+        <CardContent className="p-3">
+          <div className="flex items-start gap-2">
+            <Checkbox
+              checked={selectedIds.has(item.id)}
+              onCheckedChange={() => toggleSelect(item.id)}
+              onClick={(e) => e.stopPropagation()}
+              aria-label={`Select ${displayName}`}
+            />
+            <div className="flex-1 min-w-0">
+              <p
+                className="font-medium text-small truncate"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    highlightSearchText(displayName, searchQuery) || displayName,
+                }}
+              />
+              <div className="flex flex-wrap gap-1 mt-1">
+                {(item.tags ?? []).slice(0, 3).map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="text-micro px-1.5"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-micro text-muted-foreground mt-1">
+                {formatDate(item.last_used_at ?? item.updated_at)}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div
+        className={
+          viewMode === 'grid'
+            ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'
+            : 'space-y-4'
+        }
+      >
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <Skeleton
+            key={i}
+            className={
+              viewMode === 'grid'
+                ? 'aspect-square rounded-xl'
+                : 'h-20 w-full rounded-xl'
+            }
+          />
+        ))}
+      </div>
+    )
+  }
+
+  if (sortedItems.length === 0) {
+    return (
+      <Card className="overflow-hidden border-dashed">
+        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
+          <div className="rounded-2xl bg-muted/50 p-8">
+            <ImageIcon className="h-16 w-16 text-muted-foreground/70 mx-auto" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-body font-medium">{emptyMessage}</p>
+            <p className="text-small text-muted-foreground max-w-sm">
+              Upload your first asset to get started. Drag and drop files above
+              or click to browse.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+          size="icon-sm"
+          onClick={() => setViewMode('grid')}
+          aria-label="Grid view"
+        >
+          <Grid3X3 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+          size="icon-sm"
+          onClick={() => setViewMode('list')}
+          aria-label="List view"
+        >
+          <List className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {viewMode === 'grid' ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {sortedItems.map(renderGridCard)}
+        </div>
+      ) : (
+        <Card className="overflow-hidden transition-shadow duration-200">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50 hover:bg-muted/50 border-b sticky top-0 z-10">
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={
+                          items.length > 0 && selectedIds.size === items.length
+                        }
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <SortHeader label="Name" sortKey="title" />
+                    <SortHeader label="Type" sortKey="file_type" />
+                    <SortHeader label="Last used" sortKey="last_used_at" />
+                    <TableHead>Version</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedItems.map((item) => (
+                    <TableRow
+                      key={item.id}
+                      className={cn(
+                        'cursor-pointer transition-all duration-200',
+                        'hover:bg-muted/30 hover:shadow-sm'
+                      )}
+                      onClick={() => onItemClick?.(item)}
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.has(item.id)}
+                          onCheckedChange={() => toggleSelect(item.id)}
+                          aria-label={`Select ${item.title}`}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <span
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              highlightSearchText(
+                                item.file_name ?? item.title,
+                                searchQuery
+                              ) || (item.file_name ?? item.title),
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-small">
+                        {item.file_type ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-small">
+                        {formatDate(item.last_used_at ?? item.updated_at)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-micro">
+                          v{item.version ?? 1}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}

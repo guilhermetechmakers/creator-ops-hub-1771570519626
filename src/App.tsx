@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/app-shell'
 import { LandingPage } from '@/pages/landing'
 import { LoginSignupPage } from '@/pages/Login/Signup'
 import { DashboardPage } from '@/pages/dashboard'
-import { LibraryPage } from '@/pages/library'
+import { FileLibraryPage } from '@/pages/FileLibrary'
 import { StudioPage } from '@/pages/studio'
 import { ResearchPage } from '@/pages/research'
 import { CalendarPage } from '@/pages/calendar'
@@ -37,7 +37,8 @@ function App() {
           <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
           <Route path="/dashboard" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
-            <Route path="library" element={<LibraryPage />} />
+            <Route path="library" element={<FileLibraryPage />} />
+            <Route path="file-library" element={<FileLibraryPage />} />
             <Route path="studio" element={<StudioPage />} />
             <Route path="studio/new" element={<StudioPage />} />
             <Route path="studio/:id" element={<StudioPage />} />

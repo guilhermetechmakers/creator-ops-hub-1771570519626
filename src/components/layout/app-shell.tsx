@@ -32,7 +32,7 @@ import {
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Home' },
-  { to: '/dashboard/library', icon: FolderOpen, label: 'Library' },
+  { to: '/dashboard/file-library', icon: FolderOpen, label: 'File Library' },
   { to: '/dashboard/studio', icon: FileEdit, label: 'Content Studio' },
   { to: '/dashboard/research', icon: Search, label: 'Research' },
   { to: '/dashboard/calendar', icon: Calendar, label: 'Editorial Calendar' },
