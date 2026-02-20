@@ -7,6 +7,8 @@ import {
   Sparkles,
   ChevronDown,
   ChevronRight,
+  Search,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,6 +34,10 @@ export interface ContentEditorSidebarProps {
   onBriefChange?: (value: string) => void
   researchLinks?: string[]
   onResearchLinksChange?: (links: string[]) => void
+  onOpenClawResearch?: (topic: string) => void
+  onOpenClawFactCheck?: () => void
+  isResearching?: boolean
+  isFactChecking?: boolean
   className?: string
 }
 
@@ -40,11 +46,16 @@ export function ContentEditorSidebar({
   onBriefChange,
   researchLinks = [],
   onResearchLinksChange,
+  onOpenClawResearch,
+  onOpenClawFactCheck,
+  isResearching = false,
+  isFactChecking = false,
   className,
 }: ContentEditorSidebarProps) {
   const [expandedTabs, setExpandedTabs] = useState<Set<SidebarTab>>(
     new Set(['brief'])
   )
+  const [openClawTopic, setOpenClawTopic] = useState('')
 
   const toggleExpand = (tab: SidebarTab) => {
     setExpandedTabs((prev) => {
@@ -156,11 +167,50 @@ export function ContentEditorSidebar({
                     </div>
                   )}
                   {tab === 'openclaw' && (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <p className="text-small text-muted-foreground">
-                        AI-powered actions
+                        AI-powered research and fact-checking
                       </p>
-                      <Button variant="outline" size="sm" className="w-full">
+                      <div className="space-y-2">
+                        <Input
+                          value={openClawTopic}
+                          onChange={(e) => setOpenClawTopic(e.target.value)}
+                          placeholder="Enter topic to research..."
+                          className="text-small"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 gap-1.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+                            onClick={() => {
+                              if (openClawTopic.trim()) {
+                                onOpenClawResearch?.(openClawTopic.trim())
+                              }
+                            }}
+                            disabled={!openClawTopic.trim() || isResearching}
+                          >
+                            <Search className="h-4 w-4" />
+                            {isResearching ? '...' : 'Research'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 gap-1.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+                            onClick={() => onOpenClawFactCheck?.()}
+                            disabled={isFactChecking}
+                          >
+                            <ShieldCheck className="h-4 w-4" />
+                            {isFactChecking ? '...' : 'Fact-check'}
+                          </Button>
+                        </div>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm"
+                      >
+                        <Sparkles className="h-4 w-4" />
                         Expand with OpenClaw
                       </Button>
                     </div>

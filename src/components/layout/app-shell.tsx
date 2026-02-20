@@ -13,6 +13,7 @@ import {
   Bell,
   User,
   LogOut,
+  FileEdit,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,7 @@ const navItems = [
   { to: '/dashboard', icon: Home, label: 'Home' },
   { to: '/dashboard/file-library', icon: FolderOpen, label: 'Library' },
   { to: '/dashboard/content-studio', icon: LayoutList, label: 'Content Studio' },
+  { to: '/dashboard/content-editor', icon: FileEdit, label: 'Content Editor' },
   { to: '/dashboard/research', icon: Search, label: 'Research' },
   { to: '/dashboard/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },

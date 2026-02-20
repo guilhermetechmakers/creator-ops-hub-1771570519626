@@ -7,6 +7,8 @@ import {
   updateContentEditor,
 } from '@/lib/content-editor-ops'
 import { scheduleToQueue } from '@/lib/publishing-queue-ops'
+import { researchTopic, factCheckContent } from '@/lib/openclaw-ops'
+import type { ResearchResult, FactCheckResult } from '@/lib/openclaw-ops'
 import { RichTextEditor } from '@/components/content-editor/rich-text-editor'
 import { ContentEditorSidebar } from '@/components/content-editor/content-editor-sidebar'
 import { ContentEditorTopbar } from '@/components/content-editor/content-editor-topbar'
@@ -44,6 +46,10 @@ export function ContentEditorPage() {
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [isScheduling, setIsScheduling] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isResearching, setIsResearching] = useState(false)
+  const [isFactChecking, setIsFactChecking] = useState(false)
+  const [lastResearchResult, setLastResearchResult] =
+    useState<ResearchResult | null>(null)
 
   useEffect(() => {
     if (item) {
@@ -155,6 +161,44 @@ export function ContentEditorPage() {
     setContent((prev) => prev + '\n\n' + variant)
     toast.success('Variant inserted')
   }, [])
+
+  const handleFactCheck = useCallback(async (): Promise<FactCheckResult | null> => {
+    if (!content.trim()) {
+      toast.error('Add content to fact-check')
+      return null
+    }
+    setIsFactChecking(true)
+    try {
+      const result = await factCheckContent(content, id ?? undefined)
+      toast.success('Fact-check complete')
+      return result
+    } catch (e) {
+      toast.error((e as Error).message)
+      return null
+    } finally {
+      setIsFactChecking(false)
+    }
+  }, [content, id])
+
+  const handleResearch = useCallback(
+    async (topic: string): Promise<ResearchResult | null> => {
+      if (!topic.trim()) return null
+      setIsResearching(true)
+      setLastResearchResult(null)
+      try {
+        const result = await researchTopic(topic, id ?? undefined)
+        setLastResearchResult(result)
+        toast.success('Research complete')
+        return result
+      } catch (e) {
+        toast.error((e as Error).message)
+        return null
+      } finally {
+        setIsResearching(false)
+      }
+    },
+    [id]
+  )
 
   const handleSchedule = useCallback(
     async (date: Date) => {
@@ -374,6 +418,10 @@ export function ContentEditorPage() {
               onBriefChange={setBrief}
               researchLinks={researchLinks}
               onResearchLinksChange={setResearchLinks}
+              onOpenClawResearch={(topic) => handleResearch(topic)}
+              onOpenClawFactCheck={() => handleFactCheck()}
+              isResearching={isResearching}
+              isFactChecking={isFactChecking}
             />
           </div>
         </div>
@@ -395,12 +443,16 @@ export function ContentEditorPage() {
                   <h3 className="font-semibold">Sidebar</h3>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                  <ContentEditorSidebar
-                    brief={brief}
-                    onBriefChange={setBrief}
-                    researchLinks={researchLinks}
-                    onResearchLinksChange={setResearchLinks}
-                  />
+                <ContentEditorSidebar
+                  brief={brief}
+                  onBriefChange={setBrief}
+                  researchLinks={researchLinks}
+                  onResearchLinksChange={setResearchLinks}
+                  onOpenClawResearch={(topic) => handleResearch(topic)}
+                  onOpenClawFactCheck={() => handleFactCheck()}
+                  isResearching={isResearching}
+                  isFactChecking={isFactChecking}
+                />
                 </div>
               </div>
             </SheetContent>
@@ -417,8 +469,12 @@ export function ContentEditorPage() {
           </div>
           <div className="flex-1 overflow-y-auto max-h-[50vh] border-t">
             <AIPanel
+              content={content}
+              lastResearchResult={lastResearchResult}
               onInsertResearch={handleInsertResearch}
               onInsertVariant={handleInsertVariant}
+              onFactCheck={handleFactCheck}
+              onResearch={handleResearch}
             />
           </div>
         </div>
