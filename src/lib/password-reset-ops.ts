@@ -10,12 +10,16 @@ export interface UpdatePasswordResult {
   message?: string
 }
 
+const SITE_URL = typeof window !== 'undefined' ? window.location.origin : ''
+
 export async function requestPasswordReset(email: string): Promise<RequestResetResult> {
   const { data, error } = await supabase.functions.invoke('password-reset', {
     body: { action: 'request_reset', email },
   })
 
   if (error) {
+    const fallback = await requestPasswordResetFallback(email)
+    if (fallback) return fallback
     throw new Error(error.message ?? 'Failed to send reset email')
   }
 
@@ -27,15 +31,30 @@ export async function requestPasswordReset(email: string): Promise<RequestResetR
   return { success: true, message: (data as { message?: string })?.message }
 }
 
+async function requestPasswordResetFallback(email: string): Promise<RequestResetResult | null> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${SITE_URL}/reset-password`,
+    })
+    if (error) return null
+    return { success: true, message: 'Reset email sent' }
+  } catch {
+    return null
+  }
+}
+
 export async function updatePasswordWithToken(
   accessToken: string,
-  password: string
+  password: string,
+  refreshToken?: string
 ): Promise<UpdatePasswordResult> {
   const { data, error } = await supabase.functions.invoke('password-reset', {
     body: { action: 'update_password', access_token: accessToken, password },
   })
 
   if (error) {
+    const fallback = await updatePasswordFallback(accessToken, password, refreshToken)
+    if (fallback) return fallback
     throw new Error(error.message ?? 'Failed to update password')
   }
 
@@ -45,4 +64,29 @@ export async function updatePasswordWithToken(
   }
 
   return { success: true, message: (data as { message?: string })?.message }
+}
+
+async function updatePasswordFallback(
+  accessToken: string,
+  password: string,
+  refreshToken?: string
+): Promise<UpdatePasswordResult | null> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const session = sessionData?.session
+    if (!session && refreshToken) {
+      const { error: setError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+      if (setError) return null
+    } else if (!session) {
+      return null
+    }
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) return null
+    return { success: true, message: 'Password updated successfully' }
+  } catch {
+    return null
+  }
 }
