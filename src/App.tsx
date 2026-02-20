@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import { LoadingProvider } from '@/contexts/loading-context'
+import { LoadingOverlay } from '@/components/ui/loading-overlay'
 import { AppShell } from '@/components/layout/app-shell'
 import { LandingPage } from '@/pages/landing'
 import { LoginSignupPage } from '@/pages/Login/Signup'
@@ -27,8 +29,9 @@ import { HelpAndAboutPage } from '@/pages/HelpAndAbout'
 function App() {
   return (
     <>
-      <BrowserRouter>
-        <Routes>
+      <LoadingProvider>
+        <BrowserRouter>
+          <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/file-library" element={<Navigate to="/dashboard/file-library" replace />} />
           <Route path="/content-studio-(list)" element={<Navigate to="/dashboard/content-studio" replace />} />
@@ -71,7 +74,9 @@ function App() {
           <Route path="*" element={<Navigate to="/404" replace />} />
         </Routes>
       </BrowserRouter>
+      <LoadingOverlay />
       <Toaster position="top-right" richColors />
+      </LoadingProvider>
     </>
   )
 }

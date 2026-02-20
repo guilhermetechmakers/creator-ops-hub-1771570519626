@@ -89,7 +89,7 @@ export function DashboardActivityFeed({ items: propItems }: DashboardActivityFee
         {isLoading ? (
           <div className="space-y-2">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              <Skeleton key={i} className="h-16 w-full rounded-lg" shimmer />
             ))}
           </div>
         ) : (

@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { DashboardMainWidgets } from '@/components/dashboard/dashboard-main-widgets'
 import { DashboardActivityFeed } from '@/components/dashboard/dashboard-activity-feed'
 import { DashboardCtaBanner } from '@/components/dashboard/dashboard-cta-banner'
+import { ErrorState } from '@/components/ui/error-state'
 import { useDashboardData } from '@/hooks/use-dashboard-data'
 
 export function DashboardPage() {
@@ -17,6 +18,9 @@ export function DashboardPage() {
     loadingScheduled,
     loadingAssets,
     loadingResearch,
+    hasError,
+    errorMessage,
+    refetch,
   } = useDashboardData()
 
   useEffect(() => {
@@ -25,6 +29,10 @@ export function DashboardPage() {
       document.title = 'Creator Ops Hub'
     }
   }, [])
+
+  const handleRetry = useCallback(() => {
+    refetch()
+  }, [refetch])
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -36,6 +44,15 @@ export function DashboardPage() {
       </div>
 
       <DashboardCtaBanner />
+
+      {hasError && (
+        <ErrorState
+          title="Could not load dashboard"
+          description={errorMessage ?? 'Some data failed to load. You can retry or continue with available data.'}
+          onRetry={handleRetry}
+          retryLabel="Retry"
+        />
+      )}
 
       <DashboardMainWidgets
         calendarEvents={calendarEvents}

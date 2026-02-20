@@ -95,7 +95,7 @@ export function DashboardMainWidgets({
           </CardHeader>
           <CardContent>
             {isLoadingCalendar ? (
-              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" shimmer />
             ) : calendarEvents.length > 0 ? (
               <div className="space-y-2">
                 {calendarEvents.slice(0, 3).map((e) => (
@@ -144,7 +144,7 @@ export function DashboardMainWidgets({
           </CardHeader>
           <CardContent>
             {isLoadingGmail ? (
-              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-16 w-full" shimmer />
             ) : gmailThreads.length > 0 ? (
               <div className="space-y-2">
                 {gmailThreads.slice(0, 2).map((t) => (
@@ -180,7 +180,7 @@ export function DashboardMainWidgets({
           {isLoadingScheduled ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-12 w-full" />
+                <Skeleton key={i} className="h-12 w-full" shimmer />
               ))}
             </div>
           ) : scheduledPosts.length > 0 ? (
@@ -234,7 +234,7 @@ export function DashboardMainWidgets({
               {isLoadingResearch ? (
                 <div className="space-y-3">
                   {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-14 w-full rounded-lg" />
+                    <Skeleton key={i} className="h-14 w-full rounded-lg" shimmer />
                   ))}
                 </div>
               ) : researchSummaries.length > 0 ? (
@@ -284,7 +284,7 @@ export function DashboardMainWidgets({
               {isLoadingAssets ? (
                 <div className="grid grid-cols-3 gap-4">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <Skeleton key={i} className="aspect-square rounded-lg" />
+                    <Skeleton key={i} className="aspect-square rounded-lg" shimmer />
                   ))}
                 </div>
               ) : recentAssets.length > 0 ? (

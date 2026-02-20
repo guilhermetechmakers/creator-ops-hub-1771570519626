@@ -57,6 +57,8 @@ export function useDashboardData() {
   const [loadingScheduled, setLoadingScheduled] = useState(false)
   const [loadingAssets, setLoadingAssets] = useState(false)
   const [loadingResearch, setLoadingResearch] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | undefined>()
 
   const fetchScheduledPosts = useCallback(async () => {
     setLoadingScheduled(true)
@@ -111,8 +113,10 @@ export function useDashboardData() {
         return aTime.localeCompare(bTime)
       })
       setScheduledPosts(posts.slice(0, 8))
-    } catch {
+    } catch (e) {
       setScheduledPosts([])
+      setHasError(true)
+      setErrorMessage((e as Error).message || 'Failed to load scheduled posts')
     } finally {
       setLoadingScheduled(false)
     }
@@ -136,8 +140,10 @@ export function useDashboardData() {
           updated_at: r.updated_at ?? '',
         }))
       )
-    } catch {
+    } catch (e) {
       setRecentAssets([])
+      setHasError(true)
+      setErrorMessage((prev) => prev || (e as Error).message || 'Failed to load assets')
     } finally {
       setLoadingAssets(false)
     }
@@ -214,20 +220,28 @@ export function useDashboardData() {
       } else {
         setResearchSummaries([])
       }
-    } catch {
+    } catch (e) {
       setResearchSummaries([])
+      setHasError(true)
+      setErrorMessage((prev) => prev || (e as Error).message || 'Failed to load research')
     } finally {
       setLoadingResearch(false)
     }
   }, [])
 
-  useEffect(() => {
+  const refetch = useCallback(() => {
+    setHasError(false)
+    setErrorMessage(undefined)
     fetchCalendar()
     fetchGmail()
     fetchScheduledPosts()
     fetchRecentAssets()
     fetchResearchSummaries()
   }, [fetchCalendar, fetchGmail, fetchScheduledPosts, fetchRecentAssets, fetchResearchSummaries])
+
+  useEffect(() => {
+    refetch()
+  }, [refetch])
 
   return {
     calendarEvents,
@@ -241,12 +255,8 @@ export function useDashboardData() {
     loadingScheduled,
     loadingAssets,
     loadingResearch,
-    refetch: () => {
-      fetchCalendar()
-      fetchGmail()
-      fetchScheduledPosts()
-      fetchRecentAssets()
-      fetchResearchSummaries()
-    },
+    hasError,
+    errorMessage,
+    refetch,
   }
 }
