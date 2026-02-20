@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 export interface DownloadPrintOptionProps {
-  /** Content ref to download - if not provided, uses document body */
+  /** Optional content ref - kept for API compatibility; download uses full document */
   contentRef?: React.RefObject<HTMLElement | null>
   className?: string
 }
@@ -44,7 +44,6 @@ const PRIVACY_POLICY_HTML = `<!DOCTYPE html>
 </html>`
 
 export function DownloadPrintOption({
-  contentRef,
   className,
 }: DownloadPrintOptionProps) {
   const handlePrint = () => {
@@ -52,10 +51,8 @@ export function DownloadPrintOption({
   }
 
   const handleDownload = () => {
-    const content = contentRef?.current
-    const html = content
-      ? `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Creator Ops Hub - Privacy Policy</title><style>body{font-family:Inter,sans-serif;padding:2rem;max-width:800px;margin:0 auto;line-height:1.6}</style></head><body>${content.innerHTML}</body></html>`
-      : PRIVACY_POLICY_HTML
+    // Always use complete document for consistent, well-formatted download
+    const html = PRIVACY_POLICY_HTML
     const blob = new Blob([html], { type: 'text/html' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -76,20 +73,20 @@ export function DownloadPrintOption({
         variant="outline"
         size="default"
         onClick={handlePrint}
-        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary hover:bg-primary/5"
-        aria-label="Print privacy policy"
+        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary hover:bg-primary/5 hover:shadow-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-label="Print privacy policy (use Save as PDF in print dialog for PDF)"
       >
-        <Printer className="h-4 w-4 mr-2" />
+        <Printer className="h-4 w-4 mr-2" aria-hidden />
         Print
       </Button>
       <Button
         variant="outline"
         size="default"
         onClick={handleDownload}
-        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary hover:bg-primary/5"
-        aria-label="Download privacy policy"
+        className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary hover:bg-primary/5 hover:shadow-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        aria-label="Download privacy policy as HTML"
       >
-        <Download className="h-4 w-4 mr-2" />
+        <Download className="h-4 w-4 mr-2" aria-hidden />
         Download
       </Button>
     </div>

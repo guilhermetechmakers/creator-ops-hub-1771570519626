@@ -38,6 +38,9 @@ export function PrivacyPolicyPage() {
     <div className="min-h-screen bg-background">
       <PublicPageHeader />
 
+      {/* Subtle gradient background - hidden when printing */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-primary/[0.02] via-background to-accent/[0.02] no-print" aria-hidden />
+
       <main
         className="container mx-auto max-w-4xl px-4 py-12 md:py-16"
         role="main"

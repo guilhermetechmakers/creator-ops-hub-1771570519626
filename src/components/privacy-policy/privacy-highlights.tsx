@@ -61,7 +61,7 @@ export function PrivacyHighlights({ className }: PrivacyHighlightsProps) {
         return (
           <Card
             key={highlight.title}
-            className="animate-slide-up opacity-0 border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20"
+            className="animate-slide-up opacity-0 border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20 hover:-translate-y-0.5"
             style={{
               animationDelay: `${index * 100}ms`,
               animationFillMode: 'forwards',
