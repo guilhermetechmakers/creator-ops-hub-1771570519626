@@ -29,6 +29,10 @@
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     --radius-2xl: 1.25rem;
+    /* Gradient design tokens - use CSS variables for consistent theming */
+    --gradient-primary-accent: linear-gradient(to right, rgb(var(--primary) / 0.1), rgb(var(--accent) / 0.05));
+    --gradient-accent-primary: linear-gradient(to right, rgb(var(--accent) / 0.1), rgb(var(--primary) / 0.05));
+    --gradient-primary-accent-strong: linear-gradient(to right, rgb(var(--primary) / 0.1), rgb(var(--accent) / 0.1));
   }
 
   .dark {
@@ -100,6 +104,17 @@
 
   .animate-shake {
     animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  }
+
+  /* Gradient utilities using design tokens */
+  .bg-gradient-primary-accent {
+    background: var(--gradient-primary-accent);
+  }
+  .bg-gradient-accent-primary {
+    background: var(--gradient-accent-primary);
+  }
+  .bg-gradient-primary-accent-strong {
+    background: var(--gradient-primary-accent-strong);
   }
 }
 
