@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { invalidateDashboardRelatedCaches } from '@/lib/cache-invalidate'
 import { useFileLibrary, useFileFolders } from '@/hooks/use-file-library'
 import {
   createFileLibrary,
@@ -25,6 +27,7 @@ const DEFAULT_PAGE_SIZE = 12
 
 export function FileLibraryPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [filters, setFilters] = useState<FileLibraryFilters>({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -67,13 +70,14 @@ export function FileLibraryPage() {
           })
         }
         toast.success(`${files.length} file(s) uploaded`)
+        invalidateDashboardRelatedCaches(queryClient)
         refetch()
       } catch (e) {
         toast.error((e as Error).message)
         throw e
       }
     },
-    [refetch]
+    [refetch, queryClient]
   )
 
   const handleBulkDelete = useCallback(async () => {
@@ -82,6 +86,7 @@ export function FileLibraryPage() {
     try {
       await bulkDeleteFileLibrary(selectedItems.map((i) => i.id))
       toast.success(`${selectedItems.length} asset(s) deleted`)
+      invalidateDashboardRelatedCaches(queryClient)
       setSelectedIds(new Set())
       refetch()
     } catch (e) {
@@ -89,7 +94,7 @@ export function FileLibraryPage() {
     } finally {
       setIsDeleting(false)
     }
-  }, [selectedItems, refetch])
+  }, [selectedItems, refetch, queryClient])
 
   const handleBulkTag = useCallback(
     async (tags: string[]) => {
@@ -101,6 +106,7 @@ export function FileLibraryPage() {
           tags
         )
         toast.success(`Tags added to ${selectedItems.length} asset(s)`)
+        invalidateDashboardRelatedCaches(queryClient)
         setSelectedIds(new Set())
         refetch()
       } catch (e) {
@@ -109,7 +115,7 @@ export function FileLibraryPage() {
         setIsTagging(false)
       }
     },
-    [selectedItems, refetch]
+    [selectedItems, refetch, queryClient]
   )
 
   const handleBulkMoveToFolder = useCallback(
@@ -121,6 +127,7 @@ export function FileLibraryPage() {
         toast.success(
           `${selectedItems.length} asset(s) moved to ${folderId ? 'folder' : 'Uncategorized'}`
         )
+        invalidateDashboardRelatedCaches(queryClient)
         setSelectedIds(new Set())
         refetch()
         refetchFolders()
@@ -130,7 +137,7 @@ export function FileLibraryPage() {
         setIsMoving(false)
       }
     },
-    [selectedItems, refetch, refetchFolders]
+    [selectedItems, refetch, refetchFolders, queryClient]
   )
 
   const handleCreateFolder = useCallback(

@@ -8,6 +8,10 @@
  * - research CRUD -> invalidate dashboard, research
  * - publishing_queue_logs CRUD -> invalidate dashboard
  * - google_integrations change -> invalidate dashboard (calendar, gmail)
+ *
+ * CDN: Use Cache-Tag headers for purging; max-age + stale-while-revalidate for freshness.
+ * In-memory: Edge Function Map with TTL; periodic GC evicts expired entries.
+ * Query/result: React Query staleTime + gcTime; Edge Function memory cache.
  */
 export const CACHE_TTL = {
   /** Dashboard aggregated data - 60s stale, 5min GC */
@@ -30,6 +34,19 @@ export const CACHE_TTL = {
   /** Search in-memory TTL (Edge Function) */
   SEARCH_MEMORY: 120,
 } as const
+
+/** CDN cache tags for purge-by-tag invalidation (when CDN supports it) */
+export const CACHE_TAGS = {
+  DASHBOARD: 'dashboard',
+  DASHBOARD_USER: (userId: string) => `dashboard:${userId}`,
+  FILE_LIBRARY: 'file-library',
+  CONTENT_STUDIO: 'content-studio',
+  RESEARCH: 'research',
+  SEARCH: 'search',
+} as const
+
+/** Memory cache GC interval (ms) - evict expired entries periodically */
+export const CACHE_GC_INTERVAL_MS = 60_000
 
 export const QUERY_KEYS = {
   dashboard: ['dashboard'] as const,

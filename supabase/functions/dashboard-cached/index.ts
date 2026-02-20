@@ -20,6 +20,16 @@ interface CacheEntry<T> {
 
 const memoryCache = new Map<string, CacheEntry<DashboardPayload>>()
 
+/** Evict expired entries from memory cache to prevent unbounded growth */
+function runCacheGC(): void {
+  const now = Date.now()
+  for (const [key, entry] of memoryCache.entries()) {
+    if (entry.expiresAt <= now) {
+      memoryCache.delete(key)
+    }
+  }
+}
+
 interface DashboardPayload {
   calendarEvents: CalendarEvent[]
   gmailThreads: GmailThread[]
@@ -332,15 +342,18 @@ serve(async (req) => {
         data: payload,
         expiresAt: Date.now() + DASHBOARD_CACHE_TTL * 1000,
       })
+      runCacheGC()
     }
 
     const responseTime = Math.round(performance.now() - startTime)
     const cacheControl = `public, max-age=${CDN_CACHE_MAX_AGE}, stale-while-revalidate=${CDN_STALE_WHILE_REVALIDATE}`
+    const cacheTag = `dashboard,dashboard:${user.id}`
 
     const obsHeaders: Record<string, string> = {
       ...corsHeaders,
       'Content-Type': 'application/json',
       'Cache-Control': cacheControl,
+      'Cache-Tag': cacheTag,
       'X-Cache-Status': cacheStatus,
       'X-Request-Id': requestId,
       'X-Response-Time-Ms': String(responseTime),
@@ -353,7 +366,25 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify(payload), { headers: obsHeaders })
+    const responseBody = {
+      ...payload,
+      _meta: {
+        cacheStatus,
+        requestId,
+        responseTimeMs: responseTime,
+        ...(cacheStatus === 'HIT' && payload?.cachedAt
+          ? {
+              cacheHitAt: payload.cachedAt,
+              cacheExpiresAt: (() => {
+                const c = memoryCache.get(cacheKey)
+                return c ? new Date(c.expiresAt).toISOString() : undefined
+              })(),
+            }
+          : {}),
+      },
+    }
+
+    return new Response(JSON.stringify(responseBody), { headers: obsHeaders })
   } catch (err) {
     const responseTime = Math.round(performance.now() - startTime)
     return new Response(

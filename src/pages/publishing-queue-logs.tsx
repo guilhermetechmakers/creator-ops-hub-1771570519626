@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { usePublishingQueue } from '@/hooks/use-publishing-queue'
+import { invalidateDashboardRelatedCaches } from '@/lib/cache-invalidate'
 import {
   retryJob,
   bulkRetryJobs,
@@ -16,6 +18,7 @@ import type {
 } from '@/types/publishing-queue'
 
 export function PublishingQueueLogsPage() {
+  const queryClient = useQueryClient()
   const [filters, setFilters] = useState<PublishingQueueFilters>({})
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [detailJob, setDetailJob] = useState<PublishingQueueLog | null>(null)
@@ -38,6 +41,7 @@ export function PublishingQueueLogsPage() {
       try {
         await retryJob(job.id)
         toast.success('Job scheduled for retry')
+        invalidateDashboardRelatedCaches(queryClient)
         refetch()
         setDetailOpen(false)
       } catch (e) {
@@ -46,7 +50,7 @@ export function PublishingQueueLogsPage() {
         setIsRetrying(false)
       }
     },
-    [refetch]
+    [refetch, queryClient]
   )
 
   const handleManualPublish = useCallback(
@@ -55,6 +59,7 @@ export function PublishingQueueLogsPage() {
       try {
         await manualPublishJob(job.id)
         toast.success('Publish initiated')
+        invalidateDashboardRelatedCaches(queryClient)
         refetch()
         setDetailOpen(false)
       } catch (e) {
@@ -63,7 +68,7 @@ export function PublishingQueueLogsPage() {
         setIsPublishing(false)
       }
     },
-    [refetch]
+    [refetch, queryClient]
   )
 
   const handleBulkRetry = useCallback(
@@ -71,13 +76,14 @@ export function PublishingQueueLogsPage() {
       try {
         const { retried } = await bulkRetryJobs(jobsToRetry.map((j) => j.id))
         toast.success(`${retried} job(s) scheduled for retry`)
+        invalidateDashboardRelatedCaches(queryClient)
         setSelectedIds(new Set())
         refetch()
       } catch (e) {
         toast.error((e as Error).message)
       }
     },
-    [refetch]
+    [refetch, queryClient]
   )
 
   return (

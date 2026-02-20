@@ -15,6 +15,15 @@ export interface ResearchSummary {
   score: number
 }
 
+/** Cache observability metadata from Edge Function responses */
+export interface CacheObservabilityMeta {
+  cacheStatus: 'HIT' | 'MISS'
+  requestId: string
+  responseTimeMs: number
+  cacheHitAt?: string
+  cacheExpiresAt?: string
+}
+
 /** Payload from dashboard-cached Edge Function */
 export interface DashboardCachedPayload {
   calendarEvents: Array<{ id: string; summary: string; start: string; end: string }>
@@ -32,4 +41,6 @@ export interface DashboardCachedPayload {
   researchSummaries: ResearchSummary[]
   googleConnected: boolean
   cachedAt: string
+  /** Observability metadata (metrics, traces) - present when available */
+  _meta?: CacheObservabilityMeta
 }

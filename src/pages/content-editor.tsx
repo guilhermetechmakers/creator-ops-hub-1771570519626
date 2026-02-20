@@ -1,7 +1,9 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useContentEditor } from '@/hooks/use-content-editor'
+import { invalidateDashboardRelatedCaches } from '@/lib/cache-invalidate'
 import { useInstagramIntegration } from '@/hooks/use-instagram-integration'
 import {
   createContentEditor,
@@ -33,6 +35,7 @@ type SaveStatus = 'saved' | 'saving' | 'unsaved'
 export function ContentEditorPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { item, loading, error, refetch } = useContentEditor(id)
   const { connected: instagramConnected } = useInstagramIntegration()
 
@@ -108,6 +111,7 @@ export function ContentEditorPage() {
           // Non-fatal: version save failed
         }
         toast.success('Saved')
+        invalidateDashboardRelatedCaches(queryClient)
         refetch()
       } else {
         const created = await createContentEditor({
@@ -118,6 +122,7 @@ export function ContentEditorPage() {
           channel,
         })
         toast.success('Created')
+        invalidateDashboardRelatedCaches(queryClient)
         navigate(`/dashboard/content-editor/${created.id}`, { replace: true })
       }
     } catch (e) {
@@ -125,7 +130,7 @@ export function ContentEditorPage() {
     } finally {
       setSaveStatus('saved')
     }
-  }, [id, title, description, status, content, channel, dueDate, refetch, navigate])
+  }, [id, title, description, status, content, channel, dueDate, refetch, navigate, queryClient])
 
   useEffect(() => {
     if (saveStatus !== 'saving') {
@@ -142,13 +147,14 @@ export function ContentEditorPage() {
       if (id) {
         try {
           await updateContentEditor(id, { status: newStatus })
+          invalidateDashboardRelatedCaches(queryClient)
           refetch()
         } catch (e) {
           toast.error((e as Error).message)
         }
       }
     },
-    [id, refetch]
+    [id, refetch, queryClient]
   )
 
   const handleAddComment = useCallback((content: string) => {
@@ -262,6 +268,7 @@ export function ContentEditorPage() {
           },
         })
         toast.success(`Scheduled for ${date.toLocaleString()}`)
+        invalidateDashboardRelatedCaches(queryClient)
         refetch()
       } catch (e) {
         toast.error((e as Error).message)
@@ -281,6 +288,7 @@ export function ContentEditorPage() {
       cta,
       refetch,
       navigate,
+      queryClient,
     ]
   )
 
@@ -324,6 +332,7 @@ export function ContentEditorPage() {
           hashtags: hashtags.length > 0 ? hashtags : undefined,
           cta: cta || undefined,
         })
+        invalidateDashboardRelatedCaches(queryClient)
         toast.success('Published to Instagram')
       } else {
         await scheduleToQueue({
@@ -340,6 +349,7 @@ export function ContentEditorPage() {
             cta,
           },
         })
+        invalidateDashboardRelatedCaches(queryClient)
         toast.success('Publish initiated')
       }
       refetch()
@@ -361,6 +371,7 @@ export function ContentEditorPage() {
     instagramConnected,
     refetch,
     navigate,
+    queryClient,
   ])
 
   if (loading && id) {

@@ -1,9 +1,12 @@
 import { useCallback, useEffect } from 'react'
+import { Zap } from 'lucide-react'
 import { DashboardMainWidgets } from '@/components/dashboard/dashboard-main-widgets'
 import { DashboardActivityFeed } from '@/components/dashboard/dashboard-activity-feed'
 import { DashboardCtaBanner } from '@/components/dashboard/dashboard-cta-banner'
 import { ErrorState } from '@/components/ui/error-state'
 import { useDashboardData } from '@/hooks/use-dashboard-data'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export function DashboardPage() {
   const {
@@ -21,6 +24,8 @@ export function DashboardPage() {
     hasError,
     errorMessage,
     refetch,
+    cacheMeta,
+    isRefetching,
   } = useDashboardData()
 
   useEffect(() => {
@@ -36,11 +41,39 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-h1 font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Your single-pane operational view
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-h1 font-bold">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">
+            Your single-pane operational view
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {cacheMeta && (
+            <span
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-medium',
+                cacheMeta.cacheStatus === 'HIT'
+                  ? 'bg-success/10 text-success'
+                  : 'bg-muted text-muted-foreground'
+              )}
+              title={`${cacheMeta.cacheStatus} · ${cacheMeta.responseTimeMs}ms`}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              {cacheMeta.cacheStatus === 'HIT' ? 'Cached' : 'Fresh'}
+            </span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => refetch(true)}
+            disabled={isRefetching}
+            className="text-micro"
+            aria-label="Refresh dashboard"
+          >
+            {isRefetching ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        </div>
       </div>
 
       <DashboardCtaBanner />

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { invalidateDashboardRelatedCaches } from '@/lib/cache-invalidate'
 import { FileEdit, ClipboardCheck, Clock, BarChart3 } from 'lucide-react'
 import {
   useContentStudioList,
@@ -33,6 +35,7 @@ const DEFAULT_PAGE_SIZE = 10
 
 export function ContentStudioListPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [filters, setFilters] = useState<ContentStudioListFilters>({
     page: 1,
     limit: DEFAULT_PAGE_SIZE,
@@ -99,6 +102,7 @@ export function ContentStudioListPage() {
         await deleteContentEditor(item.id)
       }
       toast.success(`${selectedItems.length} item(s) deleted`)
+      invalidateDashboardRelatedCaches(queryClient)
       setSelectedIds(new Set())
       setDeleteConfirmOpen(false)
       refetch()
@@ -108,7 +112,7 @@ export function ContentStudioListPage() {
     } finally {
       setIsDeleting(false)
     }
-  }, [selectedItems, refetch])
+  }, [selectedItems, refetch, queryClient])
 
   const handleBulkStatusChange = useCallback(
     async (status: string) => {
@@ -120,6 +124,7 @@ export function ContentStudioListPage() {
           status
         )
         toast.success(`${selectedItems.length} item(s) marked as ${status}`)
+        invalidateDashboardRelatedCaches(queryClient)
         setSelectedIds(new Set())
         refetch()
         refetchStats()
@@ -129,7 +134,7 @@ export function ContentStudioListPage() {
         setIsBulkUpdating(false)
       }
     },
-    [selectedItems, refetch]
+    [selectedItems, refetch, queryClient]
   )
 
   const handleItemClick = useCallback(

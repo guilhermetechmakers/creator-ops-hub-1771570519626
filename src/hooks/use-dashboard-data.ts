@@ -1,7 +1,8 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchDashboardCached } from '@/api/dashboard-cached'
 import { QUERY_KEYS, CACHE_TTL } from '@/lib/cache-config'
+import { logCacheMetrics } from '@/lib/cache-observability'
 import type { ResearchSummary } from '@/types/dashboard'
 
 export interface CalendarEvent {
@@ -64,12 +65,19 @@ export function useDashboardData() {
     [queryClient, baseRefetch]
   )
 
+  useEffect(() => {
+    if (data?._meta) {
+      logCacheMetrics('dashboard', data._meta)
+    }
+  }, [data?._meta])
+
   const calendarEvents = data?.calendarEvents ?? []
   const gmailThreads = data?.gmailThreads ?? []
   const scheduledPosts = data?.scheduledPosts ?? []
   const recentAssets = data?.recentAssets ?? []
   const researchSummaries: ResearchSummary[] = data?.researchSummaries ?? []
   const googleConnected = data?.googleConnected ?? false
+  const cacheMeta = data?._meta
 
   const loadingCalendar = isLoading
   const loadingGmail = isLoading
@@ -84,6 +92,7 @@ export function useDashboardData() {
     recentAssets,
     researchSummaries,
     googleConnected,
+    cacheMeta,
     loadingCalendar,
     loadingGmail,
     loadingScheduled,

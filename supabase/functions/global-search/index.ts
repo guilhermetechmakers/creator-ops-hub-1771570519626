@@ -10,6 +10,16 @@ const corsHeaders = {
 const SEARCH_CACHE_TTL = 120
 const memoryCache = new Map<string, { data: SearchResult[]; expiresAt: number; cachedAt: string }>()
 
+/** Evict expired entries from memory cache to prevent unbounded growth */
+function runCacheGC(): void {
+  const now = Date.now()
+  for (const [key, entry] of memoryCache.entries()) {
+    if (entry.expiresAt <= now) {
+      memoryCache.delete(key)
+    }
+  }
+}
+
 interface SearchParams {
   query?: string
   types?: ('library' | 'content' | 'research')[]
@@ -178,8 +188,10 @@ serve(async (req) => {
     const cachedAt = new Date().toISOString()
     const expiresAt = Date.now() + SEARCH_CACHE_TTL * 1000
     memoryCache.set(cacheKey, { data: sorted, expiresAt, cachedAt })
+    runCacheGC()
 
     const responseTime = Math.round(performance.now() - startTime)
+    const cacheTag = `search,search:${user.id}`
     return new Response(
       JSON.stringify({ results: sorted }),
       {
@@ -187,6 +199,7 @@ serve(async (req) => {
           ...corsHeaders,
           'Content-Type': 'application/json',
           'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+          'Cache-Tag': cacheTag,
           'X-Cache-Status': 'MISS',
           'X-Request-Id': requestId,
           'X-Response-Time-Ms': String(responseTime),
