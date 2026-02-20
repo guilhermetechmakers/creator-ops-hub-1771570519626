@@ -1,15 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { ErrorState } from '@/components/ui/error-state'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
+const SUCCESS_REDIRECT_DELAY_MS = 800
 
 export function OAuthGoogleCallbackPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
+  const [errorMessage, setErrorMessage] = useState<string>('')
+
+  const handleRetry = useCallback(() => {
+    setStatus('loading')
+    setErrorMessage('')
+    navigate('/login-/-signup', { replace: true })
+  }, [navigate])
 
   useEffect(() => {
     const code = searchParams.get('code')
@@ -18,16 +30,18 @@ export function OAuthGoogleCallbackPage() {
     const hasHash = typeof window !== 'undefined' && window.location.hash?.length > 0
 
     if (errorParam) {
+      const msg = searchParams.get('error_description') ?? 'OAuth authorization was denied or failed.'
+      setErrorMessage(msg)
       setStatus('error')
-      toast.error(searchParams.get('error_description') ?? 'OAuth failed')
-      navigate('/login-/-signup', { replace: true })
+      toast.error(msg)
       return
     }
 
     if (!SUPABASE_URL) {
+      const msg = 'OAuth is not configured. Please contact support.'
+      setErrorMessage(msg)
       setStatus('error')
-      toast.error('OAuth is not configured')
-      navigate('/login-/-signup', { replace: true })
+      toast.error(msg)
       return
     }
 
@@ -54,16 +68,17 @@ export function OAuthGoogleCallbackPage() {
             }
             setStatus('success')
             toast.success('Signed in with Google')
-            navigate(getRedirect(), { replace: true })
+            setTimeout(() => navigate(getRedirect(), { replace: true }), SUCCESS_REDIRECT_DELAY_MS)
             return
           }
         }
 
         // Handle PKCE flow with code in query
         if (!code) {
+          const msg = 'Invalid OAuth callback - missing authorization code.'
+          setErrorMessage(msg)
           setStatus('error')
-          toast.error('Invalid OAuth callback - missing authorization')
-          navigate('/login-/-signup', { replace: true })
+          toast.error(msg)
           return
         }
 
@@ -76,7 +91,10 @@ export function OAuthGoogleCallbackPage() {
           if (error) throw new Error(error.message)
           setStatus('success')
           toast.success('Google connected successfully')
-          navigate(data?.redirect ?? '/dashboard/integrations', { replace: true })
+          setTimeout(
+            () => navigate(data?.redirect ?? '/dashboard/integrations', { replace: true }),
+            SUCCESS_REDIRECT_DELAY_MS
+          )
           return
         }
 
@@ -90,11 +108,12 @@ export function OAuthGoogleCallbackPage() {
         }
         setStatus('success')
         toast.success('Signed in with Google')
-        navigate(getRedirect(), { replace: true })
+        setTimeout(() => navigate(getRedirect(), { replace: true }), SUCCESS_REDIRECT_DELAY_MS)
       } catch (err) {
+        const msg = (err as Error).message ?? 'Connection failed. Please try again.'
+        setErrorMessage(msg)
         setStatus('error')
-        toast.error((err as Error).message ?? 'Connection failed')
-        navigate('/login-/-signup', { replace: true })
+        toast.error(msg)
       }
     }
 
@@ -102,16 +121,89 @@ export function OAuthGoogleCallbackPage() {
   }, [searchParams, navigate])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
+    <div
+      className="min-h-screen flex items-center justify-center bg-background px-4 sm:px-6"
+      role="main"
+      aria-label="Google OAuth callback"
+    >
+      <div className="w-full max-w-md">
         {status === 'loading' && (
-          <>
-            <Loader2 className="h-12 w-12 animate-pulse text-primary mx-auto mb-4" />
-            <p className="text-muted-foreground">Completing Google connection...</p>
-          </>
+          <Card
+            className="overflow-hidden border-2 border-primary/10 shadow-card animate-fade-in transition-all duration-300"
+            aria-live="polite"
+            aria-busy="true"
+            aria-label="Completing Google sign-in"
+          >
+            <CardHeader className="space-y-4 pb-4">
+              <div className="flex items-center justify-center gap-3">
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10"
+                  aria-hidden
+                >
+                  <Loader2
+                    className="h-6 w-6 animate-spin text-primary"
+                    aria-hidden
+                  />
+                </div>
+                <Skeleton className="h-6 w-32" shimmer />
+              </div>
+              <Skeleton className="h-4 w-full" shimmer />
+              <Skeleton className="h-4 w-3/4 mx-auto" shimmer />
+            </CardHeader>
+            <CardContent className="space-y-4 pt-0">
+              <div className="space-y-2">
+                <Skeleton className="h-3 w-full" shimmer />
+                <Skeleton className="h-3 w-5/6" shimmer />
+                <Skeleton className="h-3 w-4/5" shimmer />
+              </div>
+              <div className="flex justify-center pt-2">
+                <p
+                  className="text-small text-muted-foreground"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Completing Google connection...
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         )}
+
+        {status === 'success' && (
+          <Card
+            className="overflow-hidden border-2 border-primary/20 shadow-card animate-fade-in"
+            aria-live="polite"
+            aria-label="Sign-in successful"
+          >
+            <CardContent className="flex flex-col items-center justify-center gap-4 py-12">
+              <Loader2
+                className="h-12 w-12 animate-spin text-primary"
+                aria-hidden
+              />
+              <p
+                className="text-body font-medium text-foreground"
+                role="status"
+              >
+                Sign-in successful. Redirecting...
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {status === 'error' && (
-          <p className="text-destructive">Something went wrong. Redirecting...</p>
+          <div
+            className={cn('animate-fade-in')}
+            role="alert"
+            aria-live="assertive"
+          >
+            <ErrorState
+              title="Google sign-in failed"
+              description={errorMessage}
+              onRetry={handleRetry}
+              retryLabel="Try again"
+              buttonAriaLabel="Retry Google sign-in by returning to login page"
+            />
+          </div>
         )}
       </div>
     </div>
