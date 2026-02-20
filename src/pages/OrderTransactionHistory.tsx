@@ -15,9 +15,10 @@ import {
   Search,
   FileText,
   X,
+  Inbox,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -187,10 +188,15 @@ export function OrderTransactionHistoryPage() {
   const start = total === 0 ? 0 : (page - 1) * limit + 1
   const end = Math.min(page * limit, total)
 
+  const errorMessage = useMemo(
+    () => error ?? 'We couldn\'t load your transaction history. Please try again.',
+    [error]
+  )
+
   return (
-    <div className="space-y-8 max-w-6xl animate-fade-in">
+    <div className="space-y-8 max-w-6xl animate-fade-in" role="main">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <Button
             variant="ghost"
@@ -205,7 +211,7 @@ export function OrderTransactionHistoryPage() {
             </Link>
           </Button>
           <h1 className="text-h1 font-bold flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            <Receipt className="h-8 w-8 text-primary" />
+            <Receipt className="h-8 w-8 text-primary" aria-hidden />
             Order & Transaction History
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -247,15 +253,16 @@ export function OrderTransactionHistoryPage() {
             </Link>
           </Button>
         </div>
-      </div>
+      </header>
 
       {/* Billing link card */}
+      <section aria-labelledby="ledger-heading">
       <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover">
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-h3">
-            <CreditCard className="h-5 w-5 text-primary" />
+          <h2 id="ledger-heading" className="text-h3 font-semibold leading-none tracking-tight flex items-center gap-2">
+            <CreditCard className="h-5 w-5 text-primary" aria-hidden />
             Ledger
-          </CardTitle>
+          </h2>
           <CardDescription>
             Past transactions, upgrades, downgrades, and payment activity. Links back to Billing UI for plan changes.
           </CardDescription>
@@ -333,7 +340,7 @@ export function OrderTransactionHistoryPage() {
           {isError && (
             <ErrorState
               title="Failed to load transactions"
-              description={error ?? 'We couldn\'t load your transaction history. Please try again.'}
+              description={errorMessage}
               onRetry={() => refetch()}
               retryLabel="Retry"
               buttonAriaLabel="Retry loading transaction history"
@@ -341,28 +348,64 @@ export function OrderTransactionHistoryPage() {
           )}
 
           {!isError && isLoading ? (
-            <div className="space-y-4" role="status" aria-live="polite" aria-label="Loading transaction history">
-              <Skeleton className="h-10 w-full" shimmer />
-              <Skeleton className="h-10 w-full" shimmer />
-              <Skeleton className="h-10 w-full" shimmer />
-              <Skeleton className="h-10 w-full" shimmer />
-              <Skeleton className="h-10 w-full" shimmer />
-              <Skeleton className="h-10 w-48" shimmer />
+            <div
+              className="min-h-[320px] space-y-4 animate-fade-in"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading transaction history"
+            >
+              {/* Mobile skeleton: card layout */}
+              <div className="md:hidden space-y-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="rounded-xl border bg-card p-4 space-y-3">
+                    <div className="flex justify-between gap-3">
+                      <Skeleton className="h-5 flex-1 max-w-[60%]" shimmer />
+                      <Skeleton className="h-5 w-16" shimmer />
+                    </div>
+                    <Skeleton className="h-4 w-24" shimmer />
+                    <Skeleton className="h-6 w-20 rounded-full" shimmer />
+                  </div>
+                ))}
+              </div>
+              {/* Desktop skeleton: table layout */}
+              <div className="hidden md:block overflow-x-auto rounded-lg border">
+                <div className="flex border-b bg-muted/30 px-4 py-3 gap-4">
+                  <Skeleton className="h-4 w-24" shimmer />
+                  <Skeleton className="h-4 flex-1" shimmer />
+                  <Skeleton className="h-4 w-20" shimmer />
+                  <Skeleton className="h-4 w-20" shimmer />
+                  <Skeleton className="h-4 w-16" shimmer />
+                </div>
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={i} className="flex border-b border-border/50 px-4 py-4 gap-4 last:border-0">
+                    <Skeleton className="h-4 w-24" shimmer />
+                    <Skeleton className="h-4 flex-1" shimmer />
+                    <Skeleton className="h-4 w-16" shimmer />
+                    <Skeleton className="h-6 w-20 rounded-full" shimmer />
+                    <Skeleton className="h-4 w-12" shimmer />
+                  </div>
+                ))}
+              </div>
             </div>
           ) : !isError && items.length === 0 ? (
             hasActiveFilters ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  <FilterX className="h-10 w-10 text-primary" aria-hidden />
+              <div
+                className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in min-h-[280px]"
+                role="status"
+                aria-live="polite"
+                aria-label="No transactions match your filters"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10" aria-hidden>
+                  <FilterX className="h-10 w-10 text-primary" />
                 </div>
-                <p className="mt-6 font-semibold text-h3">No transactions match your filters</p>
+                <h3 className="mt-6 font-semibold text-h3">No transactions match your filters</h3>
                 <p className="mt-2 text-small text-muted-foreground max-w-sm">
                   Try clearing the status filter or adjusting your search to see more results.
                 </p>
                 <Button
                   variant="default"
                   size="lg"
-                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-200 hover:scale-[1.02]"
                   onClick={clearAllFilters}
                   aria-label="Clear all filters to show all transactions"
                 >
@@ -371,18 +414,23 @@ export function OrderTransactionHistoryPage() {
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-                  <Receipt className="h-10 w-10 text-primary" aria-hidden />
+              <div
+                className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center animate-fade-in min-h-[280px]"
+                role="status"
+                aria-live="polite"
+                aria-label="No transactions yet"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10" aria-hidden>
+                  <Inbox className="h-10 w-10 text-primary" />
                 </div>
-                <p className="mt-6 font-semibold text-h3">No transactions yet</p>
+                <h3 className="mt-6 font-semibold text-h3">No transactions yet</h3>
                 <p className="mt-2 text-small text-muted-foreground max-w-sm">
                   Your transaction history will appear here after your first payment. Upgrade your plan to get started.
                 </p>
                 <Button
                   variant="default"
                   size="lg"
-                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+                  className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 transition-transform duration-200 hover:scale-[1.02]"
                   asChild
                   aria-label="Upgrade plan to get started"
                 >
@@ -407,12 +455,21 @@ export function OrderTransactionHistoryPage() {
               )}
 
               {/* Mobile: card layout */}
-              <div className="md:hidden space-y-4">
+              <div className="md:hidden space-y-4" role="list" aria-label="Transaction list">
                 {items.map((tx) => (
                   <Card
                     key={tx.id}
-                    className="overflow-hidden border-primary/10 transition-all duration-200 hover:shadow-card-hover hover:border-primary/20 cursor-pointer"
+                    role="listitem"
+                    tabIndex={0}
+                    className="overflow-hidden border-primary/10 transition-all duration-200 hover:shadow-card-hover hover:border-primary/20 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     onClick={() => setDetailTx(tx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setDetailTx(tx)
+                      }
+                    }}
+                    aria-label={`View details for ${tx.title}, ${tx.amount.toFixed(2)} dollars, ${tx.status}`}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-3">
@@ -443,6 +500,7 @@ export function OrderTransactionHistoryPage() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-primary"
+                                aria-label={`View invoice for ${tx.title}`}
                               >
                                 View invoice
                               </a>
@@ -456,7 +514,7 @@ export function OrderTransactionHistoryPage() {
               </div>
 
               {/* Desktop: table */}
-              <div className="hidden md:block overflow-x-auto rounded-lg border">
+              <div className="hidden md:block overflow-x-auto rounded-lg border" role="region" aria-label="Transaction history table">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -477,8 +535,16 @@ export function OrderTransactionHistoryPage() {
                     {items.map((tx) => (
                       <TableRow
                         key={tx.id}
-                        className="transition-colors duration-200 hover:bg-muted/50 hover:shadow-sm cursor-pointer"
+                        tabIndex={0}
+                        className="transition-colors duration-200 hover:bg-muted/50 hover:shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset"
                         onClick={() => setDetailTx(tx)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            setDetailTx(tx)
+                          }
+                        }}
+                        aria-label={`View details for ${tx.title}, ${tx.amount.toFixed(2)} dollars, ${tx.status}`}
                       >
                         <TableCell className="font-medium">
                           {new Date(tx.created_at).toLocaleDateString()}
@@ -572,6 +638,7 @@ export function OrderTransactionHistoryPage() {
           ) : null}
         </CardContent>
       </Card>
+      </section>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
@@ -582,10 +649,11 @@ export function OrderTransactionHistoryPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel aria-label="Cancel and keep transaction">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              aria-label="Confirm delete and remove transaction from history"
             >
               Delete
             </AlertDialogAction>
@@ -639,8 +707,9 @@ export function OrderTransactionHistoryPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2"
+                        aria-label={`View invoice for ${detailTx.title}`}
                       >
-                        <FileText className="h-4 w-4" />
+                        <FileText className="h-4 w-4" aria-hidden />
                         View invoice
                       </a>
                     </Button>
@@ -653,8 +722,9 @@ export function OrderTransactionHistoryPage() {
                       setDetailTx(null)
                     }}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    aria-label={`Remove transaction ${detailTx.title} from history`}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
+                    <Trash2 className="h-4 w-4 mr-2" aria-hidden />
                     Remove from history
                   </Button>
                 </div>
