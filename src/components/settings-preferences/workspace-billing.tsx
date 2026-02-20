@@ -45,12 +45,12 @@ export function WorkspaceBilling({
     return (
       <Card className="overflow-hidden transition-all duration-300">
         <CardHeader>
-          <Skeleton className="h-6 w-36" />
-          <Skeleton className="h-4 w-56 mt-2" />
+          <Skeleton className="h-6 w-36" shimmer />
+          <Skeleton className="h-4 w-56 mt-2" shimmer />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-10 w-28" />
+          <Skeleton className="h-24 w-full" shimmer />
+          <Skeleton className="h-10 w-28" shimmer />
         </CardContent>
       </Card>
     )

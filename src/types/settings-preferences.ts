@@ -1,3 +1,4 @@
+/** Settings & Preferences record (maps to settings_preferences table) */
 export interface SettingsPreferences {
   id: string
   user_id: string

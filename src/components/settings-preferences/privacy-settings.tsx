@@ -72,12 +72,12 @@ export function PrivacySettings({
     return (
       <Card className="overflow-hidden transition-all duration-300">
         <CardHeader>
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-4 w-56 mt-2" />
+          <Skeleton className="h-6 w-24" shimmer />
+          <Skeleton className="h-4 w-56 mt-2" shimmer />
         </CardHeader>
         <CardContent className="space-y-6">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" shimmer />
+          <Skeleton className="h-20 w-full" shimmer />
         </CardContent>
       </Card>
     )

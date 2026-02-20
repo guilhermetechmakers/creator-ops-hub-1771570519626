@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { User, Camera, Loader2 } from 'lucide-react'
 import { PasswordStrengthIndicator, getPasswordStrength } from '@/components/login-signup/password-strength-indicator'
-import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -95,13 +95,13 @@ export function AccountProfile({
     return (
       <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover">
         <CardHeader>
-          <Skeleton className="h-6 w-32" />
-          <Skeleton className="h-4 w-48 mt-2" />
+          <Skeleton className="h-6 w-32" shimmer />
+          <Skeleton className="h-4 w-48 mt-2" shimmer />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-10 w-24" />
+          <Skeleton className="h-20 w-full" shimmer />
+          <Skeleton className="h-20 w-full" shimmer />
+          <Skeleton className="h-10 w-24" shimmer />
         </CardContent>
       </Card>
     )
@@ -133,6 +133,7 @@ export function AccountProfile({
               size="icon"
               className="absolute bottom-0 right-0 h-8 w-8 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-105"
               aria-label="Change profile picture"
+              onClick={() => toast.info('Profile picture upload coming soon')}
             >
               <Camera className="h-4 w-4" />
             </Button>

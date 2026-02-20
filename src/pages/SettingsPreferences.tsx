@@ -23,6 +23,13 @@ const tabItems = [
 export function SettingsPreferencesPage() {
   useEffect(() => {
     document.title = 'Settings & Preferences | Creator Ops Hub'
+    const metaDesc = document.querySelector('meta[name="description"]')
+    if (metaDesc) {
+      metaDesc.setAttribute(
+        'content',
+        'Manage account, workspace, team, security, notifications, and privacy settings.'
+      )
+    }
   }, [])
 
   const {
@@ -65,20 +72,20 @@ export function SettingsPreferencesPage() {
       >
         <Link
           to="/dashboard"
-          className="hover:text-foreground transition-colors duration-200 flex items-center gap-1"
+          className="hover:text-foreground transition-colors duration-200 flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
         >
           <Home className="h-4 w-4" />
           Dashboard
         </Link>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 shrink-0" aria-hidden />
         <span className="text-foreground font-medium">Settings & Preferences</span>
       </nav>
 
-      <div className="animate-fade-in">
-        <h1 className="text-h1 font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+      <div className="animate-slide-up">
+        <h1 className="text-h1 font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent">
           Settings & Preferences
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-muted-foreground mt-1 text-body">
           Manage account, workspace, team, security, notifications, and privacy
         </p>
       </div>

@@ -105,13 +105,13 @@ export function NotificationsPreferences({
     return (
       <Card className="overflow-hidden transition-all duration-300">
         <CardHeader>
-          <Skeleton className="h-6 w-36" />
-          <Skeleton className="h-4 w-64 mt-2" />
+          <Skeleton className="h-6 w-36" shimmer />
+          <Skeleton className="h-4 w-64 mt-2" shimmer />
         </CardHeader>
         <CardContent className="space-y-6">
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-16 w-full" shimmer />
+          <Skeleton className="h-16 w-full" shimmer />
+          <Skeleton className="h-24 w-full" shimmer />
         </CardContent>
       </Card>
     )

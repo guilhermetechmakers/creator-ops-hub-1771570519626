@@ -91,13 +91,13 @@ export function TeamManagement({
     return (
       <Card className="overflow-hidden transition-all duration-300">
         <CardHeader>
-          <Skeleton className="h-6 w-28" />
-          <Skeleton className="h-4 w-64 mt-2" />
+          <Skeleton className="h-6 w-28" shimmer />
+          <Skeleton className="h-4 w-64 mt-2" shimmer />
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-12 w-full" shimmer />
+          <Skeleton className="h-24 w-full" shimmer />
+          <Skeleton className="h-24 w-full" shimmer />
         </CardContent>
       </Card>
     )
@@ -226,12 +226,15 @@ export function TeamManagement({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => onUpdateRole?.(member.id, 'admin')}
-                        >
-                          <Shield className="h-4 w-4 mr-2" />
-                          Make admin
-                        </DropdownMenuItem>
+                        {ROLES.filter((r) => r.value !== member.role).map((role) => (
+                          <DropdownMenuItem
+                            key={role.value}
+                            onClick={() => onUpdateRole?.(member.id, role.value)}
+                          >
+                            <Shield className="h-4 w-4 mr-2" />
+                            Change to {role.label}
+                          </DropdownMenuItem>
+                        ))}
                         <DropdownMenuItem
                           onClick={() => setMemberToRemove(member)}
                           className="text-destructive focus:text-destructive"
