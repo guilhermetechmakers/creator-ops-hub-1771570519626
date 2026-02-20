@@ -9,13 +9,13 @@ import {
   FileDown,
   RefreshCw,
   AlertCircle,
+  FileX2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Select, type SelectOption } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   exportFileLibrary,
   importFileLibrary,
@@ -27,6 +27,27 @@ const EXPORT_FORMAT_OPTIONS: SelectOption[] = [
   { value: 'json', label: 'JSON' },
   { value: 'csv', label: 'CSV' },
 ]
+
+/** Normalize import errors into user-friendly messages */
+function normalizeImportError(raw: string): string {
+  const lower = raw.toLowerCase()
+  if (lower.includes('json') && (lower.includes('parse') || lower.includes('invalid') || lower.includes('unexpected'))) {
+    return 'Invalid JSON format. Please ensure your file contains valid JSON.'
+  }
+  if (lower.includes('csv') && (lower.includes('parse') || lower.includes('invalid'))) {
+    return 'Invalid CSV format. Please ensure your file has valid headers and rows.'
+  }
+  if (lower.includes('not authenticated') || lower.includes('unauthorized')) {
+    return 'Session expired. Please sign in again and try importing.'
+  }
+  if (lower.includes('required') || lower.includes('missing')) {
+    return 'File is missing required fields. Expected: title, description, tags, file_type.'
+  }
+  if (lower.includes('network') || lower.includes('fetch') || lower.includes('failed')) {
+    return 'Network error. Please check your connection and try again.'
+  }
+  return raw
+}
 
 export interface ImportExportPanelProps {
   selectedIds: Set<string>
@@ -49,6 +70,7 @@ export function ImportExportPanel({
   const [importError, setImportError] = useState<string | null>(null)
   const [exportError, setExportError] = useState<string | null>(null)
   const [importDrag, setImportDrag] = useState(false)
+  const [importZeroItems, setImportZeroItems] = useState(false)
 
   const handleExport = useCallback(
     async (scope: 'selected' | 'all') => {
@@ -89,17 +111,23 @@ export function ImportExportPanel({
   const handleImportFile = useCallback(
     async (file: File) => {
       setImportError(null)
+      setImportZeroItems(false)
       const ext = file.name.split('.').pop()?.toLowerCase()
       const format = ext === 'csv' ? 'csv' : 'json'
       const text = await file.text()
       setIsImporting(true)
       try {
         const { imported } = await importFileLibrary(format, text)
-        toast.success(`${imported} asset(s) imported`)
+        if (imported === 0) {
+          setImportZeroItems(true)
+          toast.info('No valid assets found in file')
+        } else {
+          toast.success(`${imported} asset(s) imported`)
+        }
         onImportComplete?.()
         return imported
       } catch (e) {
-        setImportError((e as Error).message)
+        setImportError(normalizeImportError((e as Error).message))
         throw e
       } finally {
         setIsImporting(false)
@@ -147,6 +175,7 @@ export function ImportExportPanel({
         className
       )}
       aria-label="Import and export file library"
+      aria-busy={isBusy}
     >
       <CardHeader className="pb-2">
         <CardTitle className="text-h3 flex items-center gap-2">
@@ -158,7 +187,7 @@ export function ImportExportPanel({
         </p>
       </CardHeader>
       <CardContent className="relative">
-        {/* Loading overlay during import/export */}
+        {/* Page-level loading overlay during import/export */}
         {isBusy && (
           <div
             className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm animate-fade-in"
@@ -166,12 +195,21 @@ export function ImportExportPanel({
             aria-live="polite"
             aria-label={isImporting ? 'Importing file library' : 'Exporting file library'}
           >
-            <div className="flex flex-col items-center gap-4 p-6 rounded-xl border bg-card shadow-elevated">
-              <Skeleton className="h-12 w-12 rounded-full" shimmer />
-              <div className="flex flex-col items-center gap-2">
-                <Skeleton className="h-4 w-32" shimmer />
-                <p className="text-small text-muted-foreground">
+            <div className="flex flex-col items-center gap-4 p-6 rounded-xl border bg-card shadow-elevated min-w-[200px]">
+              <div className="relative h-12 w-12">
+                <div className="absolute inset-0 rounded-full border-2 border-primary/20" aria-hidden />
+                <div
+                  className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin"
+                  style={{ animationDuration: '0.8s' }}
+                  aria-hidden
+                />
+              </div>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <p className="text-sm font-medium text-foreground">
                   {isImporting ? 'Importing assets...' : 'Preparing export...'}
+                </p>
+                <p className="text-small text-muted-foreground">
+                  {isImporting ? 'Please wait while we process your file' : 'Generating your download'}
                 </p>
               </div>
             </div>
@@ -202,7 +240,40 @@ export function ImportExportPanel({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="import" className="space-y-4">
+          <TabsContent value="import" className="space-y-4" role="region" aria-label="Import section">
+            {/* Import empty state: file processed with 0 valid items */}
+            {importZeroItems && (
+              <div
+                className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-xl border-2 border-dashed border-muted bg-muted/20 p-6 sm:p-8 min-h-[160px] animate-fade-in"
+                role="status"
+                aria-live="polite"
+                id="import-zero-items-state"
+              >
+                <div className="rounded-2xl bg-muted/50 p-4 ring-1 ring-muted/80 flex-shrink-0">
+                  <FileX2 className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground/70" aria-hidden />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground">No valid assets in file</p>
+                  <p className="text-small text-muted-foreground mt-1">
+                    The file was processed but contained no valid rows. Ensure your CSV or JSON has the required fields: title, description, tags, file_type.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3"
+                    onClick={() => {
+                      setImportZeroItems(false)
+                      document.getElementById('import-file-input')?.click()
+                    }}
+                    aria-label="Try another file"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" aria-hidden />
+                    Try another file
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Import drop zone - empty state CTA */}
             <label
               htmlFor="import-file-input"
@@ -218,6 +289,7 @@ export function ImportExportPanel({
               }}
               onDragLeave={() => setImportDrag(false)}
               onDrop={handleImportDrop}
+              aria-label="Import file - drag and drop CSV or JSON here, or click to browse"
             >
               <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80 mb-4">
                 <Inbox
@@ -260,16 +332,18 @@ export function ImportExportPanel({
               </Button>
             </div>
 
-            {/* Import error state - inline with retry */}
+            {/* Import error state - inline with retry and user-friendly message */}
             {importError && (
               <div
+                id="import-error-message"
                 className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-small animate-slide-up"
                 role="alert"
                 aria-live="assertive"
+                aria-describedby="import-error-description"
               >
                 <div className="flex items-start gap-2 flex-1 min-w-0">
                   <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden />
-                  <div className="min-w-0">
+                  <div className="min-w-0" id="import-error-description">
                     <p className="font-medium">Import failed</p>
                     <p className="text-muted-foreground mt-0.5">{importError}</p>
                   </div>
@@ -314,13 +388,14 @@ export function ImportExportPanel({
             )}
           </TabsContent>
 
-          <TabsContent value="export" className="space-y-4">
-            {/* Export empty state */}
+          <TabsContent value="export" className="space-y-4" role="region" aria-label="Export section">
+            {/* Export empty state - no items in library */}
             {!hasExportData ? (
               <div
                 className="flex flex-col items-center justify-center gap-6 rounded-xl border-2 border-dashed border-muted bg-muted/20 p-8 sm:p-12 min-h-[240px] animate-fade-in"
                 role="status"
                 aria-live="polite"
+                aria-label="No assets to export - add or import assets first"
               >
                 <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
                   <FileDown
@@ -353,6 +428,11 @@ export function ImportExportPanel({
                 </div>
 
                 <div className="flex flex-col gap-2">
+                  {!hasSelectedForExport && (
+                    <p className="text-small text-muted-foreground flex items-center gap-2" role="status">
+                      <span>Select items from the table above to export a subset.</span>
+                    </p>
+                  )}
                   <Button
                     className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     onClick={() => handleExport('selected')}
@@ -360,7 +440,7 @@ export function ImportExportPanel({
                     aria-label={
                       hasSelectedForExport
                         ? `Export selected ${selectedIds.size} items`
-                        : 'Export selected - select items first'
+                        : 'Export selected - select items from the table first'
                     }
                   >
                     {isExporting ? (
@@ -390,16 +470,18 @@ export function ImportExportPanel({
                   </Button>
                 </div>
 
-                {/* Export error state */}
+                {/* Export error state - inline with retry */}
                 {exportError && (
                   <div
+                    id="export-error-message"
                     className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive text-small animate-slide-up"
                     role="alert"
                     aria-live="assertive"
+                    aria-describedby="export-error-description"
                   >
                     <div className="flex items-start gap-2 flex-1 min-w-0">
                       <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden />
-                      <div className="min-w-0">
+                      <div className="min-w-0" id="export-error-description">
                         <p className="font-medium">Export failed</p>
                         <p className="text-muted-foreground mt-0.5">{exportError}</p>
                       </div>

@@ -201,14 +201,38 @@ export function ForgotPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
-          <form onSubmit={handleFormSubmit} className="space-y-4">
+          <form
+            onSubmit={handleFormSubmit}
+            className="space-y-4"
+            aria-labelledby="forgot-form-heading"
+            noValidate
+          >
+            <h2 id="forgot-form-heading" className="sr-only">
+              Request password reset link
+            </h2>
+
+            {apiError && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-small text-destructive animate-fade-in"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                <span>{apiError}</span>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" id="email-label">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
                 autoComplete="email"
+                aria-labelledby="email-label"
+                aria-required="true"
                 {...register('email')}
                 className={cn(
                   'transition-colors duration-200',
@@ -217,18 +241,27 @@ export function ForgotPasswordPage() {
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'email-error' : undefined}
               />
-              {errors.email && (
-                <p id="email-error" className="text-small text-destructive mt-1">
-                  {errors.email.message}
-                </p>
-              )}
+              <FieldErrorSlot id="email-error" error={errors.email} />
             </div>
             <Button
               type="submit"
-              className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className={cn(
+                'w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+                isSubmitting &&
+                  'animate-pulse cursor-wait ring-2 ring-primary/40 ring-offset-2 disabled:opacity-90'
+              )}
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              aria-label={isSubmitting ? 'Sending reset link, please wait' : 'Send reset link'}
             >
-              {isSubmitting ? 'Sending...' : 'Send reset link'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                'Send reset link'
+              )}
             </Button>
           </form>
           <Link
