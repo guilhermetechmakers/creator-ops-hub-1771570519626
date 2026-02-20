@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -90,6 +90,19 @@ export function ContentStudioListPage() {
     }
   }, [loading, isClearingFilters])
 
+  const prevErrorRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (error && error !== prevErrorRef.current) {
+      prevErrorRef.current = error
+      toast.error('Failed to load content', {
+        description: error,
+        duration: 6000,
+      })
+    } else if (!error) {
+      prevErrorRef.current = null
+    }
+  }, [error])
+
   const emptyMessage = useMemo(
     () =>
       hasActiveFilters(filters)
@@ -154,7 +167,10 @@ export function ContentStudioListPage() {
           selectedItems.map((i) => i.id),
           status
         )
-        toast.success(`${selectedItems.length} item(s) marked as ${status}`)
+        toast.success('Status updated', {
+          description: `${selectedItems.length} item(s) marked as ${status}`,
+          duration: 4000,
+        })
         invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
         setBulkError(undefined)
@@ -275,7 +291,7 @@ export function ContentStudioListPage() {
           onRetry={refetch}
           retryLabel="Try again"
           buttonAriaLabel="Retry loading content"
-          className="min-h-[280px]"
+          className="min-h-[320px] rounded-xl border-2 border-destructive/20 shadow-lg"
         />
       ) : (
         <>
@@ -334,11 +350,17 @@ export function ContentStudioListPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel
+              disabled={isDeleting}
+              aria-label="Cancel delete and keep selected content"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmBulkDelete}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              aria-label={isDeleting ? 'Deleting selected content' : 'Confirm delete selected content'}
             >
               {isDeleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>

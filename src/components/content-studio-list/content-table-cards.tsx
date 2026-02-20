@@ -103,6 +103,7 @@ export function ContentTableCards({
   const [previewOpen, setPreviewOpen] = useState(false)
 
   const safeItems = items ?? []
+  const isEmpty = !isLoading && safeItems.length === 0
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -170,6 +171,8 @@ export function ContentTableCards({
   const renderCard = (item: ContentEditor) => (
     <Card
       key={item.id}
+      role="article"
+      aria-label={`Content item: ${item.title ?? 'Untitled'}`}
       className={cn(
         'cursor-pointer transition-all duration-200 hover:shadow-card-hover',
         'hover:border-primary/30'
@@ -182,7 +185,7 @@ export function ContentTableCards({
             checked={selectedIds.has(item.id)}
             onCheckedChange={() => toggleSelect(item.id)}
             onClick={(e) => e.stopPropagation()}
-            aria-label={`Select ${item.title}`}
+            aria-label={`Select ${item.title ?? 'Untitled'}`}
           />
           <div className="flex-1 min-w-0">
             <Link
@@ -235,14 +238,14 @@ export function ContentTableCards({
   if (isLoading) {
     return (
       <section
-        className="space-y-4"
+        className="space-y-4 min-h-[320px]"
         role="status"
         aria-label="Loading content list"
         aria-busy="true"
         aria-live="polite"
       >
         {/* Mobile: card skeletons */}
-        <div className="block lg:hidden space-y-4">
+        <div className="block lg:hidden space-y-4" aria-hidden="true">
           {[1, 2, 3, 4, 5].map((i) => (
             <Skeleton key={i} className="h-24 w-full rounded-xl" shimmer />
           ))}
@@ -272,10 +275,10 @@ export function ContentTableCards({
                     <TableHead>
                       <Skeleton className="h-4 w-16" shimmer />
                     </TableHead>
-                    <TableHead className="w-24" />
+                    <TableHead className="w-24" aria-hidden />
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody aria-hidden="true">
                   {[1, 2, 3, 4, 5, 6, 7].map((i) => (
                     <TableRow key={i}>
                       <TableCell>
@@ -310,12 +313,13 @@ export function ContentTableCards({
     )
   }
 
-  if (sortedItems.length === 0) {
+  if (isEmpty || sortedItems.length === 0) {
     return (
       <section
-        className="animate-fade-in"
+        className="animate-fade-in min-h-[320px]"
         aria-labelledby="content-empty-heading"
         role="region"
+        aria-live="polite"
       >
         <Card className="overflow-hidden border-dashed border-2 border-muted min-h-[320px] flex flex-col">
           <CardContent className="flex flex-1 flex-col items-center justify-center gap-6 py-16 px-6 sm:px-8">
@@ -414,7 +418,7 @@ export function ContentTableCards({
                   <SortHeader label="Channel" sortKey="channel" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Due Date" sortKey="due_date" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Status" sortKey="status" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                  <TableHead scope="col">Assigned</TableHead>
+                  <TableHead scope="col" aria-label="Assignment status">Assigned</TableHead>
                   <TableHead className="w-24" scope="col" aria-label="Row actions" />
                 </TableRow>
               </TableHeader>
@@ -433,7 +437,7 @@ export function ContentTableCards({
                         <Checkbox
                           checked={selectedIds.has(item.id)}
                           onCheckedChange={() => toggleSelect(item.id)}
-                          aria-label={`Select ${item.title}`}
+                          aria-label={`Select ${item.title ?? 'Untitled'}`}
                         />
                       </TableCell>
                       <TableCell className="font-medium">
