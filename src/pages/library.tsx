@@ -1,5 +1,14 @@
-import { useState } from 'react'
-import { Upload, Grid3X3, List, Search, ImageIcon, FolderSearch } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  Upload,
+  Grid3X3,
+  List,
+  Search,
+  ImageIcon,
+  FolderSearch,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,9 +21,12 @@ type Asset = { id: number; name: string; time: string }
 export function LibraryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [searchQuery, setSearchQuery] = useState('')
-  const [assets] = useState<Asset[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [assets, setAssets] = useState<Asset[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [inlineError, setInlineError] = useState<string | null>(null)
 
   const filteredAssets = assets.filter(
     (a) =>
@@ -23,10 +35,53 @@ export function LibraryPage() {
   )
   const isFiltered = Boolean(searchQuery.trim()) && assets.length > 0
 
-  const handleRetry = () => {
-    setHasError(false)
+  const fetchAssets = useCallback(async () => {
+    try {
+      setHasError(false)
+      setInlineError(null)
+      const base = import.meta.env.VITE_API_URL ?? '/api'
+      const res = await fetch(`${base}/library/assets`).catch(() => null)
+      if (!res?.ok) throw new Error('Failed to load assets')
+      const data = await res.json().catch(() => [])
+      setAssets(Array.isArray(data) ? data : [])
+    } catch {
+      setHasError(true)
+      setInlineError(
+        'Unable to load your assets. Please check your connection and try again.'
+      )
+    } finally {
+      setIsLoading(false)
+      setIsRetrying(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchAssets()
+  }, [fetchAssets])
+
+  const handleRetry = async () => {
+    setIsRetrying(true)
     setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 500)
+    setHasError(false)
+    setInlineError(null)
+    await fetchAssets()
+  }
+
+  const handleUpload = () => {
+    if (isUploading) return
+    setIsUploading(true)
+    setInlineError(null)
+    setTimeout(() => {
+      setAssets((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          name: `Asset ${prev.length + 1}`,
+          time: new Date().toLocaleDateString(),
+        },
+      ])
+      setIsUploading(false)
+    }, 1500)
   }
 
   return (
@@ -36,18 +91,48 @@ export function LibraryPage() {
           <h1 id="library-heading" className="text-h1 font-bold text-foreground">
             File Library
           </h1>
-          <p className="text-muted-foreground mt-1 text-small">
+          <h2 className="text-body font-normal text-muted-foreground mt-1 text-small">
             Manage your assets with tags and versioning
-          </p>
+          </h2>
         </div>
-        <Button className="hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200">
-          <Upload className="h-4 w-4 mr-2" aria-hidden />
-          Upload
+        <Button
+          onClick={handleUpload}
+          disabled={isUploading}
+          aria-busy={isUploading}
+          aria-label={isUploading ? 'Uploading files' : 'Upload files'}
+          className="hover:scale-[1.02] active:scale-[0.98] transition-transform duration-200"
+        >
+          {isUploading ? (
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden />
+          ) : (
+            <Upload className="h-4 w-4 mr-2" aria-hidden />
+          )}
+          {isUploading ? 'Uploading...' : 'Upload'}
         </Button>
       </header>
 
+      {/* Inline error feedback */}
+      {inlineError && !hasError && (
+        <div
+          role="alert"
+          className="flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-small animate-fade-in"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0 text-destructive" aria-hidden />
+          <p className="text-destructive flex-1">{inlineError}</p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setInlineError(null)}
+            aria-label="Dismiss error"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+
       {/* Search & filters */}
       <section aria-label="Search and filter assets">
+        <h2 className="sr-only">Search and filter assets</h2>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search
@@ -84,11 +169,32 @@ export function LibraryPage() {
       </section>
 
       {/* Upload area */}
-      <Card className="border-dashed border-2 hover:border-primary/50 transition-colors duration-200 cursor-pointer hover:shadow-card">
+      <Card
+        role="button"
+        tabIndex={0}
+        onClick={handleUpload}
+        onKeyDown={(e) => e.key === 'Enter' && handleUpload()}
+        aria-label="Upload area - drag and drop or click to add files"
+        aria-busy={isUploading}
+        className={cn(
+          'border-dashed border-2 transition-colors duration-200 cursor-pointer hover:shadow-card',
+          isUploading
+            ? 'border-primary/50 bg-primary/5 pointer-events-none'
+            : 'hover:border-primary/50'
+        )}
+      >
         <CardContent className="flex flex-col items-center justify-center py-16">
-          <Upload className="h-12 w-12 text-muted-foreground mb-4" aria-hidden />
-          <p className="font-medium">Drag and drop files here</p>
-          <p className="text-small text-muted-foreground">or click to browse</p>
+          {isUploading ? (
+            <Loader2 className="h-12 w-12 text-primary mb-4 animate-spin" aria-hidden />
+          ) : (
+            <Upload className="h-12 w-12 text-muted-foreground mb-4" aria-hidden />
+          )}
+          <p className="font-medium">
+            {isUploading ? 'Uploading...' : 'Drag and drop files here'}
+          </p>
+          <p className="text-small text-muted-foreground">
+            {isUploading ? 'Please wait' : 'or click to browse'}
+          </p>
         </CardContent>
       </Card>
 
@@ -98,12 +204,14 @@ export function LibraryPage() {
           title="Failed to load assets"
           description="We couldn't load your assets. Please try again."
           onRetry={handleRetry}
+          isRetrying={isRetrying}
         />
       )}
 
       {/* Loading state */}
       {!hasError && isLoading && (
         <section aria-label="Loading assets" aria-busy="true">
+          <h2 className="sr-only">Assets</h2>
           <div
             className={cn(
               viewMode === 'grid'
@@ -123,9 +231,10 @@ export function LibraryPage() {
         </section>
       )}
 
-      {/* Empty state */}
+      {/* Empty state - always render when no items */}
       {!hasError && !isLoading && filteredAssets.length === 0 && (
         <section aria-label="Asset list" aria-live="polite">
+          <h2 className="sr-only">Assets</h2>
           <Card
             className="overflow-hidden border-dashed border-2 border-muted-foreground/30 animate-fade-in transition-shadow duration-200 hover:shadow-card"
             role="status"
@@ -139,9 +248,9 @@ export function LibraryPage() {
                 )}
               </div>
               <div className="text-center space-y-2 max-w-sm">
-                <h2 className="text-body font-semibold text-foreground">
+                <h3 className="text-body font-semibold text-foreground">
                   {isFiltered ? 'No results found' : 'No assets yet'}
-                </h2>
+                </h3>
                 <p className="text-small text-muted-foreground leading-relaxed">
                   {isFiltered
                     ? `No assets match "${searchQuery}". Try a different search term or clear filters.`
@@ -149,10 +258,16 @@ export function LibraryPage() {
                 </p>
               </div>
               {!isFiltered && (
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Upload className="h-5 w-5" aria-hidden />
-                  <span className="text-small">Use the upload area above to add files</span>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUpload}
+                  disabled={isUploading}
+                  className="mt-2"
+                >
+                  <Upload className="h-4 w-4 mr-2" aria-hidden />
+                  Upload your first asset
+                </Button>
               )}
             </CardContent>
           </Card>
@@ -162,6 +277,7 @@ export function LibraryPage() {
       {/* Asset grid */}
       {!hasError && !isLoading && filteredAssets.length > 0 && (
         <section aria-label="Asset list">
+          <h2 className="sr-only">Assets</h2>
           <div
             className={cn(
               viewMode === 'grid'
