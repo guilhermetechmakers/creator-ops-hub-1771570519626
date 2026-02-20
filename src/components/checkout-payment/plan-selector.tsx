@@ -1,6 +1,7 @@
 import { Check, Zap, Crown, Sparkles } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { PlanTier } from '@/types/checkout'
 
@@ -63,7 +64,7 @@ export function PlanSelector({
   isLoading = false,
 }: PlanSelectorProps) {
   return (
-    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 to-transparent transition-all duration-300 hover:shadow-card-hover">
+    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
@@ -77,16 +78,12 @@ export function PlanSelector({
         {isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-64 animate-pulse rounded-xl border bg-muted/50"
-                aria-hidden
-              />
+              <Skeleton key={i} className="h-64 rounded-xl" shimmer aria-hidden />
             ))}
           </div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {tiers.map((tier) => {
+            {tiers.map((tier, idx) => {
               const Icon = TIER_ICONS[tier.id as keyof typeof TIER_ICONS] ?? Zap
               const isCurrent = currentPlanId === tier.id
               const price =
@@ -96,11 +93,15 @@ export function PlanSelector({
                 <Card
                   key={tier.id}
                   className={cn(
-                    'relative cursor-pointer overflow-hidden transition-all duration-300',
+                    'relative cursor-pointer overflow-hidden transition-all duration-300 animate-slide-up',
                     'hover:scale-[1.02] hover:shadow-elevated hover:border-primary/30',
                     isCurrent && 'ring-2 ring-primary',
                     tier.popular && 'border-primary/30'
                   )}
+                  style={{
+                    animationDelay: `${idx * 75}ms`,
+                    animationFillMode: 'both',
+                  }}
                   onClick={() => onSelectPlan?.(tier)}
                   role="button"
                   tabIndex={0}

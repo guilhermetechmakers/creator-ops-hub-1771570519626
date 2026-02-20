@@ -1,6 +1,8 @@
-import { Receipt, Loader2 } from 'lucide-react'
+import { Receipt, Loader2, CheckCircle2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
 export interface ReviewConfirmProps {
   planName?: string
   subtotal?: number
@@ -21,7 +23,7 @@ export function ReviewConfirm({
   onSubmit,
 }: ReviewConfirmProps) {
   return (
-    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 to-transparent transition-all duration-300 hover:shadow-card-hover">
+    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Receipt className="h-5 w-5 text-primary" />
@@ -32,7 +34,7 @@ export function ReviewConfirm({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="rounded-lg border bg-card/50 p-4">
+        <div className="rounded-xl border border-primary/10 bg-card/50 p-4 shadow-sm">
           <div className="space-y-2">
             <div className="flex justify-between text-small">
               <span className="text-muted-foreground">Plan</span>
@@ -63,7 +65,11 @@ export function ReviewConfirm({
 
         <Button
           size="lg"
-          className="w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          className={cn(
+            'w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+            'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70',
+            'shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30'
+          )}
           onClick={onSubmit}
           disabled={isSubmitting}
           aria-busy={isSubmitting}
@@ -74,7 +80,10 @@ export function ReviewConfirm({
               Processing...
             </>
           ) : (
-            'Confirm and subscribe'
+            <>
+              <CheckCircle2 className="h-5 w-5" />
+              Confirm and subscribe
+            </>
           )}
         </Button>
 

@@ -55,22 +55,22 @@ export function PaymentPage() {
   const total = subtotal + tax
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-6xl">
+    <div className="space-y-8 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-in">
         <div>
           <Button
             variant="ghost"
             size="sm"
             asChild
-            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground"
+            className="mb-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200"
           >
             <Link to="/dashboard/settings">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to Settings
             </Link>
           </Button>
-          <h1 className="text-h1 font-bold flex items-center gap-2">
+          <h1 className="text-h1 font-bold flex items-center gap-2 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             <CreditCard className="h-8 w-8 text-primary" />
             Checkout & Payment
           </h1>
@@ -90,7 +90,7 @@ export function PaymentPage() {
       )}
 
       {/* Billing cycle toggle */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 animate-slide-up">
         <Button
           variant={billingCycle === 'monthly' ? 'default' : 'outline'}
           size="sm"
@@ -111,15 +111,17 @@ export function PaymentPage() {
       </div>
 
       {/* Plan selector */}
+      <section id="plans" className="scroll-mt-8">
       <PlanSelector
         currentPlanId={currentPlanId}
         billingCycle={billingCycle}
         onSelectPlan={handleSelectPlan}
         isLoading={isLoading}
       />
+      </section>
 
       {/* Payment form + Review */}
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2 animate-slide-up">
         <PaymentForm onPromoApply={handlePromoApply} isLoading={isSubmitting} />
         <ReviewConfirm
           planName={selectedPlan?.name ?? 'Pro'}
@@ -132,7 +134,9 @@ export function PaymentPage() {
       </div>
 
       {/* Invoice history */}
-      <InvoiceHistoryLink isLoading={isLoading} />
+      <div className="animate-slide-up">
+        <InvoiceHistoryLink isLoading={isLoading} />
+      </div>
     </div>
   )
 }

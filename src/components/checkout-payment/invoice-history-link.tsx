@@ -62,7 +62,7 @@ export function InvoiceHistoryLink({
   const items = transactions.slice(0, maxItems)
 
   return (
-    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 to-transparent transition-all duration-300 hover:shadow-card-hover">
+    <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/5 via-primary/[0.03] to-transparent transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-primary" />
@@ -75,18 +75,32 @@ export function InvoiceHistoryLink({
       <CardContent>
         {isLoading ? (
           <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-28" />
+            <Skeleton className="h-10 w-full" shimmer />
+            <Skeleton className="h-10 w-full" shimmer />
+            <Skeleton className="h-10 w-full" shimmer />
+            <Skeleton className="h-10 w-full" shimmer />
+            <Skeleton className="h-10 w-28" shimmer />
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-center">
-            <Receipt className="h-12 w-12 text-muted-foreground" />
-            <p className="mt-4 font-medium">No invoices yet</p>
-            <p className="text-small text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/20 bg-muted/30 py-16 px-6 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+              <Receipt className="h-10 w-10 text-primary" />
+            </div>
+            <p className="mt-6 font-semibold text-h3">No invoices yet</p>
+            <p className="mt-2 text-small text-muted-foreground max-w-sm">
               Your transaction history will appear here after your first payment. Complete a plan upgrade above to get started.
             </p>
+            <Button
+              variant="default"
+              size="lg"
+              className="mt-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25"
+              asChild
+            >
+              <Link to="/dashboard/checkout-/-payment#plans">
+                Upgrade plan
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
+            </Button>
           </div>
         ) : (
           <>
@@ -146,7 +160,7 @@ export function InvoiceHistoryLink({
             </div>
             <Button
               variant="outline"
-              className="mt-4 w-full transition-transform duration-200 hover:scale-[1.01] sm:w-auto"
+              className="mt-4 w-full transition-all duration-200 hover:scale-[1.02] hover:shadow-elevated sm:w-auto"
               asChild
             >
               <Link to="/dashboard/checkout-/-payment">

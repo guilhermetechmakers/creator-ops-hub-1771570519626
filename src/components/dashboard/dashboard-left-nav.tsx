@@ -11,6 +11,7 @@ import {
   Menu,
   FileEdit,
   HelpCircle,
+  CreditCard,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ export const navItems = [
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  { to: '/dashboard/checkout-/-payment', icon: CreditCard, label: 'Billing' },
   { to: '/dashboard/help-and-about', icon: HelpCircle, label: 'Help & About' },
 ]
 
