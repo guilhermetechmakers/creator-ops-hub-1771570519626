@@ -161,22 +161,22 @@ export function QueueList({
               <TableHeader>
                 <TableRow className="bg-muted/50 border-b">
                   <TableHead className="w-12">
-                    <Skeleton className="h-4 w-4 rounded" />
+                    <Skeleton className="h-4 w-4 rounded" shimmer />
                   </TableHead>
                   <TableHead>
-                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-24" shimmer />
                   </TableHead>
                   <TableHead>
-                    <Skeleton className="h-4 w-28" />
+                    <Skeleton className="h-4 w-28" shimmer />
                   </TableHead>
                   <TableHead>
-                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-20" shimmer />
                   </TableHead>
                   <TableHead>
-                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-32" shimmer />
                   </TableHead>
                   <TableHead>
-                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" shimmer />
                   </TableHead>
                 </TableRow>
               </TableHeader>
@@ -184,22 +184,22 @@ export function QueueList({
                 {[1, 2, 3, 4, 5].map((i) => (
                   <TableRow key={i}>
                     <TableCell className="w-12">
-                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-4 w-4 rounded" shimmer />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-4 w-16 font-mono" />
+                      <Skeleton className="h-4 w-16 font-mono" shimmer />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-4 w-40" shimmer />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-20" shimmer />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-28" shimmer />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className="h-4 w-14 rounded-full" />
+                      <Skeleton className="h-4 w-14 rounded-full" shimmer />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -213,7 +213,7 @@ export function QueueList({
 
   if (error) {
     return (
-      <Card className="overflow-hidden transition-shadow duration-200">
+      <Card className="overflow-hidden transition-shadow duration-200" role="alert">
         <CardContent className="p-6">
           <ErrorState
             title="Failed to load publishing queue"
@@ -234,6 +234,8 @@ export function QueueList({
           <div
             role="status"
             aria-live="polite"
+            aria-labelledby="queue-empty-heading"
+            aria-describedby="queue-empty-description"
             className={cn(
               'flex flex-col items-center justify-center gap-6 rounded-xl',
               'border-2 border-dashed border-muted bg-muted/20 p-8 sm:p-12 text-center',
@@ -244,22 +246,22 @@ export function QueueList({
               <LayoutList className="h-12 w-12 text-muted-foreground/70" aria-hidden />
             </div>
             <div className="space-y-2 max-w-[320px]">
-              <h3 className="text-base font-semibold text-foreground sm:text-lg">
+              <h2 className="text-base font-semibold text-foreground sm:text-lg" id="queue-empty-heading">
                 {emptyMessage}
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              </h2>
+              <p id="queue-empty-description" className="text-sm text-muted-foreground leading-relaxed">
                 Schedule content from Content Studio or Editorial Calendar to see jobs here.
               </p>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Button variant="outline" size="sm" asChild className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                <Link to="/dashboard/content-studio">
+                <Link to="/dashboard/content-studio" aria-label="Go to Content Studio to schedule content">
                   <Send className="h-4 w-4 mr-2" aria-hidden />
                   Content Studio
                 </Link>
               </Button>
               <Button variant="outline" size="sm" asChild className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
-                <Link to="/dashboard/calendar">
+                <Link to="/dashboard/calendar" aria-label="Go to Editorial Calendar to schedule content">
                   <Calendar className="h-4 w-4 mr-2" aria-hidden />
                   Calendar
                 </Link>
@@ -274,7 +276,7 @@ export function QueueList({
   return (
     <Card className="overflow-hidden transition-shadow duration-200 hover:shadow-card-hover">
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" role="region" aria-label="Publishing queue jobs list">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 hover:bg-muted/50 border-b sticky top-0">

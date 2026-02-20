@@ -67,13 +67,15 @@ export function PublishingQueueFiltersComponent({
 
   return (
     <div
+      role="group"
+      aria-labelledby="publishing-queue-filters-heading"
       className={cn(
         'flex flex-col gap-4 rounded-lg border bg-card p-4 transition-all duration-200',
         className
       )}
     >
-      <div className="flex items-center gap-2 text-muted-foreground">
-        <Filter className="h-4 w-4" />
+      <div className="flex items-center gap-2 text-muted-foreground" id="publishing-queue-filters-heading">
+        <Filter className="h-4 w-4" aria-hidden />
         <span className="text-sm font-medium">Filters</span>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -86,7 +88,7 @@ export function PublishingQueueFiltersComponent({
             options={STATUS_OPTIONS}
             value={filters.status ?? 'all'}
             onChange={(e) => handleStatusChange(e.target.value)}
-            aria-label="Filter by status"
+            aria-label="Filter by job status"
           />
         </div>
         <div className="space-y-2">
@@ -111,7 +113,7 @@ export function PublishingQueueFiltersComponent({
             value={filters.dateFrom ?? ''}
             onChange={handleDateFromChange}
             className="transition-colors duration-200 focus:border-primary/50"
-            aria-label="Filter from date"
+            aria-label="Filter from date (start of date range)"
           />
         </div>
         <div className="space-y-2">
@@ -124,7 +126,7 @@ export function PublishingQueueFiltersComponent({
             value={filters.dateTo ?? ''}
             onChange={handleDateToChange}
             className="transition-colors duration-200 focus:border-primary/50"
-            aria-label="Filter to date"
+            aria-label="Filter to date (end of date range)"
           />
         </div>
       </div>

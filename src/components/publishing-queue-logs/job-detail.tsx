@@ -72,9 +72,9 @@ export function JobDetail({
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              aria-label="Close"
+              aria-label="Close job details"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5" aria-hidden />
             </Button>
           </div>
         </SheetHeader>
@@ -132,16 +132,18 @@ export function JobDetail({
             </Card>
           )}
 
-          <div className="flex flex-wrap gap-2 pt-4 border-t">
+          <div className="flex flex-wrap gap-2 pt-4 border-t" role="group" aria-label="Job actions">
             {canRetry && (
               <Button
                 variant="outline"
                 onClick={() => onRetry(job)}
                 disabled={isRetrying}
                 className="transition-all duration-200 hover:scale-[1.02]"
+                aria-label={isRetrying ? 'Retrying job, please wait' : 'Retry failed job'}
               >
                 <RotateCw
                   className={cn('h-4 w-4 mr-2', isRetrying && 'animate-spin')}
+                  aria-hidden
                 />
                 {isRetrying ? 'Retrying…' : 'Retry'}
               </Button>
@@ -151,9 +153,11 @@ export function JobDetail({
                 onClick={() => onManualPublish(job)}
                 disabled={isPublishing}
                 className="transition-all duration-200 hover:scale-[1.02]"
+                aria-label={isPublishing ? 'Publishing job, please wait' : 'Manually publish job now'}
               >
                 <Send
                   className={cn('h-4 w-4 mr-2', isPublishing && 'animate-pulse')}
+                  aria-hidden
                 />
                 {isPublishing ? 'Publishing…' : 'Manual publish'}
               </Button>

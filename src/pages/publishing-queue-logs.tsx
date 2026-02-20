@@ -87,10 +87,10 @@ export function PublishingQueueLogsPage() {
   )
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <main className="space-y-6 animate-fade-in" aria-labelledby="publishing-queue-page-title">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-h1 font-bold">Publishing Queue & Logs</h1>
+          <h1 id="publishing-queue-page-title" className="text-h1 font-bold">Publishing Queue & Logs</h1>
           <p className="text-muted-foreground mt-1">
             Operational view of queued publishing jobs, failures, and retries
           </p>
@@ -100,7 +100,7 @@ export function PublishingQueueLogsPage() {
           onBulkRetry={handleBulkRetry}
           disabled={loading}
         />
-      </div>
+      </header>
 
       <PublishingQueueFiltersComponent
         filters={filters}
@@ -126,7 +126,7 @@ export function PublishingQueueLogsPage() {
         isRetrying={isRetrying}
         isPublishing={isPublishing}
       />
-    </div>
+    </main>
   )
 }
 
