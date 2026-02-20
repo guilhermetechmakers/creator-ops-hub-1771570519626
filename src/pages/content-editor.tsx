@@ -5,6 +5,7 @@ import { useContentEditor } from '@/hooks/use-content-editor'
 import {
   createContentEditor,
   updateContentEditor,
+  saveContentEditorVersion,
 } from '@/lib/content-editor-ops'
 import { scheduleToQueue } from '@/lib/publishing-queue-ops'
 import { researchTopic, factCheckContent } from '@/lib/openclaw-ops'
@@ -15,6 +16,7 @@ import { ContentEditorTopbar } from '@/components/content-editor/content-editor-
 import { CommentsMentions } from '@/components/content-editor/comments-mentions'
 import { AIPanel } from '@/components/content-editor/ai-panel'
 import { PublishControls } from '@/components/content-editor/publish-controls'
+import { VersionHistorySheet } from '@/components/content-editor/version-history-sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -50,6 +52,16 @@ export function ContentEditorPage() {
   const [isFactChecking, setIsFactChecking] = useState(false)
   const [lastResearchResult, setLastResearchResult] =
     useState<ResearchResult | null>(null)
+  const [versionHistoryOpen, setVersionHistoryOpen] = useState(false)
+
+  useEffect(() => {
+    document.title = id
+      ? `${title || 'Untitled'} | Content Editor | Creator Ops Hub`
+      : 'Content Editor | Creator Ops Hub'
+    return () => {
+      document.title = 'Creator Ops Hub'
+    }
+  }, [id, title])
 
   useEffect(() => {
     if (item) {
@@ -85,6 +97,11 @@ export function ContentEditorPage() {
           channel,
           due_date: dueDate ?? undefined,
         })
+        try {
+          await saveContentEditorVersion(id, content)
+        } catch {
+          // Non-fatal: version save failed
+        }
         toast.success('Saved')
         refetch()
       } else {
@@ -365,7 +382,14 @@ export function ContentEditorPage() {
         dueDate={dueDate ?? undefined}
         onAssigneeChange={setAssignee}
         onDueDateChange={setDueDate}
-        onVersionHistoryClick={() => toast.info('Version history coming soon')}
+        onVersionHistoryClick={() => setVersionHistoryOpen(true)}
+      />
+
+      <VersionHistorySheet
+        open={versionHistoryOpen}
+        onOpenChange={setVersionHistoryOpen}
+        contentEditorId={id}
+        onRestore={(restored) => setContent(restored)}
       />
 
       <div className="flex-1 flex overflow-hidden">

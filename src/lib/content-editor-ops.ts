@@ -93,3 +93,52 @@ export async function bulkUpdateContentEditorStatus(
     .eq('user_id', session.user.id)
   if (error) throw error
 }
+
+export interface ContentEditorVersionRecord {
+  id: string
+  content_editor_id: string
+  content_body: string | null
+  version_number: number
+  created_at: string
+  created_by?: string
+}
+
+export async function saveContentEditorVersion(
+  contentEditorId: string,
+  contentBody: string
+): Promise<ContentEditorVersionRecord> {
+  const session = await getSession()
+  const { data: maxVer } = await supabase
+    .from('content_editor_version')
+    .select('version_number')
+    .eq('content_editor_id', contentEditorId)
+    .order('version_number', { ascending: false })
+    .limit(1)
+    .single()
+  const nextVersion = (maxVer?.version_number ?? 0) + 1
+  const { data, error } = await supabase
+    .from('content_editor_version')
+    .insert({
+      content_editor_id: contentEditorId,
+      content_body: contentBody,
+      version_number: nextVersion,
+      created_by: session.user.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return data as ContentEditorVersionRecord
+}
+
+export async function getContentEditorVersions(
+  contentEditorId: string
+): Promise<ContentEditorVersionRecord[]> {
+  const { data, error } = await supabase
+    .from('content_editor_version')
+    .select('*')
+    .eq('content_editor_id', contentEditorId)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (error) throw error
+  return (data ?? []) as ContentEditorVersionRecord[]
+}
