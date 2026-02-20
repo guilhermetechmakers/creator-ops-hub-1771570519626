@@ -187,8 +187,9 @@ export function ContentStudioToolbar({
           onClick={() => setFiltersExpanded(!filtersExpanded)}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           aria-expanded={filtersExpanded}
+          aria-label={filtersExpanded ? 'Collapse filters' : 'Expand filters'}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="h-4 w-4" aria-hidden />
           <span className="text-sm font-medium">Filters</span>
         </button>
         {filtersExpanded && (

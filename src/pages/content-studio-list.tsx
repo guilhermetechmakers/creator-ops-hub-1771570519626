@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -28,10 +28,22 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import type { ContentEditor } from '@/types/content-editor'
 import type { ContentStudioListFilters } from '@/types/content-editor'
 
 const DEFAULT_PAGE_SIZE = 10
+
+function hasActiveFilters(filters: ContentStudioListFilters): boolean {
+  return !!(
+    filters.search?.trim() ||
+    filters.status ||
+    filters.channel ||
+    filters.assignee ||
+    (filters.tags && filters.tags.length > 0)
+  )
+}
 
 export function ContentStudioListPage() {
   const navigate = useNavigate()
@@ -66,9 +78,17 @@ export function ContentStudioListPage() {
   const page = useInfiniteScroll ? infinite.page : paginated.page
   const totalPages = useInfiniteScroll ? infinite.totalPages : paginated.totalPages
 
-  const { stats, refetch: refetchStats } = useContentStudioStats()
+  const { stats, loading: statsLoading, refetch: refetchStats } = useContentStudioStats()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
+
+  const emptyMessage = useMemo(
+    () =>
+      hasActiveFilters(filters)
+        ? 'No content matches your filters. Try adjusting search or filters.'
+        : 'No content items yet. Create your first content to get started.',
+    [filters]
+  )
 
   const handleSearchChange = useCallback((value: string) => {
     setFilters((prev) => ({
@@ -156,50 +176,68 @@ export function ContentStudioListPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="rounded-lg bg-primary/10 p-3">
-              <ClipboardCheck className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-micro text-muted-foreground font-medium">Pending review</p>
-              <p className="text-h3 font-bold">{stats.pendingReview}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="rounded-lg bg-muted p-3">
-              <FileEdit className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-micro text-muted-foreground font-medium">Drafts</p>
-              <p className="text-h3 font-bold">{stats.draft}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="rounded-lg bg-muted p-3">
-              <Clock className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-micro text-muted-foreground font-medium">Scheduled</p>
-              <p className="text-h3 font-bold">{stats.scheduled}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="rounded-lg bg-muted p-3">
-              <BarChart3 className="h-6 w-6 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-micro text-muted-foreground font-medium">Total items</p>
-              <p className="text-h3 font-bold">{stats.total}</p>
-            </div>
-          </CardContent>
-        </Card>
+        {statsLoading ? (
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="overflow-hidden">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-lg shrink-0" />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-6 w-10" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <>
+            <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="rounded-lg bg-primary/10 p-3">
+                  <ClipboardCheck className="h-6 w-6 text-primary" aria-hidden />
+                </div>
+                <div>
+                  <p className="text-micro text-muted-foreground font-medium">Pending review</p>
+                  <p className="text-h3 font-bold">{stats.pendingReview}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="rounded-lg bg-muted p-3">
+                  <FileEdit className="h-6 w-6 text-muted-foreground" aria-hidden />
+                </div>
+                <div>
+                  <p className="text-micro text-muted-foreground font-medium">Drafts</p>
+                  <p className="text-h3 font-bold">{stats.draft}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="rounded-lg bg-muted p-3">
+                  <Clock className="h-6 w-6 text-muted-foreground" aria-hidden />
+                </div>
+                <div>
+                  <p className="text-micro text-muted-foreground font-medium">Scheduled</p>
+                  <p className="text-h3 font-bold">{stats.scheduled}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="rounded-lg bg-muted p-3">
+                  <BarChart3 className="h-6 w-6 text-muted-foreground" aria-hidden />
+                </div>
+                <div>
+                  <p className="text-micro text-muted-foreground font-medium">Total items</p>
+                  <p className="text-h3 font-bold">{stats.total}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
 
       <ContentStudioToolbar
@@ -214,44 +252,42 @@ export function ContentStudioListPage() {
         suggestedTags={getUniqueTagsFromItems(items)}
       />
 
-      {error && (
-        <div
-          className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive"
-          role="alert"
-        >
-          {error}
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="ml-4 underline hover:no-underline"
-          >
-            Retry
-          </button>
-        </div>
+      {error ? (
+        <ErrorState
+          title="Failed to load content"
+          description={error}
+          onRetry={refetch}
+          retryLabel="Try again"
+          buttonAriaLabel="Retry loading content"
+          className="min-h-[280px]"
+        />
+      ) : (
+        <>
+          <ContentTableCards
+            items={items}
+            isLoading={loading}
+            selectedIds={selectedIds}
+            onSelectionChange={setSelectedIds}
+            searchQuery={filters.search ?? ''}
+            onItemClick={handleItemClick}
+            emptyMessage={emptyMessage}
+          />
+
+          <ContentPagination
+            page={page}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            pageSize={filters.limit ?? DEFAULT_PAGE_SIZE}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            useInfiniteScroll={useInfiniteScroll}
+            onLoadMore={handleLoadMore}
+            isLoading={loading}
+            hasMore={page < totalPages}
+            onViewModeChange={setUseInfiniteScroll}
+          />
+        </>
       )}
-
-      <ContentTableCards
-        items={items}
-        isLoading={loading}
-        selectedIds={selectedIds}
-        onSelectionChange={setSelectedIds}
-        searchQuery={filters.search ?? ''}
-        onItemClick={handleItemClick}
-      />
-
-      <ContentPagination
-        page={page}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        pageSize={filters.limit ?? DEFAULT_PAGE_SIZE}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        useInfiniteScroll={useInfiniteScroll}
-        onLoadMore={handleLoadMore}
-        isLoading={loading}
-        hasMore={page < totalPages}
-        onViewModeChange={setUseInfiniteScroll}
-      />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent>

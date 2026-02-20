@@ -215,9 +215,9 @@ export function ContentTableCards({
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4" role="status" aria-label="Loading content">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-24 w-full animate-pulse rounded-xl" />
+          <Skeleton key={i} className="h-24 w-full rounded-xl" shimmer={true} />
         ))}
       </div>
     )
@@ -225,10 +225,10 @@ export function ContentTableCards({
 
   if (sortedItems.length === 0) {
     return (
-      <Card className="overflow-hidden border-dashed">
+      <Card className="overflow-hidden border-dashed border-2 border-muted animate-fade-in" role="status">
         <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
           <div className="rounded-2xl bg-muted/50 p-8">
-            <FileEdit className="h-16 w-16 text-muted-foreground/70 mx-auto" />
+            <FileEdit className="h-16 w-16 text-muted-foreground/70 mx-auto" aria-hidden />
           </div>
           <div className="text-center space-y-2">
             <p className="text-body font-medium">{emptyMessage}</p>
@@ -238,9 +238,10 @@ export function ContentTableCards({
           </div>
           <Link
             to="/dashboard/content-editor/new"
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-primary-foreground font-medium text-small transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-primary-foreground font-medium text-small transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            aria-label="Create new content"
           >
-            <FileEdit className="h-4 w-4" />
+            <FileEdit className="h-4 w-4" aria-hidden />
             New Content
           </Link>
         </CardContent>

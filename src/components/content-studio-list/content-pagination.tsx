@@ -75,7 +75,7 @@ export function ContentPagination({
       {onViewModeChange && totalCount > 0 && (
         <div className="flex items-center gap-2">
           <span className="text-micro text-muted-foreground">View:</span>
-          <div className="flex rounded-lg border p-0.5">
+          <div className="flex rounded-lg border p-0.5" role="group" aria-label="View mode">
             <button
               type="button"
               onClick={() => onViewModeChange(false)}
@@ -85,6 +85,8 @@ export function ContentPagination({
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
+              aria-label="Use pagination view"
+              aria-pressed={!useInfiniteScroll}
             >
               Pagination
             </button>
@@ -97,6 +99,8 @@ export function ContentPagination({
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
+              aria-label="Use load more view"
+              aria-pressed={useInfiniteScroll}
             >
               Load more
             </button>
@@ -174,6 +178,7 @@ export function ContentPagination({
               size="sm"
               onClick={onLoadMore}
               className="transition-transform duration-200 hover:scale-[1.02]"
+              aria-label="Load more content"
             >
               Load more
             </Button>
