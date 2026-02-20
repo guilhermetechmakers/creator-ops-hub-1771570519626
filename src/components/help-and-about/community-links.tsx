@@ -1,5 +1,6 @@
-import { ExternalLink, MessageCircle, Map, Users } from 'lucide-react'
+import { ExternalLink, MessageCircle, Map, Users, HelpCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 interface CommunityLinkItem {
@@ -27,19 +28,21 @@ const COMMUNITY_LINKS: CommunityLinkItem[] = [
   },
 ]
 
+/** Empty state when no community links - per Design Reference: icon, helpful copy, clear CTA */
 function CommunityLinksEmptyState() {
   return (
     <div
       role="status"
       aria-live="polite"
+      aria-label="No community links"
       className={cn(
         'flex flex-col items-center justify-center gap-6 rounded-xl',
-        'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
+        'border-2 border-dashed border-muted bg-muted/20 p-6 sm:p-8 text-center',
         'animate-fade-in min-h-[200px] sm:min-h-[240px]'
       )}
     >
-      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
-        <Users className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80 transition-transform duration-200 hover:scale-[1.02]">
+        <Users className="h-5 w-5 text-muted-foreground/70" aria-hidden />
       </div>
       <div className="space-y-2 max-w-[280px]">
         <h3 className="text-base font-semibold text-foreground">
@@ -51,6 +54,18 @@ function CommunityLinksEmptyState() {
           details.
         </p>
       </div>
+      <Button
+        asChild
+        variant="default"
+        size="lg"
+        aria-label="Contact support for community link details"
+        className="inline-flex items-center gap-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        <a href="#contact" className="inline-flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 shrink-0" aria-hidden />
+          Contact Support
+        </a>
+      </Button>
     </div>
   )
 }
