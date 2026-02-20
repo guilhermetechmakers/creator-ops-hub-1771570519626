@@ -7,6 +7,8 @@ export interface ErrorStateProps {
   description?: string
   onRetry?: () => void
   retryLabel?: string
+  /** Accessible label for the retry/action button (e.g. "Navigate to integrations page") */
+  buttonAriaLabel?: string
   className?: string
 }
 
@@ -15,6 +17,7 @@ export function ErrorState({
   description = 'We couldn\'t load this content. Please try again.',
   onRetry,
   retryLabel = 'Try again',
+  buttonAriaLabel,
   className,
 }: ErrorStateProps) {
   return (
@@ -38,9 +41,10 @@ export function ErrorState({
           variant="outline"
           size="sm"
           onClick={onRetry}
+          aria-label={buttonAriaLabel ?? retryLabel}
           className="hover:scale-[1.02] active:scale-[0.98] transition-transform"
         >
-          <RefreshCw className="h-4 w-4 mr-2" />
+          <RefreshCw className="h-4 w-4 mr-2" aria-hidden="true" />
           {retryLabel}
         </Button>
       )}
