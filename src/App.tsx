@@ -19,6 +19,7 @@ import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { EmailVerificationPage } from '@/pages/email-verification'
 import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
+import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="integrations" element={<IntegrationsPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="publishing-queue-logs" element={<PublishingQueueLogsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="/privacy" element={<PrivacyPage />} />

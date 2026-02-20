@@ -8,6 +8,7 @@ import {
   Calendar,
   Plug,
   BarChart3,
+  Send,
   Settings,
   Menu,
   Bell,
@@ -36,6 +37,7 @@ const navItems = [
   { to: '/dashboard/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+  { to: '/dashboard/publishing-queue-logs', icon: Send, label: 'Publishing Queue' },
   { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]
 
