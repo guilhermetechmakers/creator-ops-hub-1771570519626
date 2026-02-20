@@ -1,76 +1,146 @@
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useCallback } from 'react'
+import { Download, FileSpreadsheet, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-const data = [
-  { name: 'Mon', impressions: 4000, engagement: 240 },
-  { name: 'Tue', impressions: 3000, engagement: 198 },
-  { name: 'Wed', impressions: 5000, engagement: 320 },
-  { name: 'Thu', impressions: 4500, engagement: 280 },
-  { name: 'Fri', impressions: 6000, engagement: 390 },
-  { name: 'Sat', impressions: 5500, engagement: 350 },
-  { name: 'Sun', impressions: 4800, engagement: 310 },
-]
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { AnalyticsFiltersComponent } from '@/components/analytics/analytics-filters'
+import { AnalyticsOverviewCards } from '@/components/analytics/analytics-overview-cards'
+import { AnalyticsCharts } from '@/components/analytics/analytics-charts'
+import { AnalyticsTopPosts } from '@/components/analytics/analytics-top-posts'
+import { useAnalytics } from '@/hooks/use-analytics'
+import { exportAnalyticsToCsv, exportAnalyticsToPdf } from '@/lib/analytics-export'
+import { toast } from 'sonner'
 
 export function AnalyticsPage() {
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  const { data, filters, updateFilters, isLoading, error, refetch } = useAnalytics()
+
+  const handleExportCsv = useCallback(() => {
+    if (!data) {
+      toast.error('No data to export')
+      return
+    }
+    try {
+      exportAnalyticsToCsv(data, {
+        from: filters.dateFrom ?? '',
+        to: filters.dateTo ?? '',
+      })
+      toast.success('Report exported as CSV')
+    } catch (err) {
+      toast.error('Failed to export CSV')
+    }
+  }, [data, filters.dateFrom, filters.dateTo])
+
+  const handleExportPdf = useCallback(() => {
+    if (!data) {
+      toast.error('No data to export')
+      return
+    }
+    try {
+      exportAnalyticsToPdf(data, {
+        from: filters.dateFrom ?? '',
+        to: filters.dateTo ?? '',
+      })
+      toast.success('Opening print dialog for PDF')
+    } catch (err) {
+      toast.error('Failed to export PDF')
+    }
+  }, [data, filters.dateFrom, filters.dateTo])
+
+  const handleFiltersChange = useCallback(
+    (newFilters: Parameters<typeof updateFilters>[0]) => {
+      updateFilters(newFilters)
+    },
+    [updateFilters]
+  )
+
+  if (error) {
+    return (
+      <div className="space-y-6 animate-fade-in">
         <div>
           <h1 className="text-h1 font-bold">Analytics</h1>
           <p className="text-muted-foreground mt-1">Performance insights</p>
         </div>
-        <Button variant="outline">Export CSV</Button>
+        <div className="flex flex-col items-center justify-center py-16 rounded-xl border bg-card">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 mb-4">
+            <FileText className="h-8 w-8 text-destructive" />
+          </div>
+          <p className="font-medium text-foreground">Unable to load analytics</p>
+          <p className="text-small text-muted-foreground mt-1 max-w-md text-center">
+            {error}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-6 hover:scale-[1.02] transition-transform"
+            onClick={() => refetch()}
+          >
+            Try again
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-8 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-h1 font-bold">Analytics</h1>
+          <p className="text-muted-foreground mt-1">
+            Core engagement and performance metrics across content and channels
+          </p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              className="hover:scale-[1.02] transition-transform shrink-0"
+              disabled={isLoading || !data}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={handleExportCsv}
+              className="cursor-pointer focus:bg-primary/10"
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Export CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleExportPdf}
+              className="cursor-pointer focus:bg-primary/10"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Export PDF
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Impressions</CardTitle>
-            <CardDescription>Last 7 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-micro" />
-                  <YAxis className="text-micro" />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="impressions" stroke="rgb(var(--primary))" fill="rgb(var(--primary))" fillOpacity={0.2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Engagement</CardTitle>
-            <CardDescription>Last 7 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="name" className="text-micro" />
-                  <YAxis className="text-micro" />
-                  <Tooltip />
-                  <Area type="monotone" dataKey="engagement" stroke="rgb(var(--accent))" fill="rgb(var(--accent))" fillOpacity={0.2} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AnalyticsFiltersComponent
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+      />
+
+      <AnalyticsOverviewCards
+        overview={data?.overview ?? null}
+        isLoading={isLoading}
+      />
+
+      <AnalyticsCharts
+        chartData={data?.chartData ?? []}
+        isLoading={isLoading}
+      />
+
+      <AnalyticsTopPosts
+        topPosts={data?.topPosts ?? []}
+        isLoading={isLoading}
+      />
     </div>
   )
 }
