@@ -35,7 +35,7 @@ export function ForgotPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link to="/login">
+            <Link to="/login-/-signup">
               <Button className="w-full">Back to sign in</Button>
             </Link>
           </CardContent>
@@ -72,7 +72,7 @@ export function ForgotPasswordPage() {
               {isSubmitting ? 'Sending...' : 'Send reset link'}
             </Button>
           </form>
-          <Link to="/login" className="block mt-4 text-center text-small text-primary hover:underline">
+          <Link to="/login-/-signup" className="block mt-4 text-center text-small text-primary hover:underline">
             Back to sign in
           </Link>
         </CardContent>

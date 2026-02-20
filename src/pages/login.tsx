@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,7 +15,6 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>
 
 export function LoginPage() {
-  const [isLogin, setIsLogin] = useState(true)
   const {
     register,
     handleSubmit,
@@ -37,7 +35,7 @@ export function LoginPage() {
           <CardHeader className="text-center">
             <CardTitle className="text-h2">Welcome back</CardTitle>
             <CardDescription>
-              {isLogin ? 'Sign in to your account' : 'Create your account'}
+              Sign in to your account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -67,16 +65,14 @@ export function LoginPage() {
                   <p className="text-small text-destructive">{errors.password.message}</p>
                 )}
               </div>
-              {isLogin && (
-                <Link
+              <Link
                   to="/forgot-password"
                   className="text-small text-primary hover:underline block"
                 >
                   Forgot password?
                 </Link>
-              )}
               <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? 'Signing in...' : isLogin ? 'Sign In' : 'Sign Up'}
+                {isSubmitting ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
             <div className="mt-4">
@@ -85,14 +81,13 @@ export function LoginPage() {
               </Button>
             </div>
             <p className="mt-4 text-center text-small text-muted-foreground">
-              {isLogin ? "Don't have an account? " : 'Already have an account? '}
-              <button
-                type="button"
-                onClick={() => setIsLogin(!isLogin)}
+              Don&apos;t have an account?{' '}
+              <Link
+                to="/login-/-signup?mode=signup"
                 className="text-primary hover:underline"
               >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
+                Sign up
+              </Link>
             </p>
             <p className="mt-2 text-center text-micro text-muted-foreground">
               By continuing, you agree to our Terms of Service and Privacy Policy.

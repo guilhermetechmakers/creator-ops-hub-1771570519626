@@ -20,13 +20,13 @@ export function LandingPage() {
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" className="text-base px-8 py-6" asChild>
-                <Link to="/signup">
+                <Link to="/login-/-signup">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" className="text-base px-8 py-6" asChild>
-                <Link to="/login">Sign In</Link>
+                <Link to="/login-/-signup">Sign In</Link>
               </Button>
             </div>
           </div>
@@ -92,7 +92,7 @@ export function LandingPage() {
               Join creators and teams who ship faster with Creator Ops Hub.
             </p>
             <Button asChild size="lg">
-              <Link to="/signup">
+              <Link to="/login-/-signup">
                 Start free trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

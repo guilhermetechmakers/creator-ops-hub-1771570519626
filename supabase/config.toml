@@ -1,0 +1,7 @@
+[api]
+enabled = true
+port = 54321
+scheme = "http"
+
+[functions]
+verify_jwt = false

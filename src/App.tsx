@@ -4,6 +4,7 @@ import { AppShell } from '@/components/layout/app-shell'
 import { LandingPage } from '@/pages/landing'
 import { LoginPage } from '@/pages/login'
 import { SignupPage } from '@/pages/signup'
+import { LoginSignupPage } from '@/pages/Login/Signup'
 import { DashboardPage } from '@/pages/dashboard'
 import { LibraryPage } from '@/pages/library'
 import { StudioPage } from '@/pages/studio'
@@ -17,6 +18,7 @@ import { PrivacyPage } from '@/pages/privacy'
 import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { EmailVerificationPage } from '@/pages/email-verification'
+import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
 
 function App() {
   return (
@@ -26,8 +28,10 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login-/-signup" element={<LoginSignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
           <Route path="/dashboard" element={<AppShell />}>
             <Route index element={<DashboardPage />} />
             <Route path="library" element={<LibraryPage />} />
