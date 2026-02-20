@@ -200,7 +200,7 @@ export function SearchFilters({
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9 transition-colors duration-200 focus:border-primary/50"
-            aria-label="Global search"
+            aria-label="Search files by name, tags, or description"
           />
         </div>
         <Button
@@ -208,6 +208,7 @@ export function SearchFilters({
           size="sm"
           onClick={() => setFiltersExpanded(!filtersExpanded)}
           className="shrink-0 transition-all duration-200 hover:border-primary/50"
+          aria-label={filtersExpanded ? 'Collapse filters panel' : 'Expand filters panel'}
           aria-expanded={filtersExpanded}
         >
           <Filter className="h-4 w-4 mr-2" />
@@ -280,11 +281,20 @@ export function SearchFilters({
                   <Badge
                     key={tag}
                     variant="secondary"
+                    role="button"
+                    tabIndex={0}
                     className="cursor-pointer gap-1 pr-1 transition-all duration-200 hover:bg-destructive/20"
                     onClick={() => removeTag(tag)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        removeTag(tag)
+                      }
+                    }}
+                    aria-label={`Remove tag ${tag}`}
                   >
                     {tag}
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" aria-hidden />
                   </Badge>
                 ))}
                 <Input
@@ -300,6 +310,7 @@ export function SearchFilters({
                   }}
                   onBlur={() => tagInput && addTag(tagInput)}
                   className="h-9 flex-1 min-w-[100px]"
+                  aria-label="Add tag filter"
                 />
               </div>
               {availableTags.length > 0 && (
@@ -314,6 +325,7 @@ export function SearchFilters({
                         size="sm"
                         className="h-7 text-micro"
                         onClick={() => addTag(tag)}
+                        aria-label={`Add tag ${tag}`}
                       >
                         + {tag}
                       </Button>
