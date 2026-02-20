@@ -14,7 +14,7 @@ import {
   type SignupFormData,
 } from '@/components/login-signup'
 import { login, signup, signInWithGoogle } from '@/api/auth'
-import { Apple, Mail } from 'lucide-react'
+import { Apple, Link2, Mail } from 'lucide-react'
 
 export function LoginSignupPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -62,6 +62,13 @@ export function LoginSignupPage() {
     }
     return '/dashboard'
   }
+
+  const redirectTo = searchParams.get('redirect')
+  const showSharedAccessPrompt =
+    !!redirectTo &&
+    redirectTo !== '/dashboard' &&
+    redirectTo.startsWith('/') &&
+    !redirectTo.startsWith('//')
 
   const handleEmailSubmit = async (data: LoginFormData | SignupFormData) => {
     setIsSubmitting(true)
@@ -185,6 +192,23 @@ export function LoginSignupPage() {
                 </p>
                 <p className="text-micro text-muted-foreground mt-1">
                   Sign up or log in to accept your invitation and get started.
+                </p>
+              </div>
+            </div>
+          )}
+          {showSharedAccessPrompt && (
+            <div
+              className="rounded-lg border border-primary/20 bg-primary/5 p-4 animate-fade-in flex items-start gap-3"
+              role="status"
+              aria-live="polite"
+            >
+              <Link2 className="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden />
+              <div>
+                <p className="text-small font-medium text-foreground">
+                  Sign in to access this content
+                </p>
+                <p className="text-micro text-muted-foreground mt-1">
+                  Create an account or log in for full access.
                 </p>
               </div>
             </div>

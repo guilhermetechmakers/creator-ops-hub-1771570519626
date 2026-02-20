@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { LoginSignup } from '@/types/auth'
 
+/** Uses login_signup view (URL-safe) - base table is "login_/_signup" */
 const TABLE = 'login_signup'
 
 export interface CreateLoginSignupInput {
