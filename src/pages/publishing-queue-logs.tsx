@@ -96,15 +96,6 @@ export function PublishingQueueLogsPage() {
         />
       </div>
 
-      {error && (
-        <div
-          className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-destructive"
-          role="alert"
-        >
-          {error}
-        </div>
-      )}
-
       <PublishingQueueFiltersComponent
         filters={filters}
         onFiltersChange={setFilters}
@@ -113,6 +104,8 @@ export function PublishingQueueLogsPage() {
       <QueueList
         jobs={jobs}
         isLoading={loading}
+        error={error}
+        onRetry={refetch}
         selectedIds={selectedIds}
         onSelectionChange={setSelectedIds}
         onJobClick={handleJobClick}

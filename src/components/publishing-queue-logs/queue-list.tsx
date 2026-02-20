@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ChevronUp, ChevronDown, LayoutList, Send, Calendar } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
@@ -12,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import type { PublishingQueueLog } from '@/types/publishing-queue'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +41,8 @@ type SortDir = 'asc' | 'desc'
 export interface QueueListProps {
   jobs: PublishingQueueLog[]
   isLoading?: boolean
+  error?: string | null
+  onRetry?: () => void
   selectedIds: Set<string>
   onSelectionChange: (ids: Set<string>) => void
   onJobClick: (job: PublishingQueueLog) => void
@@ -47,6 +52,8 @@ export interface QueueListProps {
 export function QueueList({
   jobs,
   isLoading,
+  error,
+  onRetry,
   selectedIds,
   onSelectionChange,
   onJobClick,
@@ -138,12 +145,122 @@ export function QueueList({
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="overflow-hidden transition-shadow duration-200">
         <CardContent className="p-0">
-          <div className="p-4 space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} className="h-12 w-full animate-pulse" />
-            ))}
+          <div
+            role="status"
+            aria-live="polite"
+            aria-label="Loading publishing queue"
+            className="overflow-x-auto"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 border-b">
+                  <TableHead className="w-12">
+                    <Skeleton className="h-4 w-4 rounded" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-24" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-28" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-20" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-32" />
+                  </TableHead>
+                  <TableHead>
+                    <Skeleton className="h-4 w-16" />
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <TableRow key={i}>
+                    <TableCell className="w-12">
+                      <Skeleton className="h-4 w-4 rounded" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16 font-mono" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-28" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-14 rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="overflow-hidden transition-shadow duration-200">
+        <CardContent className="p-6">
+          <ErrorState
+            title="Failed to load publishing queue"
+            description={error}
+            onRetry={onRetry}
+            retryLabel="Try again"
+            buttonAriaLabel="Retry loading publishing queue"
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (jobs.length === 0) {
+    return (
+      <Card className="overflow-hidden transition-shadow duration-200">
+        <CardContent className="p-0">
+          <div
+            role="status"
+            aria-live="polite"
+            className={cn(
+              'flex flex-col items-center justify-center gap-6 rounded-xl',
+              'border-2 border-dashed border-muted bg-muted/20 p-8 sm:p-12 text-center',
+              'animate-fade-in min-h-[240px] sm:min-h-[280px] mx-4 my-6'
+            )}
+          >
+            <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+              <LayoutList className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+            </div>
+            <div className="space-y-2 max-w-[320px]">
+              <h3 className="text-base font-semibold text-foreground sm:text-lg">
+                {emptyMessage}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Schedule content from Content Studio or Editorial Calendar to see jobs here.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" size="sm" asChild className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                <Link to="/dashboard/content-studio">
+                  <Send className="h-4 w-4 mr-2" aria-hidden />
+                  Content Studio
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild className="hover:scale-[1.02] active:scale-[0.98] transition-transform">
+                <Link to="/dashboard/calendar">
+                  <Calendar className="h-4 w-4 mr-2" aria-hidden />
+                  Calendar
+                </Link>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -174,20 +291,7 @@ export function QueueList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedJobs.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-32 text-center text-muted-foreground"
-                  >
-                    <p className="text-body">{emptyMessage}</p>
-                    <p className="text-small mt-1">
-                      Schedule content from Content Studio or Editorial Calendar
-                    </p>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                sortedJobs.map((job) => (
+              {sortedJobs.map((job) => (
                   <TableRow
                     key={job.id}
                     className={cn(
@@ -220,8 +324,7 @@ export function QueueList({
                       </Badge>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
+                ))}
             </TableBody>
           </Table>
         </div>
