@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, BookOpen, Code, Coins, RotateCcw } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -69,12 +69,27 @@ const CATEGORY_ICONS: Record<DocItem['category'], typeof BookOpen> = {
   credits: Coins,
 }
 
+const DEBOUNCE_MS = 300
+
 export function SearchableDocs() {
   const [query, setQuery] = useState('')
+  const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<DocItem['category'] | 'all'>('all')
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(query)
+      debounceRef.current = null
+    }, DEBOUNCE_MS)
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [query])
 
   const filtered = useMemo(() => {
-    const q = query.toLowerCase().trim()
+    const q = debouncedQuery.toLowerCase().trim()
     return DOCS.filter((doc) => {
       const matchQuery =
         !q ||
@@ -85,7 +100,7 @@ export function SearchableDocs() {
         selectedCategory === 'all' || doc.category === selectedCategory
       return matchQuery && matchCategory
     })
-  }, [query, selectedCategory])
+  }, [debouncedQuery, selectedCategory])
 
   return (
     <Card className="overflow-hidden animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
@@ -114,8 +129,10 @@ export function SearchableDocs() {
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
+              aria-pressed={selectedCategory === cat}
+              aria-label={`Filter by ${cat === 'all' ? 'all categories' : CATEGORY_LABELS[cat]}`}
               className={cn(
-                'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+                'rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 selectedCategory === cat
                   ? 'bg-primary text-primary-foreground shadow hover:bg-primary/90'
                   : 'bg-secondary/80 text-secondary-foreground hover:bg-secondary'

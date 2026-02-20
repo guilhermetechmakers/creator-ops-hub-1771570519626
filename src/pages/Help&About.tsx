@@ -6,5 +6,4 @@ export {
   HelpAndAboutPage,
   HelpAndAboutContent,
 } from '@/pages/HelpAndAbout'
-import { HelpAndAboutPage } from '@/pages/HelpAndAbout'
-export default HelpAndAboutPage
+export { HelpAndAboutPage as default } from '@/pages/HelpAndAbout'
