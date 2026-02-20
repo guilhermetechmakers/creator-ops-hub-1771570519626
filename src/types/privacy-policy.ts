@@ -1,4 +1,4 @@
-export interface Dashboard {
+export interface PrivacyPolicy {
   id: string
   user_id: string
   title: string
@@ -6,11 +6,4 @@ export interface Dashboard {
   status: string
   created_at: string
   updated_at: string
-}
-
-export interface ResearchSummary {
-  id: string
-  title: string
-  time: string
-  score: number
 }

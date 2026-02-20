@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,7 +22,8 @@ export function DashboardCtaBanner({
   return (
     <Card
       className={cn(
-        'bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 overflow-hidden',
+        'bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border-primary/20 overflow-hidden',
+        'transition-all duration-300 hover:shadow-card-hover hover:shadow-primary/5',
         className
       )}
     >
@@ -35,12 +37,21 @@ export function DashboardCtaBanner({
             <p className="text-small text-muted-foreground">{description}</p>
           </div>
         </div>
-        <Button
-          onClick={onCtaClick}
-          className="hover:scale-[1.02] transition-transform shrink-0"
-        >
-          {ctaText}
-        </Button>
+        {onCtaClick ? (
+          <Button
+            onClick={onCtaClick}
+            className="hover:scale-[1.02] active:scale-[0.98] transition-transform shrink-0"
+          >
+            {ctaText}
+          </Button>
+        ) : (
+          <Button
+            asChild
+            className="hover:scale-[1.02] active:scale-[0.98] transition-transform shrink-0"
+          >
+            <Link to="/dashboard/checkout-/-payment">{ctaText}</Link>
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { DashboardMainWidgets } from '@/components/dashboard/dashboard-main-widgets'
 import { DashboardActivityFeed } from '@/components/dashboard/dashboard-activity-feed'
 import { DashboardCtaBanner } from '@/components/dashboard/dashboard-cta-banner'
@@ -9,12 +10,21 @@ export function DashboardPage() {
     gmailThreads,
     scheduledPosts,
     recentAssets,
+    researchSummaries,
     googleConnected,
     loadingCalendar,
     loadingGmail,
     loadingScheduled,
     loadingAssets,
+    loadingResearch,
   } = useDashboardData()
+
+  useEffect(() => {
+    document.title = 'Dashboard | Creator Ops Hub'
+    return () => {
+      document.title = 'Creator Ops Hub'
+    }
+  }, [])
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -32,11 +42,13 @@ export function DashboardPage() {
         gmailThreads={gmailThreads}
         scheduledPosts={scheduledPosts}
         recentAssets={recentAssets}
+        researchSummaries={researchSummaries}
         googleConnected={googleConnected}
         isLoadingCalendar={loadingCalendar}
         isLoadingGmail={loadingGmail}
         isLoadingScheduled={loadingScheduled}
         isLoadingAssets={loadingAssets}
+        isLoadingResearch={loadingResearch}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -45,3 +57,5 @@ export function DashboardPage() {
     </div>
   )
 }
+
+export default DashboardPage

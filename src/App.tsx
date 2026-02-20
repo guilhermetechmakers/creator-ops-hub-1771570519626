@@ -12,7 +12,7 @@ import { IntegrationsPage } from '@/pages/integrations'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SettingsPreferencesPage } from '@/pages/SettingsPreferences'
 import { NotFoundPage } from '@/pages/not-found'
-import { PrivacyPage } from '@/pages/privacy'
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicy'
 import { TermsPage } from '@/pages/terms'
 import { ForgotPasswordPage } from '@/pages/forgot-password'
 import { ResetPasswordPage } from '@/pages/reset-password'
@@ -58,7 +58,8 @@ function App() {
             <Route path="settings-&-preferences" element={<SettingsPreferencesPage />} />
             <Route path="checkout-/-payment" element={<PaymentPage />} />
           </Route>
-          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/privacy" element={<Navigate to="/privacy-policy" replace />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/404" element={<NotFoundPage />} />
           <Route path="*" element={<Navigate to="/404" replace />} />

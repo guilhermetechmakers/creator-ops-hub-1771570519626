@@ -49,11 +49,12 @@ export interface MainWidgetsProps {
   scheduledPosts?: ScheduledPost[]
   recentAssets?: RecentAsset[]
   scheduledCount?: number
-  researchSummaries?: { title: string; time: string; score: number }[]
+  researchSummaries?: { id: string; title: string; time: string; score: number }[]
   isLoadingCalendar?: boolean
   isLoadingGmail?: boolean
   isLoadingScheduled?: boolean
   isLoadingAssets?: boolean
+  isLoadingResearch?: boolean
   googleConnected?: boolean
 }
 
@@ -76,6 +77,7 @@ export function DashboardMainWidgets({
   isLoadingGmail = false,
   isLoadingScheduled = false,
   isLoadingAssets = false,
+  isLoadingResearch = false,
   googleConnected = false,
 }: MainWidgetsProps) {
   const displayScheduledCount = scheduledCount ?? scheduledPosts.length
@@ -83,7 +85,7 @@ export function DashboardMainWidgets({
     <div className="space-y-6">
       {/* Today + Scheduled + Quick stats row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="overflow-hidden bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
+        <Card className="overflow-hidden bg-gradient-to-br from-primary/5 to-transparent border-primary/10 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-small font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
@@ -113,7 +115,7 @@ export function DashboardMainWidgets({
           </CardContent>
         </Card>
 
-        <Card className="overflow-hidden">
+        <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-small font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -132,7 +134,7 @@ export function DashboardMainWidgets({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-small font-medium flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +162,7 @@ export function DashboardMainWidgets({
       </div>
 
       {/* Scheduled posts list */}
-      <Card>
+      <Card className="transition-all duration-300 hover:shadow-card-hover">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Scheduled Posts</CardTitle>
@@ -213,7 +215,7 @@ export function DashboardMainWidgets({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Research */}
-        <Card>
+        <Card className="transition-all duration-300 hover:shadow-card-hover">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Recent Research</CardTitle>
@@ -228,38 +230,43 @@ export function DashboardMainWidgets({
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {researchSummaries.length > 0
-                ? researchSummaries.map((r, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors duration-200"
-                    >
-                      <div>
-                        <p className="font-medium">{r.title}</p>
-                        <p className="text-small text-muted-foreground">{r.time}</p>
-                      </div>
-                      <Badge variant="secondary">{r.score}%</Badge>
-                    </div>
-                  ))
-                : [1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors"
-                    >
-                      <div>
-                        <p className="font-medium">Research topic {i}</p>
-                        <p className="text-small text-muted-foreground">2 hours ago</p>
-                      </div>
-                      <Badge variant="secondary">85%</Badge>
-                    </div>
+              {isLoadingResearch ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-14 w-full rounded-lg" />
                   ))}
+                </div>
+              ) : researchSummaries.length > 0 ? (
+                researchSummaries.map((r, i) => (
+                  <Link
+                    key={r.id}
+                    to={`/dashboard/research?highlight=${r.id}`}
+                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 hover:border-primary/20 transition-all duration-200 block animate-fade-in"
+                    style={{ animationDelay: `${i * 50}ms` }}
+                  >
+                    <div>
+                      <p className="font-medium">{r.title}</p>
+                      <p className="text-small text-muted-foreground">{r.time}</p>
+                    </div>
+                    <Badge variant="secondary">{r.score}%</Badge>
+                  </Link>
+                ))
+              ) : (
+                <div className="py-8 text-center">
+                  <Search className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-small text-muted-foreground">No research yet</p>
+                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                    <Link to="/dashboard/research/new">Start research</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Recent Assets + Quick Create */}
         <div className="space-y-6">
-          <Card>
+          <Card className="transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Recent Assets</CardTitle>

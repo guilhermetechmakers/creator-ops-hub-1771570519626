@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import type { ResearchSummary } from '@/types/dashboard'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 
@@ -32,16 +33,30 @@ export interface RecentAsset {
   updated_at: string
 }
 
+function formatTimeAgo(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return `${diffDays}d ago`
+}
+
 export function useDashboardData() {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
   const [gmailThreads, setGmailThreads] = useState<GmailThread[]>([])
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([])
   const [recentAssets, setRecentAssets] = useState<RecentAsset[]>([])
+  const [researchSummaries, setResearchSummaries] = useState<ResearchSummary[]>([])
   const [googleConnected, setGoogleConnected] = useState(false)
   const [loadingCalendar, setLoadingCalendar] = useState(false)
   const [loadingGmail, setLoadingGmail] = useState(false)
   const [loadingScheduled, setLoadingScheduled] = useState(false)
   const [loadingAssets, setLoadingAssets] = useState(false)
+  const [loadingResearch, setLoadingResearch] = useState(false)
 
   const fetchScheduledPosts = useCallback(async () => {
     setLoadingScheduled(true)
@@ -178,28 +193,60 @@ export function useDashboardData() {
     }
   }, [])
 
+  const fetchResearchSummaries = useCallback(async () => {
+    setLoadingResearch(true)
+    try {
+      const { data } = await supabase
+        .from('research')
+        .select('id, title, updated_at')
+        .order('updated_at', { ascending: false })
+        .limit(5)
+
+      if (data && Array.isArray(data)) {
+        setResearchSummaries(
+          data.map((r) => ({
+            id: r.id,
+            title: r.title ?? 'Untitled',
+            time: formatTimeAgo(r.updated_at ?? new Date().toISOString()),
+            score: 85,
+          }))
+        )
+      } else {
+        setResearchSummaries([])
+      }
+    } catch {
+      setResearchSummaries([])
+    } finally {
+      setLoadingResearch(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchCalendar()
     fetchGmail()
     fetchScheduledPosts()
     fetchRecentAssets()
-  }, [fetchCalendar, fetchGmail, fetchScheduledPosts, fetchRecentAssets])
+    fetchResearchSummaries()
+  }, [fetchCalendar, fetchGmail, fetchScheduledPosts, fetchRecentAssets, fetchResearchSummaries])
 
   return {
     calendarEvents,
     gmailThreads,
     scheduledPosts,
     recentAssets,
+    researchSummaries,
     googleConnected,
     loadingCalendar,
     loadingGmail,
     loadingScheduled,
     loadingAssets,
+    loadingResearch,
     refetch: () => {
       fetchCalendar()
       fetchGmail()
       fetchScheduledPosts()
       fetchRecentAssets()
+      fetchResearchSummaries()
     },
   }
 }

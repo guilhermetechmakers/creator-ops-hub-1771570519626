@@ -1,5 +1,6 @@
 import { FileText, FolderOpen, Search, MessageCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 export interface ActivityItem {
   id: string
@@ -28,19 +29,23 @@ const defaultItems: ActivityItem[] = [
 
 export function DashboardActivityFeed({ items = defaultItems }: DashboardActivityFeedProps) {
   return (
-    <Card>
+    <Card className="transition-all duration-300 hover:shadow-card-hover">
       <CardHeader>
         <CardTitle>Activity Feed</CardTitle>
         <CardDescription>Comments, mentions, publish status</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          {items.map(({ id, icon, text, time }) => {
+        <div className="space-y-2">
+          {items.map(({ id, icon, text, time }, i) => {
             const Icon = iconMap[icon]
             return (
               <div
                 key={id}
-                className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors duration-200"
+                className={cn(
+                  'flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200',
+                  'hover:border-primary/10 border border-transparent'
+                )}
+                style={{ animationDelay: `${i * 50}ms` }}
               >
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
                   <Icon className="h-4 w-4 text-muted-foreground" />

@@ -1,16 +1,8 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  Search,
-  Bell,
-  User,
-  Settings,
-  LogOut,
-  Menu,
-} from 'lucide-react'
+import { Menu, Bell, User, LogOut, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { GlobalSearch } from '@/components/dashboard/global-search'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,63 +11,54 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 
 interface DashboardTopbarProps {
-  onMenuClick?: () => void
-  showMenuButton?: boolean
-  searchPlaceholder?: string
+  onMobileMenuOpen?: () => void
+  className?: string
 }
 
-export function DashboardTopbar({
-  onMenuClick,
-  showMenuButton = false,
-  searchPlaceholder = 'Search...',
-}: DashboardTopbarProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-
+export function DashboardTopbar({ onMobileMenuOpen, className }: DashboardTopbarProps) {
   return (
-    <header className="flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6">
-      {showMenuButton && onMenuClick && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          onClick={onMenuClick}
-          aria-label="Open menu"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+    <header
+      className={cn(
+        'flex h-16 items-center gap-4 border-b bg-card px-4 md:px-6 transition-all duration-200',
+        className
       )}
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden shrink-0"
+        onClick={onMobileMenuOpen}
+        aria-label="Open menu"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
 
-      <div className="flex-1 flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            className="pl-9 bg-muted/50 focus:border-primary/50 transition-colors duration-200"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Global search"
-          />
-        </div>
+      <div className="flex-1 flex items-center gap-4 min-w-0">
+        <GlobalSearch />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           variant="ghost"
           size="icon"
           aria-label="Notifications"
-          className="relative hover:bg-muted transition-colors duration-200"
+          className="relative hover:bg-muted transition-colors duration-200 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent" />
+          <span
+            className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-accent"
+            aria-hidden
+          />
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:ring-2 hover:ring-primary/20 transition-all duration-200"
+              className="rounded-full hover:ring-2 hover:ring-primary/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               aria-label="User menu"
             >
               <Avatar className="h-9 w-9">
@@ -94,7 +77,10 @@ export function DashboardTopbar({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/dashboard/settings" className="flex items-center gap-2 cursor-pointer">
+                <Link
+                  to="/dashboard/settings"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <Settings className="h-4 w-4" />
                   Settings
                 </Link>

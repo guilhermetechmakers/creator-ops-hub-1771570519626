@@ -63,6 +63,13 @@
     line-height: 1.5;
   }
 
+  @media print {
+    .no-print,
+    [data-print-hide] {
+      display: none !important;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

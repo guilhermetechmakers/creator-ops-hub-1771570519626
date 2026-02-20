@@ -31,7 +31,7 @@ export function ForgotPasswordTermsLinks({
         </Link>{' '}
         and{' '}
         <Link
-          to="/privacy"
+          to="/privacy-policy"
           className="text-primary hover:underline transition-colors duration-200"
         >
           Privacy Policy

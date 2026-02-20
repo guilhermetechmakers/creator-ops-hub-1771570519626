@@ -49,5 +49,6 @@ npm run lint
 | `/dashboard/integrations` | Integrations |
 | `/dashboard/analytics` | Analytics |
 | `/dashboard/settings` | Settings |
-| `/privacy` | Privacy Policy |
+| `/privacy` | Redirects to Privacy Policy |
+| `/privacy-policy` | Privacy Policy (full legal) |
 | `/terms` | Terms of Service |
