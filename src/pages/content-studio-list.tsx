@@ -56,6 +56,7 @@ export function ContentStudioListPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkUpdating, setIsBulkUpdating] = useState(false)
+  const [bulkError, setBulkError] = useState<string | undefined>()
   const [useInfiniteScroll, setUseInfiniteScroll] = useState(false)
 
   const baseFilters = {
@@ -125,10 +126,13 @@ export function ContentStudioListPage() {
       invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
       setSelectedIds(new Set())
       setDeleteConfirmOpen(false)
+      setBulkError(undefined)
       refetch()
       refetchStats()
     } catch (e) {
-      toast.error((e as Error).message)
+      const msg = (e as Error).message
+      toast.error(msg)
+      setBulkError(msg)
     } finally {
       setIsDeleting(false)
     }
@@ -146,10 +150,13 @@ export function ContentStudioListPage() {
         toast.success(`${selectedItems.length} item(s) marked as ${status}`)
         invalidateDashboardRelatedCaches(queryClient, { bypassEdgeCache: true })
         setSelectedIds(new Set())
+        setBulkError(undefined)
         refetch()
         refetchStats()
       } catch (e) {
-        toast.error((e as Error).message)
+        const msg = (e as Error).message
+        toast.error(msg)
+        setBulkError(msg)
       } finally {
         setIsBulkUpdating(false)
       }
@@ -247,6 +254,8 @@ export function ContentStudioListPage() {
         onBulkDelete={selectedIds.size > 0 ? handleBulkDelete : undefined}
         onBulkStatusChange={handleBulkStatusChange}
         isBulkUpdating={isBulkUpdating}
+        bulkError={bulkError}
+        onBulkErrorClear={() => setBulkError(undefined)}
         searchValue={filters.search ?? ''}
         onSearchChange={handleSearchChange}
         suggestedTags={getUniqueTagsFromItems(items)}

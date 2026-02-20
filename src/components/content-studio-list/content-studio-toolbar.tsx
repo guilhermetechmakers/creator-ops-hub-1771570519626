@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Filter, Trash2, MoreHorizontal } from 'lucide-react'
+import { Plus, Filter, Trash2, MoreHorizontal, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, type SelectOption } from '@/components/ui/select'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { ContentSearch } from '@/components/content-studio-list/content-search'
 import {
   DropdownMenu,
@@ -46,6 +47,10 @@ export interface ContentStudioToolbarProps {
   onBulkDelete?: () => void
   onBulkStatusChange?: (status: string) => void
   isBulkUpdating?: boolean
+  /** Inline error message when bulk actions fail (e.g. API errors) */
+  bulkError?: string
+  /** Callback to clear bulk error when user dismisses */
+  onBulkErrorClear?: () => void
   onNewContent?: () => void
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -61,6 +66,8 @@ export function ContentStudioToolbar({
   onBulkDelete,
   onBulkStatusChange,
   isBulkUpdating = false,
+  bulkError,
+  onBulkErrorClear,
   searchValue = '',
   onSearchChange,
   suggestedTags = [],
@@ -126,41 +133,79 @@ export function ContentStudioToolbar({
   }
 
   const [filtersExpanded, setFiltersExpanded] = useState(true)
+
   return (
-    <div className={cn('space-y-4', className)}>
+    <section
+      className={cn('space-y-4', className)}
+      aria-labelledby="content-toolbar-heading"
+    >
+      <h2 id="content-toolbar-heading" className="sr-only">
+        Content actions and filters
+      </h2>
+
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
-          <Button asChild className="shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
+          <Button
+            asChild
+            className="shrink-0 transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            aria-label="Create new content"
+          >
             <Link to="/dashboard/content-editor/new">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" aria-hidden />
               New Content
             </Link>
           </Button>
           {selectedCount > 0 && (
-            <div className="flex items-center gap-2 animate-fade-in">
-              <span className="text-small text-muted-foreground">
+            <div className="flex items-center gap-2 animate-fade-in" role="group" aria-label="Bulk actions for selected items">
+              <span className="text-small text-muted-foreground" id="selected-count">
                 {selectedCount} selected
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" disabled={isBulkUpdating}>
-                    <MoreHorizontal className="h-4 w-4 mr-1" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isBulkUpdating}
+                    aria-label={isBulkUpdating ? 'Bulk update in progress' : 'Open bulk actions menu'}
+                    aria-describedby="selected-count"
+                  >
+                    {isBulkUpdating ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-pulse" aria-hidden />
+                    ) : (
+                      <MoreHorizontal className="h-4 w-4 mr-1" aria-hidden />
+                    )}
                     {isBulkUpdating ? 'Updating...' : 'Bulk actions'}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[180px]">
+                <DropdownMenuContent align="start" className="min-w-[180px]" aria-label="Bulk action options">
                   {onBulkStatusChange && (
                     <>
-                      <DropdownMenuItem onClick={() => onBulkStatusChange('draft')}>
+                      <DropdownMenuItem
+                        onClick={() => onBulkStatusChange('draft')}
+                        disabled={isBulkUpdating}
+                        aria-label="Mark selected as draft"
+                      >
                         Mark as Draft
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onBulkStatusChange('review')}>
+                      <DropdownMenuItem
+                        onClick={() => onBulkStatusChange('review')}
+                        disabled={isBulkUpdating}
+                        aria-label="Mark selected as review"
+                      >
                         Mark as Review
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onBulkStatusChange('scheduled')}>
+                      <DropdownMenuItem
+                        onClick={() => onBulkStatusChange('scheduled')}
+                        disabled={isBulkUpdating}
+                        aria-label="Mark selected as scheduled"
+                      >
                         Mark as Scheduled
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onBulkStatusChange('published')}>
+                      <DropdownMenuItem
+                        onClick={() => onBulkStatusChange('published')}
+                        disabled={isBulkUpdating}
+                        aria-label="Mark selected as published"
+                      >
                         Mark as Published
                       </DropdownMenuItem>
                     </>
@@ -168,9 +213,11 @@ export function ContentStudioToolbar({
                   {onBulkDelete && (
                     <DropdownMenuItem
                       onClick={onBulkDelete}
+                      disabled={isBulkUpdating}
                       className="text-destructive focus:text-destructive"
+                      aria-label="Delete selected items"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
+                      <Trash2 className="h-4 w-4 mr-2" aria-hidden />
                       Delete selected
                     </DropdownMenuItem>
                   )}
@@ -181,85 +228,114 @@ export function ContentStudioToolbar({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 rounded-lg border bg-card p-4 transition-all duration-200">
-        <button
-          type="button"
-          onClick={() => setFiltersExpanded(!filtersExpanded)}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-          aria-expanded={filtersExpanded}
-          aria-label={filtersExpanded ? 'Collapse filters' : 'Expand filters'}
+      {bulkError && (
+        <div
+          role="alert"
+          className={cn(
+            'flex items-center gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4',
+            'text-small text-foreground animate-fade-in'
+          )}
         >
-          <Filter className="h-4 w-4" aria-hidden />
-          <span className="text-sm font-medium">Filters</span>
-        </button>
+          <AlertCircle className="h-5 w-5 shrink-0 text-destructive" aria-hidden />
+          <p className="flex-1">{bulkError}</p>
+          {onBulkErrorClear && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onBulkErrorClear}
+              aria-label="Dismiss error message"
+              className="shrink-0 text-muted-foreground hover:text-foreground"
+            >
+              Dismiss
+            </Button>
+          )}
+        </div>
+      )}
+
+      <Card className="transition-all duration-200 hover:shadow-card-hover">
+        <CardHeader className="p-4 pb-0">
+          <button
+            type="button"
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className="flex w-full items-center gap-2 text-left text-muted-foreground hover:text-foreground transition-colors duration-200"
+            aria-expanded={filtersExpanded}
+            aria-controls="content-filters-panel"
+            aria-label={filtersExpanded ? 'Collapse filters' : 'Expand filters'}
+          >
+            <Filter className="h-4 w-4 shrink-0" aria-hidden />
+            <h3 className="text-sm font-medium">Filters</h3>
+          </button>
+        </CardHeader>
         {filtersExpanded && (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 animate-slide-up">
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="filter-search" className="text-micro">
-                Search (title & tags)
-              </Label>
-              <ContentSearch
-                value={(searchValue || filters.search) ?? ''}
-                onChange={handleSearchChange}
-                placeholder="Full-text and tag search..."
-                suggestedTags={suggestedTags}
-                activeTags={filters.tags ?? []}
-                onTagRemove={handleTagRemove}
-                onTagAdd={handleTagAdd}
-              />
+          <CardContent id="content-filters-panel" className="p-4 pt-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 animate-slide-up">
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="filter-search" className="text-micro text-foreground">
+                  Search (title & tags)
+                </Label>
+                <ContentSearch
+                  value={(searchValue || filters.search) ?? ''}
+                  onChange={handleSearchChange}
+                  placeholder="Full-text and tag search..."
+                  suggestedTags={suggestedTags}
+                  activeTags={filters.tags ?? []}
+                  onTagRemove={handleTagRemove}
+                  onTagAdd={handleTagAdd}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="filter-status" className="text-micro text-foreground">
+                  Status
+                </Label>
+                <Select
+                  id="filter-status"
+                  options={STATUS_OPTIONS}
+                  value={filters.status ?? 'all'}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  aria-label="Filter by status"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="filter-channel" className="text-micro text-foreground">
+                  Channel
+                </Label>
+                <Select
+                  id="filter-channel"
+                  options={CHANNEL_OPTIONS}
+                  value={filters.channel ?? 'all'}
+                  onChange={(e) => handleChannelChange(e.target.value)}
+                  aria-label="Filter by channel"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="filter-assignee" className="text-micro text-foreground">
+                  Assignee
+                </Label>
+                <Select
+                  id="filter-assignee"
+                  options={[{ value: 'all', label: 'All assignees' }]}
+                  value={filters.assignee ?? 'all'}
+                  onChange={(e) => handleAssigneeChange(e.target.value)}
+                  aria-label="Filter by assignee"
+                />
+              </div>
+              <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                <Label htmlFor="filter-tags" className="text-micro text-foreground">
+                  Tags
+                </Label>
+                <Input
+                  id="filter-tags"
+                  placeholder="e.g. campaign, launch"
+                  value={tagsInputValue}
+                  onChange={handleTagsChange}
+                  className="transition-colors duration-200 focus:border-primary/50 focus-visible:ring-ring"
+                  aria-label="Filter by tags (comma-separated)"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="filter-status" className="text-micro">
-                Status
-              </Label>
-              <Select
-                id="filter-status"
-                options={STATUS_OPTIONS}
-                value={filters.status ?? 'all'}
-                onChange={(e) => handleStatusChange(e.target.value)}
-                aria-label="Filter by status"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="filter-channel" className="text-micro">
-                Channel
-              </Label>
-              <Select
-                id="filter-channel"
-                options={CHANNEL_OPTIONS}
-                value={filters.channel ?? 'all'}
-                onChange={(e) => handleChannelChange(e.target.value)}
-                aria-label="Filter by channel"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="filter-assignee" className="text-micro">
-                Assignee
-              </Label>
-              <Select
-                id="filter-assignee"
-                options={[{ value: 'all', label: 'All assignees' }]}
-                value={filters.assignee ?? 'all'}
-                onChange={(e) => handleAssigneeChange(e.target.value)}
-                aria-label="Filter by assignee"
-              />
-            </div>
-            <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-              <Label htmlFor="filter-tags" className="text-micro">
-                Tags
-              </Label>
-              <Input
-                id="filter-tags"
-                placeholder="e.g. campaign, launch"
-                value={tagsInputValue}
-                onChange={handleTagsChange}
-                className="transition-colors duration-200 focus:border-primary/50"
-                aria-label="Filter by tags (comma-separated)"
-              />
-            </div>
-          </div>
+          </CardContent>
         )}
-      </div>
-    </div>
+      </Card>
+    </section>
   )
 }
