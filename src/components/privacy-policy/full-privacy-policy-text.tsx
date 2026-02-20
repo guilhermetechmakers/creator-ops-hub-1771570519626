@@ -43,7 +43,9 @@ const POLICY_SECTIONS = [
   {
     title: 'Contact',
     content:
-      'For privacy-related questions, data requests, or to exercise your rights, contact us at privacy@creatoropshub.com. We will respond within 30 days.',
+      'For privacy-related questions, data requests, or to exercise your rights, contact us at ',
+    contactEmail: 'privacy@creatoropshub.com',
+    contentSuffix: '. We will respond within 30 days.',
   },
 ]
 
@@ -51,27 +53,42 @@ export function FullPrivacyPolicyText({ className }: FullPrivacyPolicyTextProps)
   return (
     <article
       className={cn(
-        'prose prose-slate dark:prose-invert max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-p:text-muted-foreground prose-p:leading-relaxed',
+        'prose max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-headings:text-foreground prose-p:text-muted-foreground prose-p:leading-relaxed prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground',
         className
       )}
     >
-      {POLICY_SECTIONS.map((section, index) => (
-        <section
-          key={section.title}
-          className="animate-slide-up opacity-0"
-          style={{
-            animationDelay: `${index * 80}ms`,
-            animationFillMode: 'forwards',
-          }}
-        >
-          <h2 className="text-h3 font-semibold mt-8 first:mt-0 text-foreground">
-            {section.title}
-          </h2>
-          <p className="mt-2 text-body text-muted-foreground leading-relaxed">
-            {section.content}
-          </p>
-        </section>
-      ))}
+      {POLICY_SECTIONS.map((section, index) => {
+        const hasContactEmail = 'contactEmail' in section && section.contactEmail
+        return (
+          <section
+            key={section.title}
+            className="animate-slide-up opacity-0"
+            style={{
+              animationDelay: `${index * 80}ms`,
+              animationFillMode: 'forwards',
+            }}
+          >
+            <h2 className="text-h3 font-semibold mt-8 first:mt-0 text-foreground">
+              {section.title}
+            </h2>
+            <p className="mt-2 text-body text-muted-foreground leading-relaxed">
+              {section.content}
+              {hasContactEmail ? (
+                <>
+                  <a
+                    href={`mailto:${section.contactEmail}`}
+                    className="text-primary hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+                    aria-label="Email privacy team"
+                  >
+                    {section.contactEmail}
+                  </a>
+                  {section.contentSuffix ?? ''}
+                </>
+              ) : null}
+            </p>
+          </section>
+        )
+      })}
     </article>
   )
 }
