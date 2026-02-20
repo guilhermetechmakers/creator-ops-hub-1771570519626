@@ -22,8 +22,8 @@ export interface PublishControlsProps {
   title?: string
   content?: string
   channel?: string
-  onSchedule?: (date: Date) => void
-  onPublish?: () => void
+  onSchedule?: (date: Date) => void | Promise<void>
+  onPublish?: () => void | Promise<void>
   thumbnailUrl?: string
   tags?: string[]
   hashtags?: string[]
@@ -113,10 +113,33 @@ export function PublishControls({
     platformKey === 'instagram' && !instagramConnected
 
   return (
-    <div className={cn('flex flex-col border-t', className)}>
+    <div
+      className={cn('relative flex flex-col border-t', className)}
+      aria-busy={isLoading}
+      aria-live={isLoading ? 'polite' : undefined}
+      aria-label={isLoading ? 'Publish controls loading' : undefined}
+    >
+      {isLoading && (
+        <div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-lg bg-background/80 backdrop-blur-sm animate-fade-in"
+          role="status"
+          aria-live="polite"
+          aria-label={isScheduling ? 'Scheduling post' : 'Publishing post'}
+        >
+          <Loader2 className="h-10 w-10 animate-spin text-primary" aria-hidden />
+          <p className="text-small font-medium text-foreground">
+            {isScheduling ? 'Scheduling...' : 'Publishing...'}
+          </p>
+          <p className="text-micro text-muted-foreground">
+            {isScheduling
+              ? 'Your post is being scheduled'
+              : 'Your post is being published'}
+          </p>
+        </div>
+      )}
       {showInstagramWarning && (
         <div className="p-3 mx-4 mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 flex items-start gap-2">
-          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+          <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" aria-hidden />
           <div className="text-small">
             <p className="font-medium text-amber-800 dark:text-amber-200">
               Instagram not connected
@@ -125,6 +148,7 @@ export function PublishControls({
               <Link
                 to="/dashboard/integrations"
                 className="text-primary hover:underline font-medium"
+                aria-label="Go to integrations to connect Instagram"
               >
                 Connect Instagram
               </Link>{' '}
@@ -146,9 +170,17 @@ export function PublishControls({
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() =>
-                scheduledDate && onSchedule?.(new Date(scheduledDate))
-              }
+              onClick={async () => {
+                if (!scheduledDate || !onSchedule) return
+                const toastId = toast.loading('Scheduling post...')
+                try {
+                  const result = onSchedule(new Date(scheduledDate))
+                  await (result instanceof Promise ? result : Promise.resolve())
+                  toast.dismiss(toastId)
+                } catch {
+                  toast.dismiss(toastId)
+                }
+              }}
               disabled={!scheduledDate || isLoading}
               className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm shrink-0"
               aria-label={
@@ -165,7 +197,17 @@ export function PublishControls({
               {isScheduling ? 'Scheduling...' : 'Schedule'}
             </Button>
             <Button
-              onClick={onPublish}
+              onClick={async () => {
+                if (!onPublish) return
+                const toastId = toast.loading('Publishing post...')
+                try {
+                  const result = onPublish()
+                  await (result instanceof Promise ? result : Promise.resolve())
+                  toast.dismiss(toastId)
+                } catch {
+                  toast.dismiss(toastId)
+                }
+              }}
               disabled={isLoading}
               className="gap-2 transition-all duration-200 hover:scale-[1.02] hover:shadow-sm shrink-0"
               aria-label={
@@ -186,10 +228,10 @@ export function PublishControls({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <Card>
+        <Card aria-labelledby="thumbnail-heading">
           <CardHeader className="p-3">
-            <p className="text-small font-medium flex items-center gap-2">
-              <Image className="h-4 w-4" />
+            <p id="thumbnail-heading" className="text-small font-medium flex items-center gap-2">
+              <Image className="h-4 w-4" aria-hidden />
               Thumbnail
             </p>
           </CardHeader>
@@ -204,9 +246,9 @@ export function PublishControls({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card aria-labelledby="tags-heading">
           <CardHeader className="p-3">
-            <p className="text-small font-medium flex items-center gap-2">
+            <p id="tags-heading" className="text-small font-medium flex items-center gap-2">
               <Tag className="h-4 w-4" aria-hidden />
               Tags
             </p>
@@ -254,23 +296,30 @@ export function PublishControls({
                 role="status"
                 aria-label="No tags added yet"
                 className={cn(
-                  'flex flex-col items-center justify-center gap-2 rounded-lg',
-                  'border-2 border-dashed border-muted bg-muted/20 p-4 text-center',
-                  'animate-fade-in min-h-[72px]'
+                  'flex flex-col items-center justify-center gap-3 rounded-lg',
+                  'border-2 border-dashed border-muted bg-muted/20 p-6 text-center',
+                  'animate-fade-in min-h-[88px] transition-all duration-300'
                 )}
               >
-                <Tag className="h-8 w-8 text-muted-foreground/50" aria-hidden />
-                <p className="text-small text-muted-foreground">
-                  No tags yet. Add tags to organize your content.
-                </p>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/50">
+                  <Tag className="h-6 w-6 text-muted-foreground/60" aria-hidden />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-small font-medium text-foreground">
+                    No tags yet
+                  </p>
+                  <p className="text-micro text-muted-foreground max-w-[200px]">
+                    Add tags to organize your content. Type above and press Add.
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card aria-labelledby="hashtags-heading">
           <CardHeader className="p-3">
-            <p className="text-small font-medium flex items-center gap-2">
+            <p id="hashtags-heading" className="text-small font-medium flex items-center gap-2">
               <Hash className="h-4 w-4" aria-hidden />
               Hashtags
             </p>
@@ -318,23 +367,30 @@ export function PublishControls({
                 role="status"
                 aria-label="No hashtags added yet"
                 className={cn(
-                  'flex flex-col items-center justify-center gap-2 rounded-lg',
-                  'border-2 border-dashed border-muted bg-muted/20 p-4 text-center',
-                  'animate-fade-in min-h-[72px]'
+                  'flex flex-col items-center justify-center gap-3 rounded-lg',
+                  'border-2 border-dashed border-muted bg-muted/20 p-6 text-center',
+                  'animate-fade-in min-h-[88px] transition-all duration-300'
                 )}
               >
-                <Hash className="h-8 w-8 text-muted-foreground/50" aria-hidden />
-                <p className="text-small text-muted-foreground">
-                  No hashtags yet. Add hashtags to improve discoverability.
-                </p>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/5">
+                  <Hash className="h-6 w-6 text-muted-foreground/60" aria-hidden />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-small font-medium text-foreground">
+                    No hashtags yet
+                  </p>
+                  <p className="text-micro text-muted-foreground max-w-[200px]">
+                    Add hashtags to improve discoverability. Type above and press Add.
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
-        <Card>
+        <Card aria-labelledby="cta-heading">
           <CardHeader className="p-3">
-            <p className="text-small font-medium">CTA</p>
+            <p id="cta-heading" className="text-small font-medium">CTA</p>
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <Input
@@ -347,9 +403,9 @@ export function PublishControls({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card aria-labelledby="preview-heading">
           <CardHeader className="p-3">
-            <p className="text-small font-medium">Preview</p>
+            <p id="preview-heading" className="text-small font-medium">Preview</p>
           </CardHeader>
           <CardContent className="p-3 pt-0">
             <div
@@ -399,8 +455,11 @@ export function PublishControls({
                     />
                   </div>
                 ) : (
-                  <div className="aspect-video bg-muted/50 rounded mb-2 flex items-center justify-center">
-                    <Image className="h-8 w-8 text-muted-foreground/50" />
+                  <div
+                    className="aspect-video bg-muted/50 rounded mb-2 flex items-center justify-center"
+                    aria-label="No thumbnail set"
+                  >
+                    <Image className="h-8 w-8 text-muted-foreground/50" aria-hidden />
                   </div>
                 ))}
               <p
