@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Shield, Database, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,6 +37,14 @@ export function PrivacySettings({
 }: PrivacySettingsProps) {
   const [dataRetention, setDataRetention] = useState(dataRetentionDays)
   const [snapshotRetention, setSnapshotRetention] = useState(researchSnapshotRetentionDays)
+
+  useEffect(() => {
+    setDataRetention(dataRetentionDays)
+  }, [dataRetentionDays])
+
+  useEffect(() => {
+    setSnapshotRetention(researchSnapshotRetentionDays)
+  }, [researchSnapshotRetentionDays])
   const [isSavingData, setIsSavingData] = useState(false)
   const [isSavingSnapshot, setIsSavingSnapshot] = useState(false)
 

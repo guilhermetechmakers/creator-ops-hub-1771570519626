@@ -47,6 +47,8 @@ export function useSettingsPreferences() {
     inAppNotifications: true,
     marketingEmails: false,
   })
+  const [dataRetentionDays, setDataRetentionDays] = useState('90')
+  const [researchSnapshotRetentionDays, setResearchSnapshotRetentionDays] = useState('30')
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [twoFactorEnabled] = useState(false)
@@ -226,13 +228,13 @@ export function useSettingsPreferences() {
   }, [])
 
   const onUpdateDataRetention = useCallback(async (days: string) => {
-    void days
-    throw new Error('Data retention updates require backend setup. Contact your administrator.')
+    setDataRetentionDays(days)
+    // TODO: Persist to backend when settings_preferences or user_preferences supports it
   }, [])
 
   const onUpdateSnapshotRetention = useCallback(async (days: string) => {
-    void days
-    throw new Error('Snapshot retention updates require backend setup. Contact your administrator.')
+    setResearchSnapshotRetentionDays(days)
+    // TODO: Persist to backend when settings_preferences or user_preferences supports it
   }, [])
 
   return {
@@ -261,5 +263,7 @@ export function useSettingsPreferences() {
     onUpdateDataRetention,
     onUpdateSnapshotRetention,
     notificationPrefs,
+    dataRetentionDays,
+    researchSnapshotRetentionDays,
   }
 }

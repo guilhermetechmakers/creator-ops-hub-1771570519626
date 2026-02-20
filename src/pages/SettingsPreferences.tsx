@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSettingsPreferences } from '@/hooks/use-settings-preferences'
+import { AdminOverview } from '@/components/settings-preferences/admin-overview'
 import { AccountProfile } from '@/components/settings-preferences/account-profile'
 import { WorkspaceBilling } from '@/components/settings-preferences/workspace-billing'
 import { TeamManagement } from '@/components/settings-preferences/team-management'
@@ -60,6 +61,8 @@ export function SettingsPreferencesPage() {
     onUpdateDataRetention,
     onUpdateSnapshotRetention,
     notificationPrefs,
+    dataRetentionDays,
+    researchSnapshotRetentionDays,
   } = useSettingsPreferences()
 
   const handleRetry = useCallback(async () => {
@@ -101,6 +104,18 @@ export function SettingsPreferencesPage() {
           Manage account, workspace, team, security, notifications, and privacy
         </p>
       </div>
+
+      {/* Admin overview: usage, users, billing, moderation */}
+      <section aria-label="Admin overview">
+        <h2 className="sr-only">Admin overview</h2>
+        <AdminOverview
+          plan={plan ?? undefined}
+          members={members}
+          memberCount={members.length + (profile ? 1 : 0)}
+          moderationAlerts={0}
+          isLoading={isLoading}
+        />
+      </section>
 
       {hasError && (
         <ErrorState
@@ -202,6 +217,8 @@ export function SettingsPreferencesPage() {
 
               <TabsContent value="privacy" className="mt-6 animate-fade-in data-[state=inactive]:hidden">
                 <PrivacySettings
+                  dataRetentionDays={dataRetentionDays}
+                  researchSnapshotRetentionDays={researchSnapshotRetentionDays}
                   isLoading={isLoading}
                   onUpdateDataRetention={onUpdateDataRetention}
                   onUpdateSnapshotRetention={onUpdateSnapshotRetention}
