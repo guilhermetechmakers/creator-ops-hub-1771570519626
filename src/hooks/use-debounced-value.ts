@@ -30,13 +30,13 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
   callbackRef.current = callback
 
   const debounced = useCallback(
-    function debouncedFn(...args: Parameters<T>) {
+    ((...args: Parameters<T>) => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current)
       timeoutRef.current = setTimeout(() => {
         callbackRef.current(...args)
         timeoutRef.current = undefined
       }, delay)
-    } as T,
+    }) as T,
     [delay]
   )
 
