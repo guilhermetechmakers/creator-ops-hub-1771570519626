@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 
 export function OAuthGoogleCallbackPage() {
@@ -14,17 +15,11 @@ export function OAuthGoogleCallbackPage() {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
     const errorParam = searchParams.get('error')
+    const hasHash = typeof window !== 'undefined' && window.location.hash?.length > 0
 
     if (errorParam) {
       setStatus('error')
       toast.error(searchParams.get('error_description') ?? 'OAuth failed')
-      navigate('/login-/-signup', { replace: true })
-      return
-    }
-
-    if (!code) {
-      setStatus('error')
-      toast.error('Invalid OAuth callback - missing code')
       navigate('/login-/-signup', { replace: true })
       return
     }
@@ -38,20 +33,40 @@ export function OAuthGoogleCallbackPage() {
 
     const run = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-
-        if (session?.access_token) {
-          if (state) {
-            const { data, error } = await supabase.functions.invoke('google-oauth-callback', {
-              body: { code, state },
-              headers: { Authorization: `Bearer ${session.access_token}` },
-            })
-            if (error) throw new Error(error.message)
+        // Handle hash-based redirect (implicit flow) - Supabase client parses hash on load
+        if (hasHash && !code) {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (session?.access_token) {
+            localStorage.setItem('access_token', session.access_token)
+            if (session.refresh_token) {
+              localStorage.setItem('refresh_token', session.refresh_token)
+            }
             setStatus('success')
-            toast.success('Google connected successfully')
-            navigate(data?.redirect ?? '/dashboard/integrations', { replace: true })
+            toast.success('Signed in with Google')
+            navigate('/dashboard', { replace: true })
             return
           }
+        }
+
+        // Handle PKCE flow with code in query
+        if (!code) {
+          setStatus('error')
+          toast.error('Invalid OAuth callback - missing authorization')
+          navigate('/login-/-signup', { replace: true })
+          return
+        }
+
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.access_token && state) {
+          const { data, error } = await supabase.functions.invoke('google-oauth-callback', {
+            body: { code, state },
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+          if (error) throw new Error(error.message)
+          setStatus('success')
+          toast.success('Google connected successfully')
+          navigate(data?.redirect ?? '/dashboard/integrations', { replace: true })
+          return
         }
 
         const { data, error } = await supabase.auth.exchangeCodeForSession(code)

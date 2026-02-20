@@ -32,6 +32,19 @@ export function LoginSignupPage() {
 
   useEffect(() => {
     document.title = mode === 'login' ? 'Sign In | Creator Ops Hub' : 'Sign Up | Creator Ops Hub'
+    const metaDesc = document.querySelector('meta[name="description"]')
+    const content =
+      mode === 'login'
+        ? 'Sign in to Creator Ops Hub to manage your content workflow, assets, and publishing.'
+        : 'Create your Creator Ops Hub account to streamline content creation and multi-platform publishing.'
+    if (metaDesc) {
+      metaDesc.setAttribute('content', content)
+    } else {
+      const meta = document.createElement('meta')
+      meta.name = 'description'
+      meta.content = content
+      document.head.appendChild(meta)
+    }
   }, [mode])
 
   const handleEmailSubmit = async (data: LoginFormData | SignupFormData) => {

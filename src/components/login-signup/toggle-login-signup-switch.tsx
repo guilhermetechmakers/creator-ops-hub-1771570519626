@@ -32,7 +32,7 @@ export function ToggleLoginSignupSwitch({
         id="login-tab"
         onClick={() => onModeChange('login')}
         className={cn(
-          'rounded-lg px-6 py-2.5 font-medium transition-all duration-200',
+          'rounded-lg px-6 py-2.5 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           mode === 'login'
             ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -49,7 +49,7 @@ export function ToggleLoginSignupSwitch({
         id="signup-tab"
         onClick={() => onModeChange('signup')}
         className={cn(
-          'rounded-lg px-6 py-2.5 font-medium transition-all duration-200',
+          'rounded-lg px-6 py-2.5 font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
           mode === 'signup'
             ? 'bg-primary text-primary-foreground shadow-sm hover:bg-primary/90'
             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
