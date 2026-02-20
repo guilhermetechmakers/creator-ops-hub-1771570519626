@@ -18,49 +18,49 @@ export function HelpAndAboutContent() {
   return (
     <div className="space-y-8">
       <section
-        className="animate-fade-in"
-        style={{ animationDelay: '0ms', animationFillMode: 'both' }}
+        className="animate-fade-in [animation-delay:0ms] [animation-fill-mode:both]"
         aria-labelledby="section-docs"
       >
-        <h2 id="section-docs" className="sr-only">
-          Searchable Documentation
-        </h2>
-        <SearchableDocs />
+        <SearchableDocs headingId="section-docs" />
       </section>
 
       <section
         id="contact"
-        className="grid gap-6 lg:grid-cols-2 animate-fade-in"
-        style={{ animationDelay: '100ms', animationFillMode: 'both' }}
+        className="space-y-6 animate-fade-in [animation-delay:100ms] [animation-fill-mode:both]"
         aria-labelledby="section-faq-contact"
       >
-        <h2 id="section-faq-contact" className="sr-only">
-          FAQ and Contact
-        </h2>
-        <FAQ />
-        <ContactForm />
+        <Card className="border-primary/10 bg-gradient-to-br from-card to-primary/5 overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle
+              as="h2"
+              id="section-faq-contact"
+              className="text-h2 font-semibold leading-none tracking-tight text-foreground"
+            >
+              FAQ & Contact
+            </CardTitle>
+            <CardDescription className="text-body mt-1">
+              Common questions and support options
+            </CardDescription>
+          </CardHeader>
+        </Card>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <FAQ />
+          <ContactForm />
+        </div>
       </section>
 
       <section
-        className="animate-fade-in"
-        style={{ animationDelay: '200ms', animationFillMode: 'both' }}
+        className="animate-fade-in [animation-delay:200ms] [animation-fill-mode:both]"
         aria-labelledby="section-changelog"
       >
-        <h2 id="section-changelog" className="sr-only">
-          Changelog
-        </h2>
-        <Changelog />
+        <Changelog headingId="section-changelog" />
       </section>
 
       <section
-        className="animate-fade-in"
-        style={{ animationDelay: '300ms', animationFillMode: 'both' }}
+        className="animate-fade-in [animation-delay:300ms] [animation-fill-mode:both]"
         aria-labelledby="section-community"
       >
-        <h2 id="section-community" className="sr-only">
-          Community
-        </h2>
-        <CommunityLinks />
+        <CommunityLinks headingId="section-community" />
       </section>
     </div>
   )

@@ -58,15 +58,17 @@ function CommunityLinksEmptyState() {
 export interface CommunityLinksProps {
   /** Override default links. When empty, shows empty state. */
   links?: CommunityLinkItem[]
+  /** Optional id for the section heading (accessibility) */
+  headingId?: string
 }
 
-export function CommunityLinks({ links = COMMUNITY_LINKS }: CommunityLinksProps) {
+export function CommunityLinks({ links = COMMUNITY_LINKS, headingId }: CommunityLinksProps) {
   const isEmpty = links.length === 0
 
   return (
     <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-h3">
+        <CardTitle as="h2" id={headingId} className="flex items-center gap-2 text-h2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
             <Users className="h-5 w-5 text-primary" />
           </div>

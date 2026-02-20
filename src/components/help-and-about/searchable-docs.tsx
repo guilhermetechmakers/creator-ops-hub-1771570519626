@@ -71,7 +71,12 @@ const CATEGORY_ICONS: Record<DocItem['category'], typeof BookOpen> = {
 
 const DEBOUNCE_MS = 300
 
-export function SearchableDocs() {
+export interface SearchableDocsProps {
+  /** Optional id for the section heading (accessibility) */
+  headingId?: string
+}
+
+export function SearchableDocs({ headingId }: SearchableDocsProps) {
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<DocItem['category'] | 'all'>('all')
@@ -106,7 +111,7 @@ export function SearchableDocs() {
     <Card className="overflow-hidden animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader className="border-b border-border/50 bg-muted/30">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="flex items-center gap-2 text-h3">
+          <CardTitle as="h2" id={headingId} className="flex items-center gap-2 text-h2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
               <Search className="h-5 w-5 text-primary" />
             </div>
@@ -174,8 +179,8 @@ export function SearchableDocs() {
               return (
                 <li
                   key={doc.id}
-                  className="animate-fade-in px-6 py-4 transition-all duration-200 hover:bg-muted/30 border-l-4 border-l-transparent hover:border-l-primary/40"
-                  style={{ animationDelay: `${i * 30}ms`, animationFillMode: 'forwards' }}
+                  className="animate-fade-in px-6 py-4 transition-all duration-200 hover:bg-muted/30 border-l-4 border-l-transparent hover:border-l-primary/40 [animation-fill-mode:forwards]"
+                  style={{ animationDelay: `${i * 30}ms` }}
                 >
                   <div className="flex gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
