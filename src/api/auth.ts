@@ -50,7 +50,8 @@ export async function login(credentials: LoginCredentials): Promise<AuthResponse
 
 export async function signup(credentials: SignupCredentials): Promise<AuthResponse> {
   try {
-    const { confirmPassword: _, ...payload } = credentials
+    const { confirmPassword, ...payload } = credentials
+    void confirmPassword
     if (SUPABASE_CONFIGURED) {
       const { data, error } = await supabase.functions.invoke<AuthResponse & { needsEmailVerification?: boolean; error?: string }>('auth-signup', {
         body: { email: payload.email, password: payload.password },

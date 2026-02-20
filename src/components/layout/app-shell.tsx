@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { DashboardTopbar } from '@/components/dashboard/dashboard-topbar'
-import { DashboardLeftNav, navItems } from '@/components/dashboard/dashboard-left-nav'
+import { DashboardLeftNav } from '@/components/dashboard/dashboard-left-nav'
+import { navItems } from '@/constants/nav-items'
 import { cn } from '@/lib/utils'
 
 export function AppShell() {

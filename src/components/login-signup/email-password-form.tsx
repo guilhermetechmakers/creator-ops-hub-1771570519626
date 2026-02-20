@@ -7,10 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
-import {
-  PasswordStrengthIndicator,
-  getPasswordStrength,
-} from './password-strength-indicator'
+import { PasswordStrengthIndicator } from '@/components/login-signup/password-strength-indicator'
+import { getPasswordStrength } from '@/lib/password-utils'
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),

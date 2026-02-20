@@ -31,6 +31,67 @@ import { cn } from '@/lib/utils'
 type SortKey = 'title' | 'file_type' | 'updated_at' | 'last_used_at' | 'version'
 type SortDir = 'asc' | 'desc'
 
+interface SortHeaderProps {
+  label: string
+  sortKey: SortKey
+  currentSortKey: SortKey
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+}
+
+function SortHeader({ label, sortKey, currentSortKey, sortDir, onSort }: SortHeaderProps) {
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="flex items-center gap-1 font-medium hover:text-primary transition-colors duration-200"
+        aria-label={`Sort by ${label}`}
+      >
+        {label}
+        {currentSortKey === sortKey ? (
+          sortDir === 'asc' ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        ) : null}
+      </button>
+    </TableHead>
+  )
+}
+
+interface ViewToggleBarProps {
+  viewMode: 'grid' | 'list'
+  onViewModeChange: (mode: 'grid' | 'list') => void
+  disabled?: boolean
+}
+
+function ViewToggleBar({ viewMode, onViewModeChange, disabled }: ViewToggleBarProps) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      <Button
+        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+        size="icon-sm"
+        onClick={() => onViewModeChange('grid')}
+        aria-label="Grid view"
+        disabled={disabled}
+      >
+        <Grid3X3 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+        size="icon-sm"
+        onClick={() => onViewModeChange('list')}
+        aria-label="List view"
+        disabled={disabled}
+      >
+        <List className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+}
+
 function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -128,32 +189,6 @@ export function AssetGridList({
     else next.add(id)
     onSelectionChange(next)
   }
-
-  const SortHeader = ({
-    label,
-    sortKey: sk,
-  }: {
-    label: string
-    sortKey: SortKey
-  }) => (
-    <TableHead>
-      <button
-        type="button"
-        onClick={() => toggleSort(sk)}
-        className="flex items-center gap-1 font-medium hover:text-primary transition-colors duration-200"
-        aria-label={`Sort by ${label}`}
-      >
-        {label}
-        {sortKey === sk ? (
-          sortDir === 'asc' ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )
-        ) : null}
-      </button>
-    </TableHead>
-  )
 
   const renderGridCard = (item: FileLibrary) => {
     const Icon = getThumbnailIcon(item)
@@ -376,32 +411,13 @@ export function AssetGridList({
     return renderEmptyState()
   }
 
-  const ViewToggleBar = () => (
-    <div className="flex items-center justify-end gap-2">
-      <Button
-        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-        size="icon-sm"
-        onClick={() => setViewMode('grid')}
-        aria-label="Grid view"
-        disabled={isActionLoading}
-      >
-        <Grid3X3 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-        size="icon-sm"
-        onClick={() => setViewMode('list')}
-        aria-label="List view"
-        disabled={isActionLoading}
-      >
-        <List className="h-4 w-4" />
-      </Button>
-    </div>
-  )
-
   return (
     <div className="space-y-4 relative">
-      <ViewToggleBar />
+      <ViewToggleBar
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        disabled={isActionLoading}
+      />
 
       <div className={cn('relative', isActionLoading && 'pointer-events-none opacity-60')}>
         {isActionLoading && (
@@ -441,9 +457,9 @@ export function AssetGridList({
                         aria-label="Select all"
                       />
                     </TableHead>
-                    <SortHeader label="Name" sortKey="title" />
-                    <SortHeader label="Type" sortKey="file_type" />
-                    <SortHeader label="Last used" sortKey="last_used_at" />
+                    <SortHeader label="Name" sortKey="title" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                    <SortHeader label="Type" sortKey="file_type" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                    <SortHeader label="Last used" sortKey="last_used_at" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                     <TableHead>Version</TableHead>
                   </TableRow>
                 </TableHeader>

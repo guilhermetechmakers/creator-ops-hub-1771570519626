@@ -1,19 +1,5 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useState,
-  type ReactNode,
-} from 'react'
-
-interface LoadingContextValue {
-  isLoading: boolean
-  message?: string
-  show: (message?: string) => void
-  hide: () => void
-}
-
-const LoadingContext = createContext<LoadingContextValue | null>(null)
+import { useCallback, useState, type ReactNode } from 'react'
+import { LoadingContext } from './loading-context-value'
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -41,17 +27,4 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
       {children}
     </LoadingContext.Provider>
   )
-}
-
-export function useLoading() {
-  const ctx = useContext(LoadingContext)
-  if (!ctx) {
-    return {
-      isLoading: false,
-      message: undefined,
-      show: () => {},
-      hide: () => {},
-    }
-  }
-  return ctx
 }

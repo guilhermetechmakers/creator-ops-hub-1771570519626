@@ -10,10 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  PasswordStrengthIndicator,
-  getPasswordStrength,
-} from '@/components/login-signup/password-strength-indicator'
+import { PasswordStrengthIndicator } from '@/components/login-signup/password-strength-indicator'
+import { getPasswordStrength } from '@/lib/password-utils'
 import {
   updatePasswordWithToken,
   exchangeTokenHashForSession,

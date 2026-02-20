@@ -38,6 +38,36 @@ function formatScheduledTime(iso: string | null): string {
 type SortKey = 'scheduled_time' | 'title' | 'platform' | 'status' | 'created_at'
 type SortDir = 'asc' | 'desc'
 
+interface SortHeaderProps {
+  label: string
+  sortKey: SortKey
+  currentSortKey: SortKey
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+}
+
+function SortHeader({ label, sortKey, currentSortKey, sortDir, onSort }: SortHeaderProps) {
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="flex items-center gap-1 font-medium hover:text-primary transition-colors"
+        aria-label={`Sort by ${label}`}
+      >
+        {label}
+        {currentSortKey === sortKey ? (
+          sortDir === 'asc' ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        ) : null}
+      </button>
+    </TableHead>
+  )
+}
+
 export interface QueueListProps {
   jobs: PublishingQueueLog[]
   isLoading?: boolean
@@ -116,32 +146,6 @@ export function QueueList({
     else next.add(id)
     onSelectionChange(next)
   }
-
-  const SortHeader = ({
-    label,
-    sortKey: sk,
-  }: {
-    label: string
-    sortKey: SortKey
-  }) => (
-    <TableHead>
-      <button
-        type="button"
-        onClick={() => toggleSort(sk)}
-        className="flex items-center gap-1 font-medium hover:text-primary transition-colors"
-        aria-label={`Sort by ${label}`}
-      >
-        {label}
-        {sortKey === sk ? (
-          sortDir === 'asc' ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )
-        ) : null}
-      </button>
-    </TableHead>
-  )
 
   if (isLoading) {
     return (
@@ -283,11 +287,11 @@ export function QueueList({
                     aria-label="Select all"
                   />
                 </TableHead>
-                <SortHeader label="Job ID" sortKey="created_at" />
-                <SortHeader label="Content Title" sortKey="title" />
-                <SortHeader label="Platform" sortKey="platform" />
-                <SortHeader label="Scheduled Time" sortKey="scheduled_time" />
-                <SortHeader label="Status" sortKey="status" />
+                <SortHeader label="Job ID" sortKey="created_at" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Content Title" sortKey="title" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Platform" sortKey="platform" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Scheduled Time" sortKey="scheduled_time" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                <SortHeader label="Status" sortKey="status" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
               </TableRow>
             </TableHeader>
             <TableBody>

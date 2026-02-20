@@ -154,11 +154,13 @@ export function useContentStudioListInfinite(
   })
 
   useEffect(() => {
-    setAccumulatedItems((prev) => {
-      if (page === 1) return items
-      const seen = new Set(prev.map((i) => i.id))
-      const newItems = items.filter((i) => !seen.has(i.id))
-      return [...prev, ...newItems]
+    queueMicrotask(() => {
+      setAccumulatedItems((prev) => {
+        if (page === 1) return items
+        const seen = new Set(prev.map((i) => i.id))
+        const newItems = items.filter((i) => !seen.has(i.id))
+        return [...prev, ...newItems]
+      })
     })
   }, [items, page])
 
@@ -171,8 +173,10 @@ export function useContentStudioListInfinite(
   ].join('|')
 
   useEffect(() => {
-    setPage(1)
-    setAccumulatedItems([])
+    queueMicrotask(() => {
+      setPage(1)
+      setAccumulatedItems([])
+    })
   }, [filterKey])
 
   const loadMore = useCallback(() => {

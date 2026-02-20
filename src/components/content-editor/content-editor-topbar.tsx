@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { History, User, Calendar, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -50,16 +50,12 @@ export function ContentEditorTopbar({
   onDueDateClick,
   className,
 }: ContentEditorTopbarProps) {
-  const [dueDateInput, setDueDateInput] = useState(
-    dueDate ? dueDate.slice(0, 10) : ''
-  )
-  useEffect(() => {
-    setDueDateInput(dueDate ? dueDate.slice(0, 10) : '')
-  }, [dueDate])
+  const [inputValue, setInputValue] = useState('')
+  const displayValue = dueDate ? dueDate.slice(0, 10) : inputValue
 
   const handleDueDateApply = () => {
-    if (dueDateInput) {
-      onDueDateChange?.(dueDateInput)
+    if (displayValue) {
+      onDueDateChange?.(displayValue)
     } else {
       onDueDateChange?.(null)
     }
@@ -188,8 +184,8 @@ export function ContentEditorTopbar({
               <label className="text-small font-medium">Set due date</label>
               <Input
                 type="date"
-                value={dueDateInput}
-                onChange={(e) => setDueDateInput(e.target.value)}
+                value={displayValue}
+                onChange={(e) => setInputValue(e.target.value)}
                 className="text-small"
               />
               <div className="flex gap-2">
@@ -198,7 +194,7 @@ export function ContentEditorTopbar({
                   variant="outline"
                   className="flex-1"
                   onClick={() => {
-                    setDueDateInput('')
+                    setInputValue('')
                     onDueDateChange?.(null)
                     onDueDateClick?.()
                   }}

@@ -36,6 +36,36 @@ function formatDueDate(iso: string | null | undefined): string {
 type SortKey = 'title' | 'channel' | 'due_date' | 'status' | 'updated_at'
 type SortDir = 'asc' | 'desc'
 
+interface SortHeaderProps {
+  label: string
+  sortKey: SortKey
+  currentSortKey: SortKey
+  sortDir: SortDir
+  onSort: (key: SortKey) => void
+}
+
+function SortHeader({ label, sortKey, currentSortKey, sortDir, onSort }: SortHeaderProps) {
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="flex items-center gap-1 font-medium hover:text-primary transition-colors duration-200"
+        aria-label={`Sort by ${label}`}
+      >
+        {label}
+        {currentSortKey === sortKey ? (
+          sortDir === 'asc' ? (
+            <ChevronUp className="h-4 w-4" />
+          ) : (
+            <ChevronDown className="h-4 w-4" />
+          )
+        ) : null}
+      </button>
+    </TableHead>
+  )
+}
+
 export interface ContentTableCardsProps {
   items: ContentEditor[]
   isLoading?: boolean
@@ -122,32 +152,6 @@ export function ContentTableCards({
     setPreviewItem(item)
     setPreviewOpen(true)
   }
-
-  const SortHeader = ({
-    label,
-    sortKey: sk,
-  }: {
-    label: string
-    sortKey: SortKey
-  }) => (
-    <TableHead>
-      <button
-        type="button"
-        onClick={() => toggleSort(sk)}
-        className="flex items-center gap-1 font-medium hover:text-primary transition-colors duration-200"
-        aria-label={`Sort by ${label}`}
-      >
-        {label}
-        {sortKey === sk ? (
-          sortDir === 'asc' ? (
-            <ChevronUp className="h-4 w-4" />
-          ) : (
-            <ChevronDown className="h-4 w-4" />
-          )
-        ) : null}
-      </button>
-    </TableHead>
-  )
 
   const renderCard = (item: ContentEditor) => (
     <Card
@@ -270,10 +274,10 @@ export function ContentTableCards({
                       aria-label="Select all"
                     />
                   </TableHead>
-                  <SortHeader label="Title" sortKey="title" />
-                  <SortHeader label="Channel" sortKey="channel" />
-                  <SortHeader label="Due Date" sortKey="due_date" />
-                  <SortHeader label="Status" sortKey="status" />
+                  <SortHeader label="Title" sortKey="title" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Channel" sortKey="channel" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Due Date" sortKey="due_date" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
+                  <SortHeader label="Status" sortKey="status" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <TableHead>Assigned</TableHead>
                   <TableHead className="w-24" />
                 </TableRow>

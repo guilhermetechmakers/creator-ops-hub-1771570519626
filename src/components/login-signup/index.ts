@@ -8,8 +8,5 @@ export { SocialOAuthButtons, type SocialOAuthButton } from './social-oauth-butto
 export { ContinueWithGoogle } from './continue-with-google'
 export { ForgotPasswordTermsLinks } from './forgot-password-terms-links'
 export { SSOEnterpriseCTA } from './sso-enterprise-cta'
-export {
-  PasswordStrengthIndicator,
-  getPasswordStrength,
-  type PasswordStrength,
-} from './password-strength-indicator'
+export { PasswordStrengthIndicator, type PasswordStrength } from './password-strength-indicator'
+export { getPasswordStrength } from '@/lib/password-utils'

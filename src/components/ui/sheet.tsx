@@ -33,16 +33,19 @@ function Sheet({ open = false, onOpenChange, children }: SheetProps) {
 const SheetTrigger = React.forwardRef<
   HTMLButtonElement,
   React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
->(({ onClick, ...props }, ref) => (
-  <button
-    ref={ref}
-    onClick={(e) => {
-      onClick?.(e)
-      useSheet().onOpenChange(true)
-    }}
-    {...props}
-  />
-))
+>(({ onClick, ...props }, ref) => {
+  const { onOpenChange } = useSheet()
+  return (
+    <button
+      ref={ref}
+      onClick={(e) => {
+        onClick?.(e)
+        onOpenChange(true)
+      }}
+      {...props}
+    />
+  )
+})
 SheetTrigger.displayName = 'SheetTrigger'
 
 interface SheetContentProps extends React.HTMLAttributes<HTMLDivElement> {

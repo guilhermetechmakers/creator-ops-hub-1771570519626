@@ -61,10 +61,13 @@ export function SearchFilters({
   const [searchInput, setSearchInput] = useState(filters.search ?? '')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const filtersRef = useRef(filters)
-  filtersRef.current = filters
 
   useEffect(() => {
-    setSearchInput(filters.search ?? '')
+    filtersRef.current = filters
+  }, [filters])
+
+  useEffect(() => {
+    queueMicrotask(() => setSearchInput(filters.search ?? ''))
   }, [filters.search])
 
   useEffect(() => {

@@ -53,12 +53,20 @@ export function AssetDetailPanel({
 
   useEffect(() => {
     if (!item?.storage_path || !open) {
-      setShareLink(null)
+      queueMicrotask(() => setShareLink(null))
       return
     }
+    let cancelled = false
     getSignedUrl(item.storage_path)
-      .then(setShareLink)
-      .catch(() => setShareLink(null))
+      .then((url) => {
+        if (!cancelled) setShareLink(url)
+      })
+      .catch(() => {
+        if (!cancelled) setShareLink(null)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [item?.storage_path, open])
 
   const handleCopyLink = async () => {

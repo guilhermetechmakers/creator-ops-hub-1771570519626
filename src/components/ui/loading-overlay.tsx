@@ -1,4 +1,4 @@
-import { useLoading } from '@/contexts/loading-context'
+import { useLoading } from '@/hooks/use-loading'
 import { cn } from '@/lib/utils'
 
 interface LoadingOverlayProps {

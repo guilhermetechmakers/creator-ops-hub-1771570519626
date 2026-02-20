@@ -114,7 +114,7 @@ export function useSettingsPreferences() {
     setIsLoading(true)
     setHasError(false)
     try {
-      const [_, planData] = await Promise.all([
+      const [, planData] = await Promise.all([
         fetchProfile(),
         fetchPlan(),
       ])
@@ -159,20 +159,25 @@ export function useSettingsPreferences() {
     if (error) throw error
   }, [])
 
-  const onInvite = useCallback(async (_email: string, _role: string) => {
-    // Team invite requires Edge Function / workspace setup
+  const onInvite = useCallback(async (email: string, role: string) => {
+    void email
+    void role
     throw new Error('Team invitations require workspace setup. Contact your administrator.')
   }, [])
 
-  const onRemoveMember = useCallback(async (_id: string) => {
+  const onRemoveMember = useCallback(async (id: string) => {
+    void id
     throw new Error('Member removal requires workspace setup. Contact your administrator.')
   }, [])
 
-  const onUpdateRole = useCallback(async (_id: string, _role: string) => {
+  const onUpdateRole = useCallback(async (id: string, role: string) => {
+    void id
+    void role
     throw new Error('Role updates require workspace setup. Contact your administrator.')
   }, [])
 
-  const onToggle2FA = useCallback(async (_enabled: boolean) => {
+  const onToggle2FA = useCallback(async (enabled: boolean) => {
+    void enabled
     // 2FA setup requires Supabase MFA flow
     throw new Error('Two-factor authentication setup is coming soon.')
   }, [])
@@ -182,11 +187,13 @@ export function useSettingsPreferences() {
     throw new Error(`Session revocation not yet implemented. Session ID: ${id}`)
   }, [])
 
-  const onCreateApiKey = useCallback(async (_name: string) => {
+  const onCreateApiKey = useCallback(async (name: string) => {
+    void name
     throw new Error('API key creation requires backend setup. Contact your administrator.')
   }, [])
 
-  const onRevokeApiKey = useCallback(async (_id: string) => {
+  const onRevokeApiKey = useCallback(async (id: string) => {
+    void id
     throw new Error('API key revocation requires backend setup. Contact your administrator.')
   }, [])
 
@@ -208,19 +215,23 @@ export function useSettingsPreferences() {
     if (error) throw error
   }, [])
 
-  const onAddWebhook = useCallback(async (_url: string) => {
+  const onAddWebhook = useCallback(async (url: string) => {
+    void url
     throw new Error('Webhook endpoints require backend setup. Contact your administrator.')
   }, [])
 
-  const onRemoveWebhook = useCallback(async (_id: string) => {
+  const onRemoveWebhook = useCallback(async (id: string) => {
+    void id
     throw new Error('Webhook removal requires backend setup. Contact your administrator.')
   }, [])
 
-  const onUpdateDataRetention = useCallback(async (_days: string) => {
+  const onUpdateDataRetention = useCallback(async (days: string) => {
+    void days
     throw new Error('Data retention updates require backend setup. Contact your administrator.')
   }, [])
 
-  const onUpdateSnapshotRetention = useCallback(async (_days: string) => {
+  const onUpdateSnapshotRetention = useCallback(async (days: string) => {
+    void days
     throw new Error('Snapshot retention updates require backend setup. Contact your administrator.')
   }, [])
 

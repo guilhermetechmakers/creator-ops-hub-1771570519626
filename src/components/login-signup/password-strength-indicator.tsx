@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
+import type { PasswordStrength } from '@/lib/password-utils'
 
-export type PasswordStrength = 'weak' | 'fair' | 'good' | 'strong'
+export type { PasswordStrength } from '@/lib/password-utils'
 
 export interface PasswordStrengthIndicatorProps {
   strength: PasswordStrength
@@ -15,20 +16,6 @@ const strengthConfig: Record<
   fair: { label: 'Fair', color: 'bg-warning', width: 'w-1/2' },
   good: { label: 'Good', color: 'bg-primary/80', width: 'w-3/4' },
   strong: { label: 'Strong', color: 'bg-success', width: 'w-full' },
-}
-
-export function getPasswordStrength(password: string): PasswordStrength {
-  if (!password) return 'weak'
-  let score = 0
-  if (password.length >= 8) score++
-  if (password.length >= 12) score++
-  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++
-  if (/\d/.test(password)) score++
-  if (/[^a-zA-Z0-9]/.test(password)) score++
-  if (score <= 1) return 'weak'
-  if (score <= 2) return 'fair'
-  if (score <= 4) return 'good'
-  return 'strong'
 }
 
 export function PasswordStrengthIndicator({
