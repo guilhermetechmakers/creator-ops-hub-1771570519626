@@ -4,6 +4,7 @@ import { Search, FileText, FolderOpen, Search as SearchIcon, Loader2, SearchX } 
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useGlobalSearch } from '@/hooks/use-global-search'
 import { cn } from '@/lib/utils'
 import type { GlobalSearchResult, SearchResultType } from '@/types/search'
@@ -47,6 +48,19 @@ function ResultItem({
         </Badge>
       </div>
     </button>
+  )
+}
+
+function ResultItemSkeleton() {
+  return (
+    <div className="flex items-start gap-3 px-3 py-2.5 rounded-lg" role="status" aria-label="Loading result">
+      <Skeleton className="h-9 w-9 shrink-0 rounded-lg" shimmer />
+      <div className="min-w-0 flex-1 space-y-2">
+        <Skeleton className="h-4 w-3/4" shimmer />
+        <Skeleton className="h-3 w-1/2" shimmer />
+        <Skeleton className="h-5 w-16 rounded-full" shimmer />
+      </div>
+    </div>
   )
 }
 
@@ -118,23 +132,22 @@ export function GlobalSearch() {
               ))}
             </div>
           ) : isSearching ? (
-            <div className="flex flex-col items-center justify-center gap-4 py-10 px-6">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted/50">
-                <Loader2 className="h-7 w-7 animate-spin text-muted-foreground" aria-hidden />
-              </div>
-              <p className="text-small font-medium text-foreground">Searching...</p>
-              <p className="text-micro text-muted-foreground text-center max-w-[240px]">
-                Searching library, content, and research
-              </p>
+            <div className="p-2 space-y-0.5" role="status" aria-live="polite" aria-label="Searching">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <ResultItemSkeleton key={i} />
+              ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center gap-4 py-8 px-6">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-muted/50">
-                <SearchX className="h-7 w-7 text-muted-foreground" aria-hidden />
+            <div className="flex flex-col items-center justify-center gap-4 py-10 px-6">
+              <div
+                className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-muted/60 ring-2 ring-muted-foreground/10"
+                aria-hidden
+              >
+                <SearchX className="h-10 w-10 text-muted-foreground" strokeWidth={1.5} aria-hidden />
               </div>
-              <div className="space-y-1 text-center">
-                <p className="text-small font-medium text-foreground">No results found</p>
-                <p className="text-micro text-muted-foreground max-w-[240px]">
+              <div className="space-y-2 text-center">
+                <p className="text-base font-semibold text-foreground">No results found</p>
+                <p className="text-sm text-muted-foreground max-w-[260px] mx-auto">
                   Try different keywords or check your spelling. You can search library files, content, and research.
                 </p>
               </div>
