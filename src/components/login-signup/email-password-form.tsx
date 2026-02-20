@@ -206,7 +206,7 @@ export function EmailPasswordForm({
       <Button
         type="submit"
         className={cn(
-          'w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+          'w-full h-11 font-medium bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-md transition-all duration-200 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]',
           isSubmitting &&
             'animate-pulse cursor-wait ring-2 ring-primary/40 ring-offset-2 disabled:opacity-90'
         )}
