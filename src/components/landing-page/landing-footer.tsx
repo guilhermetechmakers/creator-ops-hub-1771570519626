@@ -4,6 +4,7 @@ const footerLinks = [
   { to: '/login-/-signup?mode=login', label: 'Sign In' },
   { to: '/terms', label: 'Terms' },
   { to: '/privacy-policy', label: 'Privacy' },
+  { to: '/cookie-policy', label: 'Cookies' },
   { to: '/help-and-about', label: 'Help' },
   { to: '/help-and-about#contact', label: 'Contact' },
 ] as const

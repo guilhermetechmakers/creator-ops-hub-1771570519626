@@ -6,11 +6,30 @@ import { FullPrivacyPolicyText } from '@/components/privacy-policy/full-privacy-
 import { PrivacyHighlights } from '@/components/privacy-policy/privacy-highlights'
 import { DownloadPrintOption } from '@/components/privacy-policy/download-print-option'
 
+const SEO_META = {
+  title: 'Privacy Policy | Creator Ops Hub',
+  description:
+    'Learn how Creator Ops Hub handles your data, Google integration scopes, AI research retention, and your privacy rights.',
+}
+
 export function PrivacyPolicyPage() {
   const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    document.title = 'Privacy Policy | Creator Ops Hub'
+    const prevTitle = document.title
+    const prevMeta = document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content
+    document.title = SEO_META.title
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+    meta.content = SEO_META.description
+    return () => {
+      document.title = prevTitle
+      if (meta) meta.content = prevMeta ?? ''
+    }
   }, [])
 
   return (
@@ -39,7 +58,7 @@ export function PrivacyPolicyPage() {
       </header>
 
       {/* Main content */}
-      <main className="container mx-auto max-w-4xl px-4 py-12 md:py-16">
+      <main className="container mx-auto max-w-4xl px-4 py-12 md:py-16" role="main" aria-label="Privacy Policy content">
         {/* Back link */}
         <Button
           variant="ghost"
@@ -120,3 +139,5 @@ export function PrivacyPolicyPage() {
     </div>
   )
 }
+
+export default PrivacyPolicyPage

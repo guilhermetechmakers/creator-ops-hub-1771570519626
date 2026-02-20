@@ -97,14 +97,13 @@ serve(async (req) => {
     }
 
     const createRes = await fetch(
-      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media`,
+      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media?access_token=${encodeURIComponent(accessToken)}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image_url: imageUrl,
           caption: caption,
-          access_token: accessToken,
         }),
       }
     )
@@ -129,13 +128,12 @@ serve(async (req) => {
     }
 
     const publishRes = await fetch(
-      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media_publish`,
+      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media_publish?access_token=${encodeURIComponent(accessToken)}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           creation_id: containerId,
-          access_token: accessToken,
         }),
       }
     )

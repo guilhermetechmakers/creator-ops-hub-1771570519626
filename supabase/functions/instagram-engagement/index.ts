@@ -61,7 +61,7 @@ serve(async (req) => {
     const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '25', 10) || 25, 50)
 
     const mediaRes = await fetch(
-      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,comments_count&limit=${limit}&access_token=${accessToken}`
+      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}/media?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,comments_count&limit=${limit}&access_token=${encodeURIComponent(accessToken)}`
     )
 
     const mediaData = await mediaRes.json().catch(() => ({}))
@@ -76,10 +76,10 @@ serve(async (req) => {
 
     const mediaList = mediaData.data ?? []
     const insightsRes = await fetch(
-      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}?fields=instagram_business_account{followers_count}&access_token=${accessToken}`
+      `${GRAPH_HOST}/${GRAPH_API_VERSION}/${igId}?fields=followers_count&access_token=${encodeURIComponent(accessToken)}`
     )
     const insightsData = await insightsRes.json().catch(() => ({}))
-    const followersCount = insightsData.instagram_business_account?.followers_count ?? 0
+    const followersCount = insightsData.followers_count ?? 0
 
     const posts = mediaList.map((m: { id: string; caption?: string; like_count?: number; comments_count?: number; permalink?: string; timestamp?: string }) => ({
       id: m.id,

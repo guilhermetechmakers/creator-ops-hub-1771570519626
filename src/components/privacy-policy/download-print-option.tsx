@@ -24,15 +24,22 @@ const PRIVACY_POLICY_HTML = `<!DOCTYPE html>
 <body>
   <h1>Privacy Policy</h1>
   <p class="meta">Creator Ops Hub | Last updated: February 2025</p>
-  <p>Creator Ops Hub ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy describes how we collect, use, retain, and protect your information when you use our platform.</p>
+  <h2>Introduction</h2>
+  <p>Creator Ops Hub ("we," "our," or "us") respects your privacy and is committed to protecting your personal data. This Privacy Policy describes how we collect, use, retain, and protect your information when you use our platform, including our Google integration, AI research features, and content creation tools.</p>
   <h2>Data We Collect</h2>
-  <p>We collect information you provide directly (account details, profile information, content you create), data from connected services (Google Calendar, Gmail, YouTube when you authorize integrations), usage data, and technical data.</p>
+  <p>We collect information you provide directly (account details, profile information, content you create), data from connected services (Google Calendar, Gmail, YouTube when you authorize integrations), usage data (how you interact with the platform), and technical data (device, browser, IP address). Our AI research feature may process your queries and retain anonymized, aggregated insights for service improvement.</p>
   <h2>Google Integration Scopes</h2>
-  <p>When you connect your Google account, we request specific scopes for Calendar, Gmail, and YouTube. We only access data necessary for the features you use. You can revoke access at any time.</p>
+  <p>When you connect your Google account, we request specific scopes to enable features: Calendar access for scheduling, Gmail for email-based workflows, and YouTube for publishing. We only access data necessary for the features you use. We do not read, store, or share your emails, calendar events, or YouTube data beyond what is required to deliver the requested functionality. You can revoke access at any time from your Google account settings or our Integrations page.</p>
+  <h2>How We Use Your Data</h2>
+  <p>Your data is used to deliver and improve Creator Ops Hub services, including research, content creation, scheduling, and publishing. We use it to personalize your experience, communicate with you about your account, ensure security, and comply with legal obligations. We do not sell your personal information to third parties.</p>
   <h2>AI Research Retention</h2>
-  <p>We may retain anonymized, aggregated data from AI research for model improvement. Individual research sessions are not shared with third parties.</p>
+  <p>When you use our AI research features (OpenClaw), we process your queries to generate insights and citations. Research outputs are stored in your account for your reference. We may retain anonymized, aggregated data (stripped of personally identifiable information) for model improvement, analytics, and service optimization. Individual research sessions are not shared with third parties or used for advertising.</p>
+  <h2>Data Retention</h2>
+  <p>We retain your data for as long as your account is active or as needed to provide services. After account deletion, we delete or anonymize your personal data within 90 days, except where retention is required by law. Aggregated or anonymized data may be retained indefinitely for analytics.</p>
   <h2>Your Rights</h2>
-  <p>You have the right to access, correct, export, or delete your personal data. Contact privacy@creatoropshub.com for requests.</p>
+  <p>You have the right to access, correct, export, or delete your personal data. You can manage your data in Settings, request a data export, or contact us to exercise your rights. If you are in the EU/EEA or UK, you have additional rights under GDPR, including the right to object, restrict processing, and lodge a complaint with a supervisory authority.</p>
+  <h2>Contact</h2>
+  <p>For privacy-related questions, data requests, or to exercise your rights, contact us at privacy@creatoropshub.com. We will respond within 30 days.</p>
 </body>
 </html>`
 
@@ -80,7 +87,7 @@ export function DownloadPrintOption({
         size="default"
         onClick={handleDownload}
         className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] hover:border-primary hover:bg-primary/5"
-        aria-label="Download privacy policy as PDF"
+        aria-label="Download privacy policy"
       >
         <Download className="h-4 w-4 mr-2" />
         Download
