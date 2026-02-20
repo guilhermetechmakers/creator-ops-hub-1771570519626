@@ -31,25 +31,27 @@ const logos = ['Creator Co', 'Studio X', 'Agency Pro', 'Content Lab', 'Media Hub
 
 export function SocialProof() {
   return (
-    <section className="container mx-auto px-4 py-24">
-      <h2 className="text-h2 font-bold text-center mb-4 animate-slide-up">Loved by creators</h2>
+    <section className="container mx-auto px-4 py-24" aria-labelledby="social-proof-heading">
+      <h2 id="social-proof-heading" className="text-h2 font-bold text-center mb-4 animate-slide-up">Loved by creators</h2>
       <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-16 animate-slide-up" style={{ animationDelay: '50ms' }}>
         Join thousands of creators and teams who ship content faster with Creator Ops Hub.
       </p>
 
-      {/* Metrics row */}
-      <div className="flex flex-wrap justify-center gap-12 md:gap-20 mb-20">
+      {/* Metrics row - card-based layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-8 mb-20">
         {metrics.map(({ value, label }, i) => (
-          <div
+          <Card
             key={label}
-            className="text-center animate-slide-up opacity-0"
+            className="text-center animate-slide-up opacity-0 transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]"
             style={{ animationDelay: `${(i + 1) * 80}ms`, animationFillMode: 'forwards' }}
           >
-            <div className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              {value}
-            </div>
-            <div className="text-small text-muted-foreground mt-1">{label}</div>
-          </div>
+            <CardContent className="p-6 sm:p-8">
+              <div className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                {value}
+              </div>
+              <div className="text-small text-muted-foreground mt-1">{label}</div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
   HeroSection,
   FeatureHighlights,
@@ -34,6 +35,7 @@ export function LandingPage() {
           <Link
             to="/"
             className="text-h3 font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent transition-opacity hover:opacity-90"
+            aria-label="Creator Ops Hub - Return to home"
           >
             Creator Ops Hub
           </Link>
@@ -41,11 +43,14 @@ export function LandingPage() {
             <Link
               to="/login-/-signup?mode=login"
               className="text-small font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
+              aria-label="Sign in to your Creator Ops Hub account"
             >
               Sign In
             </Link>
             <Button asChild size="sm" className="font-medium">
-              <Link to="/login-/-signup?mode=signup">Get Started Free</Link>
+              <Link to="/login-/-signup?mode=signup" aria-label="Get started with Creator Ops Hub for free">
+                Get Started Free
+              </Link>
             </Button>
           </nav>
         </div>
@@ -60,19 +65,21 @@ export function LandingPage() {
         <SocialProof />
 
         {/* CTA Banner */}
-        <section className="container mx-auto px-4 py-24">
-          <div className="max-w-4xl mx-auto rounded-2xl border-2 border-primary/20 bg-gradient-to-r from-primary/10 to-accent/10 p-12 text-center transition-all duration-300 hover:shadow-card-hover">
-            <h2 className="text-h2 font-bold mb-4">Ready to streamline your content workflow?</h2>
-            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Join creators and teams who ship faster with Creator Ops Hub.
-            </p>
-            <Button asChild size="lg" className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-              <Link to="/login-/-signup?mode=signup">
-                Start free trial
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
+        <section className="container mx-auto px-4 py-24" aria-labelledby="cta-heading">
+          <Card className="max-w-4xl mx-auto border-2 border-primary/20 bg-gradient-to-r from-primary/10 to-accent/10 transition-all duration-300 hover:shadow-card-hover hover:scale-[1.01]">
+            <CardContent className="p-8 sm:p-12 text-center">
+              <h2 id="cta-heading" className="text-h2 font-bold mb-4">Ready to streamline your content workflow?</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
+                Join creators and teams who ship faster with Creator Ops Hub.
+              </p>
+              <Button asChild size="lg" className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+                <Link to="/login-/-signup?mode=signup" aria-label="Start your free trial of Creator Ops Hub">
+                  Start free trial
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
       </main>
 

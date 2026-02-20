@@ -77,9 +77,9 @@ export function PricingTeaser() {
                 ))}
               </ul>
               <Button asChild variant={popular ? 'default' : 'outline'} className="w-full" size="lg">
-                <Link to="/pricing">
+                <Link to="/pricing" aria-label={`View ${name} pricing plan details`}>
                   View plans
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                 </Link>
               </Button>
             </CardContent>
@@ -88,7 +88,7 @@ export function PricingTeaser() {
       </div>
       <div className="text-center mt-10">
         <Button variant="link" asChild className="text-primary font-medium">
-          <Link to="/pricing">Compare all plans →</Link>
+          <Link to="/pricing" aria-label="Compare all pricing plans">Compare all plans →</Link>
         </Button>
       </div>
     </section>

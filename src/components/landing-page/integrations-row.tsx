@@ -1,3 +1,5 @@
+import { Card, CardContent } from '@/components/ui/card'
+
 const integrations = [
   { name: 'Google' },
   { name: 'Instagram' },
@@ -9,12 +11,12 @@ const integrations = [
 
 export function IntegrationsRow() {
   return (
-    <section className="border-y bg-muted/30 py-16">
+    <section className="border-y bg-muted/30 py-16" aria-labelledby="integrations-heading">
       <div className="container mx-auto px-4">
-        <p className="text-center text-small font-medium text-muted-foreground mb-10 uppercase tracking-wider">
+        <p id="integrations-heading" className="text-center text-small font-medium text-muted-foreground mb-10 uppercase tracking-wider">
           Integrates with the tools you use
         </p>
-        <div className="flex flex-wrap justify-center items-center gap-12 md:gap-16">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
           {integrations.map(({ name }, i) => (
             <IntegrationLogo key={name} name={name} index={i} />
           ))}
@@ -62,16 +64,20 @@ function IntegrationLogo({ name, index }: { name: string; index: number }) {
   }
 
   return (
-    <div
-      className="flex flex-col items-center gap-2 animate-fade-in opacity-0"
+    <Card
+      className="flex flex-col items-center justify-center gap-2 p-4 animate-fade-in opacity-0 transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]"
       style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
     >
-      {logos[name] ?? (
-        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-semibold text-small">
-          {name[0]}
-        </div>
-      )}
-      <span className="text-micro text-muted-foreground">{name}</span>
-    </div>
+      <CardContent className="p-4 flex flex-col items-center gap-2 pt-4">
+        <span aria-hidden>
+          {logos[name] ?? (
+            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground font-semibold text-small">
+              {name[0]}
+            </div>
+          )}
+        </span>
+        <span className="text-micro text-muted-foreground">{name}</span>
+      </CardContent>
+    </Card>
   )
 }

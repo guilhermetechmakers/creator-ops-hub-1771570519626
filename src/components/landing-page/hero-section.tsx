@@ -27,9 +27,9 @@ export function HeroSection() {
                 className="text-base px-8 py-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
                 asChild
               >
-                <Link to="/login-/-signup?mode=signup">
+                <Link to="/login-/-signup?mode=signup" aria-label="Get started with Creator Ops Hub">
                   Get Started
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden />
                 </Link>
               </Button>
               <Button
@@ -38,8 +38,8 @@ export function HeroSection() {
                 className="text-base px-8 py-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] border-2"
                 asChild
               >
-                <Link to="#feature-highlights" className="flex items-center gap-2">
-                  <Play className="h-5 w-5" />
+                <Link to="#feature-highlights" className="flex items-center gap-2" aria-label="View product tour and feature highlights">
+                  <Play className="h-5 w-5" aria-hidden />
                   Tour
                 </Link>
               </Button>
