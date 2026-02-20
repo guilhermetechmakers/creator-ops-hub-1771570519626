@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowLeft,
@@ -199,8 +199,35 @@ export function OrderTransactionHistoryPage() {
     [error]
   )
 
+  const hasShownErrorToast = useRef(false)
+  useEffect(() => {
+    if (isError && errorMessage && !hasShownErrorToast.current) {
+      toast.error(errorMessage, { id: 'transaction-history-error' })
+      hasShownErrorToast.current = true
+    }
+    if (!isError) hasShownErrorToast.current = false
+  }, [isError, errorMessage])
+
   return (
-    <div className="space-y-8 max-w-6xl animate-fade-in" role="main">
+    <div
+      className="space-y-8 max-w-6xl animate-fade-in"
+      role="main"
+      aria-busy={isLoading || isFetching}
+      aria-label="Order and transaction history page"
+    >
+      {/* Page-level loading indicator */}
+      {isLoading && (
+        <div
+          className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-primary/10 overflow-hidden"
+          role="progressbar"
+          aria-valuenow={undefined}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Loading transaction history"
+        >
+          <div className="h-full min-w-[120px] animate-shimmer bg-gradient-to-r from-transparent via-primary/60 to-transparent bg-[length:200%_100%]" />
+        </div>
+      )}
       {/* Header */}
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -344,13 +371,16 @@ export function OrderTransactionHistoryPage() {
           </div>
 
           {isError && (
-            <ErrorState
-              title="Failed to load transactions"
-              description={errorMessage}
-              onRetry={() => refetch()}
-              retryLabel="Retry"
-              buttonAriaLabel="Retry loading transaction history"
-            />
+            <div className="min-h-[280px] flex items-stretch">
+              <ErrorState
+                title="Failed to load transactions"
+                description={errorMessage}
+                onRetry={() => refetch()}
+                retryLabel="Retry"
+                buttonAriaLabel="Retry loading transaction history"
+                className="flex-1"
+              />
+            </div>
           )}
 
           {!isError && isLoading ? (
@@ -358,6 +388,7 @@ export function OrderTransactionHistoryPage() {
               className="min-h-[320px] space-y-4 animate-fade-in"
               role="status"
               aria-live="polite"
+              aria-busy="true"
               aria-label="Loading transaction history"
             >
               {/* Mobile skeleton: card layout */}
