@@ -60,13 +60,16 @@ export function DashboardLeftNav({
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col border-r bg-card transition-all duration-300',
-        collapsed ? 'w-[72px]' : 'w-64'
+        'hidden md:flex flex-col border-r bg-card transition-all duration-300 shrink-0 min-w-0',
+        collapsed ? 'w-[72px] max-w-[90vw]' : 'w-56 lg:w-64 max-w-[90vw]'
       )}
+      aria-label="Creator Ops navigation"
     >
       <div className="flex h-16 items-center justify-between border-b px-4">
-        {!collapsed && (
-          <span className="font-semibold text-lg">Creator Ops</span>
+        {collapsed ? (
+          <h2 className="sr-only">Creator Ops</h2>
+        ) : (
+          <h2 className="font-semibold text-lg truncate">Creator Ops</h2>
         )}
         <Button
           variant="ghost"
@@ -78,7 +81,7 @@ export function DashboardLeftNav({
           <Menu className="h-5 w-5" />
         </Button>
       </div>
-      <nav className="flex-1 space-y-1 p-4">
+      <nav className="flex-1 space-y-1 p-4 overflow-y-auto min-h-0" aria-label="Main navigation">
         {navItems.map(({ to, icon: Icon, label }) => {
           const isActive =
             location.pathname === to ||
@@ -89,9 +92,10 @@ export function DashboardLeftNav({
               key={to}
               to={to}
               onClick={onMobileMenuOpen}
+              aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                'hover:bg-primary/10 hover:text-primary',
+                'hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 isActive && 'bg-primary/10 text-primary',
                 collapsed && 'justify-center px-0'
               )}
