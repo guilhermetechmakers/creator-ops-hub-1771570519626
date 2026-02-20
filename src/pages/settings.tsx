@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -13,6 +13,7 @@ import {
   Loader2,
   Check,
   Trash2,
+  UserPlus,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -40,8 +41,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorState } from '@/components/ui/error-state'
 import { supabase } from '@/lib/supabase'
-import type { NotificationPreferences } from '@/types/settings'
+import type { NotificationPreferences, TeamMember } from '@/types/settings'
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'Name is required').max(100),
@@ -62,7 +64,10 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true)
+  const [notificationsError, setNotificationsError] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<NotificationPreferences>(defaultNotifications)
+  const [isLoadingTeam, setIsLoadingTeam] = useState(true)
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [deleteMemberId, setDeleteMemberId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -98,35 +103,39 @@ export function SettingsPage() {
     loadProfile()
   }, [setValue])
 
-  useEffect(() => {
-    const loadNotifications = async () => {
-      setIsLoadingNotifications(true)
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) {
-          setIsLoadingNotifications(false)
-          return
-        }
-        const { data } = await supabase.functions.invoke('settings-preferences', {
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-        if (data?.preferences) {
-          setNotifications({
-            email_comments: data.preferences.email_comments ?? true,
-            email_mentions: data.preferences.email_mentions ?? true,
-            email_publish_status: data.preferences.email_publish_status ?? true,
-            in_app_comments: data.preferences.in_app_comments ?? true,
-            in_app_mentions: data.preferences.in_app_mentions ?? true,
-          })
-        }
-      } catch {
-        // Silent fail, use defaults
-      } finally {
+  const loadNotifications = useCallback(async () => {
+    setIsLoadingNotifications(true)
+    setNotificationsError(null)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
         setIsLoadingNotifications(false)
+        return
       }
+      const { data, error } = await supabase.functions.invoke('settings-preferences', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (error) throw error
+      if (data?.preferences) {
+        setNotifications({
+          email_comments: data.preferences.email_comments ?? true,
+          email_mentions: data.preferences.email_mentions ?? true,
+          email_publish_status: data.preferences.email_publish_status ?? true,
+          in_app_comments: data.preferences.in_app_comments ?? true,
+          in_app_mentions: data.preferences.in_app_mentions ?? true,
+        })
+      }
+    } catch (err) {
+      setNotificationsError(err instanceof Error ? err.message : 'Failed to load notification preferences')
+      toast.error('Could not load notification preferences')
+    } finally {
+      setIsLoadingNotifications(false)
     }
-    loadNotifications()
   }, [])
+
+  useEffect(() => {
+    loadNotifications()
+  }, [loadNotifications])
 
   const onProfileSubmit = async (data: ProfileFormData) => {
     try {
@@ -158,12 +167,32 @@ export function SettingsPage() {
     }
   }
 
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      setIsLoadingTeam(true)
+      try {
+        // Placeholder - would fetch from Edge Function; using mock data for now
+        await new Promise((r) => setTimeout(r, 400))
+        setTeamMembers([
+          { id: '1', email: 'you@example.com', role: 'owner', status: 'active', joined_at: '2024-01-15' },
+          { id: '2', email: 'teammate@example.com', role: 'member', status: 'active', joined_at: '2024-02-01' },
+        ])
+      } catch {
+        setTeamMembers([])
+      } finally {
+        setIsLoadingTeam(false)
+      }
+    }
+    loadTeamMembers()
+  }, [])
+
   const handleRemoveMember = async () => {
     if (!deleteMemberId) return
     setIsDeleting(true)
     try {
       // Placeholder - would call Edge Function to remove team member
       await new Promise((r) => setTimeout(r, 500))
+      setTeamMembers((prev) => prev.filter((m) => m.id !== deleteMemberId))
       toast.success('Member removed')
       setDeleteMemberId(null)
     } catch {
@@ -172,11 +201,6 @@ export function SettingsPage() {
       setIsDeleting(false)
     }
   }
-
-  const teamMembers = [
-    { id: '1', email: 'you@example.com', role: 'owner' as const, status: 'active' as const, joined_at: '2024-01-15' },
-    { id: '2', email: 'teammate@example.com', role: 'member' as const, status: 'active' as const, joined_at: '2024-02-01' },
-  ]
 
   return (
     <div className="space-y-8 animate-fade-in max-w-4xl">
@@ -190,23 +214,23 @@ export function SettingsPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-2 h-auto p-2 bg-muted/50">
           <TabsTrigger value="profile" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <User className="h-4 w-4" />
+            <User className="h-4 w-4 shrink-0" aria-hidden />
             <span className="hidden sm:inline">Profile</span>
           </TabsTrigger>
           <TabsTrigger value="billing" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <CreditCard className="h-4 w-4" />
+            <CreditCard className="h-4 w-4 shrink-0" aria-hidden />
             <span className="hidden sm:inline">Billing</span>
           </TabsTrigger>
           <TabsTrigger value="team" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Users className="h-4 w-4" />
+            <Users className="h-4 w-4 shrink-0" aria-hidden />
             <span className="hidden sm:inline">Team</span>
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Bell className="h-4 w-4" />
+            <Bell className="h-4 w-4 shrink-0" aria-hidden />
             <span className="hidden sm:inline">Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="security" className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:shadow-sm">
-            <Shield className="h-4 w-4" />
+            <Shield className="h-4 w-4 shrink-0" aria-hidden />
             <span className="hidden sm:inline">Security</span>
           </TabsTrigger>
         </TabsList>
@@ -261,6 +285,7 @@ export function SettingsPage() {
                         className="mt-1.5 focus:border-primary/50 transition-colors"
                         placeholder="you@example.com"
                         disabled
+                        aria-label="Email address (read-only)"
                       />
                       <p className="text-micro text-muted-foreground mt-1">Email cannot be changed here</p>
                     </div>
@@ -313,50 +338,84 @@ export function SettingsPage() {
           <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Team Management</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-4 w-4" aria-hidden />
+                  Team Management
+                </CardTitle>
                 <CardDescription>Invite and manage team members</CardDescription>
               </div>
-              <Button className="hover:scale-[1.02] transition-transform">Invite member</Button>
+              <Button className="hover:scale-[1.02] transition-transform shrink-0">
+                <UserPlus className="h-4 w-4 sm:mr-2" aria-hidden />
+                <span className="hidden sm:inline">Invite member</span>
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead>Email</TableHead>
-                      <TableHead>Role</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {teamMembers.map((m) => (
-                      <TableRow key={m.id} className="transition-colors hover:bg-muted/50">
-                        <TableCell className="font-medium">{m.email}</TableCell>
-                        <TableCell>
-                          <span className="capitalize">{m.role}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-success">{m.status}</span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {m.role !== 'owner' && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => setDeleteMemberId(m.id)}
-                              aria-label="Remove member"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </TableCell>
+              {isLoadingTeam ? (
+                <div className="space-y-4 animate-fade-in">
+                  <Skeleton className="h-10 w-full" shimmer />
+                  <Skeleton className="h-12 w-full" shimmer />
+                  <Skeleton className="h-12 w-full" shimmer />
+                  <Skeleton className="h-12 w-full" shimmer />
+                  <Skeleton className="h-12 w-full" shimmer />
+                </div>
+              ) : teamMembers.length === 0 ? (
+                <div
+                  className="flex flex-col items-center justify-center py-12 sm:py-16 text-center border-2 border-dashed border-muted rounded-lg bg-muted/5 animate-fade-in"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80 mb-4">
+                    <Users className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+                  </div>
+                  <h3 className="text-body font-semibold text-foreground">No team members yet</h3>
+                  <p className="text-small text-muted-foreground mt-1 max-w-sm">
+                    Invite members to collaborate on your workspace. They can help create content and manage projects.
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-6 hover:scale-[1.02] transition-transform">
+                    <UserPlus className="h-4 w-4 mr-2" aria-hidden />
+                    Invite your first member
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead>Email</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {teamMembers.map((m) => (
+                        <TableRow key={m.id} className="transition-colors hover:bg-muted/50">
+                          <TableCell className="font-medium">{m.email}</TableCell>
+                          <TableCell>
+                            <span className="capitalize">{m.role}</span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-success">{m.status}</span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {m.role !== 'owner' && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-9 w-9"
+                                onClick={() => setDeleteMemberId(m.id)}
+                                aria-label={`Remove ${m.email} from team`}
+                              >
+                                <Trash2 className="h-4 w-4" aria-hidden />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -369,11 +428,28 @@ export function SettingsPage() {
             </CardHeader>
             <CardContent>
               {isLoadingNotifications ? (
-                <div className="space-y-4">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Skeleton key={i} className="h-12 w-full" />
-                  ))}
+                <div className="space-y-6 animate-fade-in">
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-24" shimmer />
+                    {[1, 2, 3].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full rounded-lg" shimmer />
+                    ))}
+                  </div>
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-20" shimmer />
+                    {[1, 2].map((i) => (
+                      <Skeleton key={i} className="h-16 w-full rounded-lg" shimmer />
+                    ))}
+                  </div>
                 </div>
+              ) : notificationsError ? (
+                <ErrorState
+                  title="Could not load preferences"
+                  description={notificationsError}
+                  onRetry={loadNotifications}
+                  retryLabel="Try again"
+                  buttonAriaLabel="Retry loading notification preferences"
+                />
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-4">
