@@ -12,8 +12,8 @@ export interface TermsSection {
 
 export interface FullTermsOfServiceTextProps {
   className?: string
-  /** Sections to display. If empty, shows empty state. If undefined, uses default. */
-  sections?: TermsSection[]
+  /** Sections to display. If empty, null, or undefined, shows empty state (or uses default when undefined). */
+  sections?: TermsSection[] | null
   /** Show loading skeleton */
   isLoading?: boolean
   /** Show error state with retry */
@@ -91,20 +91,23 @@ function TermsEmptyState() {
       role="status"
       aria-live="polite"
       aria-label="Terms of Service content unavailable"
-      className="overflow-hidden border-dashed border-2 border-muted-foreground/20 animate-fade-in transition-all duration-300 hover:shadow-card-hover hover:border-muted-foreground/30"
+      className="overflow-hidden border-dashed border-2 border-muted-foreground/20 bg-gradient-to-br from-muted/30 to-muted/10 animate-fade-in transition-all duration-300 hover:shadow-card-hover hover:border-muted-foreground/30 min-h-[280px] sm:min-h-[320px]"
     >
-      <CardContent className="flex flex-col items-center justify-center gap-6 py-12 px-6 sm:py-16 sm:px-8">
-        <div className="rounded-2xl bg-muted/50 p-6 sm:p-8 animate-float-subtle motion-reduce:animate-none">
+      <CardContent className="flex flex-col items-center justify-center gap-6 py-12 px-6 sm:py-16 sm:px-8 min-h-[280px] sm:min-h-[320px]">
+        <div
+          className="rounded-2xl bg-muted/50 p-6 sm:p-8 ring-1 ring-muted/80 animate-float-subtle motion-reduce:animate-none"
+          aria-hidden
+        >
           <FileText
             className="h-14 w-14 sm:h-16 sm:w-16 text-muted-foreground/70 mx-auto"
             aria-hidden
           />
         </div>
-        <div className="text-center space-y-2">
-          <p className="text-body font-semibold text-foreground">
+        <div className="text-center space-y-2 max-w-sm">
+          <h3 className="text-body font-semibold text-foreground sm:text-h3">
             Terms of Service content is unavailable
-          </p>
-          <p className="text-small text-muted-foreground max-w-sm">
+          </h3>
+          <p className="text-small text-muted-foreground leading-relaxed">
             We&apos;re unable to load the full terms at this time. Please check back later or
             contact us for assistance.
           </p>
@@ -170,11 +173,19 @@ function TermsErrorState({ onRetry }: { onRetry?: () => void }) {
   )
 }
 
-/** Returns true if the section has meaningful content to display */
-function hasContent(section: TermsSection): boolean {
+/** Returns true if the section has meaningful content to display. Handles null/undefined safely. */
+function hasContent(section: TermsSection | null | undefined): section is TermsSection {
+  if (section == null || typeof section !== 'object') return false
   const hasTitle = typeof section.title === 'string' && section.title.trim().length > 0
   const hasBody = typeof section.content === 'string' && section.content.trim().length > 0
   return hasTitle && hasBody
+}
+
+/** Safely extracts valid terms sections from input. Handles empty, null, undefined, and invalid items. */
+function getValidSections(rawSections: TermsSection[] | null | undefined): TermsSection[] {
+  const sections = rawSections ?? DEFAULT_TERMS_SECTIONS
+  const safeSections = Array.isArray(sections) ? sections : []
+  return safeSections.filter(hasContent)
 }
 
 export function FullTermsOfServiceText({
@@ -200,12 +211,12 @@ export function FullTermsOfServiceText({
     )
   }
 
-  const sections = rawSections ?? DEFAULT_TERMS_SECTIONS
-  const validSections = sections.filter(hasContent)
+  const validSections = getValidSections(rawSections)
 
+  // Explicit empty state: no sections, empty array, or all sections invalid
   if (validSections.length === 0) {
     return (
-      <article className={cn('max-w-none', className)}>
+      <article className={cn('max-w-none', className)} aria-label="Terms of Service content unavailable">
         <TermsEmptyState />
       </article>
     )
