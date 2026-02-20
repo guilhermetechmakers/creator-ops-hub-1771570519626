@@ -113,6 +113,11 @@ export default {
           '0%': { transform: 'translateX(0.5rem)' },
           '100%': { transform: 'translateX(0)' },
         },
+        shake: {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
+          '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-out',
@@ -124,6 +129,7 @@ export default {
         'accordion-up': 'accordion-up 0.2s ease-out',
         'animate-in': 'fade-in 0.2s ease-out, zoom-in-95 0.2s ease-out',
         'animate-out': 'fade-in 0.15s ease-out reverse, zoom-out-95 0.15s ease-out',
+        shake: 'shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
       },
       transitionDuration: {
         '200': '200ms',

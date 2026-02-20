@@ -1,15 +1,43 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { FolderOpen, FileEdit, Calendar, Search, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
 export function LandingPage() {
+  useEffect(() => {
+    document.title = 'Creator Ops Hub | One workspace for creators'
+  }, [])
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <Link
+            to="/"
+            className="text-h3 font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent transition-opacity hover:opacity-90"
+          >
+            Creator Ops Hub
+          </Link>
+          <nav className="flex items-center gap-4">
+            <Link
+              to="/login-/-signup?mode=login"
+              className="text-small font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
+            >
+              Sign In
+            </Link>
+            <Button asChild size="sm" className="font-medium">
+              <Link to="/login-/-signup?mode=signup">Get Started Free</Link>
+            </Button>
+          </nav>
+        </div>
+      </header>
+
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
         <div className="container relative mx-auto px-4 py-24 md:py-32 lg:py-40">
           <div className="mx-auto max-w-4xl text-center animate-slide-up">
             <h1 className="text-hero font-bold tracking-tight md:text-hero-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -19,14 +47,14 @@ export function LandingPage() {
               Centralize assets, research, and multi-platform publishing. From idea to published content—faster, with full traceability.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-base px-8 py-6" asChild>
-                <Link to="/login-/-signup">
+              <Button size="lg" className="text-base px-8 py-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" asChild>
+                <Link to="/login-/-signup?mode=signup">
                   Get Started Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" className="text-base px-8 py-6" asChild>
-                <Link to="/login-/-signup">Sign In</Link>
+              <Button variant="outline" size="lg" className="text-base px-8 py-6 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]" asChild>
+                <Link to="/login-/-signup?mode=login">Sign In</Link>
               </Button>
             </div>
           </div>
@@ -91,8 +119,8 @@ export function LandingPage() {
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Join creators and teams who ship faster with Creator Ops Hub.
             </p>
-            <Button asChild size="lg">
-              <Link to="/login-/-signup">
+            <Button asChild size="lg" className="transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <Link to="/login-/-signup?mode=signup">
                 Start free trial
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>

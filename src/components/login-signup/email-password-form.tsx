@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -39,6 +40,8 @@ export function EmailPasswordForm({
   isSubmitting = false,
 }: EmailPasswordFormProps) {
   const schema = mode === 'login' ? loginSchema : signupSchema
+  const [shouldShake, setShouldShake] = useState(false)
+  const prevHasErrors = useRef(false)
   const {
     register,
     handleSubmit,
@@ -57,11 +60,24 @@ export function EmailPasswordForm({
   const showStrengthIndicator = mode === 'signup' && password.length > 0
   const strength = getPasswordStrength(password)
   const confirmPasswordError = mode === 'signup' ? (errors as { confirmPassword?: { message: string } }).confirmPassword : undefined
+  const hasErrors = !!errors.email || !!errors.password || !!confirmPasswordError
+
+  useEffect(() => {
+    if (hasErrors && !prevHasErrors.current) {
+      prevHasErrors.current = true
+      setShouldShake(true)
+      const t = setTimeout(() => {
+        setShouldShake(false)
+      }, 500)
+      return () => clearTimeout(t)
+    }
+    if (!hasErrors) prevHasErrors.current = false
+  }, [hasErrors])
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4"
+      className={cn('space-y-4', shouldShake && 'animate-shake')}
       id={mode === 'login' ? 'login-panel' : 'signup-panel'}
       aria-labelledby={mode === 'login' ? 'login-tab' : 'signup-tab'}
     >
@@ -88,7 +104,14 @@ export function EmailPasswordForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <div className="flex justify-between items-center">
+          <Label htmlFor="password">Password</Label>
+          {mode === 'signup' && (
+            <span className="text-micro text-muted-foreground" aria-live="polite">
+              {password.length} characters
+            </span>
+          )}
+        </div>
         <Input
           id="password"
           type="password"

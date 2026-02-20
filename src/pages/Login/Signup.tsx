@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
+import { ArrowLeft } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   ToggleLoginSignupSwitch,
@@ -29,6 +30,10 @@ export function LoginSignupPage() {
     else if (modeParam === 'login') setMode('login')
   }, [modeParam])
 
+  useEffect(() => {
+    document.title = mode === 'login' ? 'Sign In | Creator Ops Hub' : 'Sign Up | Creator Ops Hub'
+  }, [mode])
+
   const handleEmailSubmit = async (data: LoginFormData | SignupFormData) => {
     setIsSubmitting(true)
     try {
@@ -38,8 +43,14 @@ export function LoginSignupPage() {
         navigate('/dashboard', { replace: true })
       } else {
         await signup(data as SignupFormData)
+        const signupEmail = (data as SignupFormData).email
+        try {
+          sessionStorage.setItem('verify_email', signupEmail)
+        } catch {
+          /* ignore */
+        }
         toast.success('Account created! Please verify your email.')
-        navigate('/verify-email', { replace: true })
+        navigate('/verify-email', { replace: true, state: { email: signupEmail } })
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')
@@ -84,7 +95,15 @@ export function LoginSignupPage() {
   ]
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <Link
+        to="/"
+        className="absolute top-4 left-4 flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
+        aria-label="Back to home"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden />
+        Back to home
+      </Link>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />

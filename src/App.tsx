@@ -2,8 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AppShell } from '@/components/layout/app-shell'
 import { LandingPage } from '@/pages/landing'
-import { LoginPage } from '@/pages/login'
-import { SignupPage } from '@/pages/signup'
 import { LoginSignupPage } from '@/pages/Login/Signup'
 import { DashboardPage } from '@/pages/dashboard'
 import { LibraryPage } from '@/pages/library'
@@ -30,8 +28,8 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<Navigate to="/login-/-signup?mode=login" replace />} />
+          <Route path="/signup" element={<Navigate to="/login-/-signup?mode=signup" replace />} />
           <Route path="/login-/-signup" element={<LoginSignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
