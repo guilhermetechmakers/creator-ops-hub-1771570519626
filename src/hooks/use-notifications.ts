@@ -13,7 +13,7 @@ export function useNotifications(params?: { limit?: number; unreadOnly?: boolean
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (): Promise<void> => {
     setIsLoading(true)
     setError(null)
     try {
@@ -24,16 +24,20 @@ export function useNotifications(params?: { limit?: number; unreadOnly?: boolean
       setNotifications(res.notifications)
       setUnreadCount(res.unread_count)
     } catch (err) {
-      setError(err instanceof Error ? err : new Error('Failed to load notifications'))
+      const errorObj = err instanceof Error ? err : new Error('Failed to load notifications')
+      setError(errorObj)
       setNotifications([])
       setUnreadCount(0)
+      throw errorObj
     } finally {
       setIsLoading(false)
     }
   }, [params?.limit, params?.unreadOnly])
 
   useEffect(() => {
-    load()
+    load().catch(() => {
+      /* Error already set in state; avoid unhandled rejection */
+    })
   }, [load])
 
   const markRead = useCallback(async (ids?: string[], all?: boolean) => {

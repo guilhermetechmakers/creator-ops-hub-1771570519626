@@ -65,9 +65,9 @@ export function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-h1 font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h2 className="text-base font-normal text-muted-foreground mt-1">
             Your single-pane operational view
-          </p>
+          </h2>
         </div>
         <div className="flex items-center gap-2">
           {cacheMeta && (
@@ -79,6 +79,7 @@ export function DashboardPage() {
                   : 'bg-muted text-muted-foreground'
               )}
               title={`${cacheMeta.cacheStatus} · ${cacheMeta.responseTimeMs}ms`}
+              aria-label={`Data ${cacheMeta.cacheStatus === 'HIT' ? 'cached' : 'fresh'}, loaded in ${cacheMeta.responseTimeMs}ms`}
             >
               <Zap className="h-3.5 w-3.5" />
               {cacheMeta.cacheStatus === 'HIT' ? 'Cached' : 'Fresh'}

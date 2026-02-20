@@ -41,6 +41,7 @@ export function DashboardCtaBanner({
           <Button
             onClick={onCtaClick}
             className="hover:scale-[1.02] active:scale-[0.98] transition-transform shrink-0"
+            aria-label={ctaText}
           >
             {ctaText}
           </Button>
@@ -48,6 +49,7 @@ export function DashboardCtaBanner({
           <Button
             asChild
             className="hover:scale-[1.02] active:scale-[0.98] transition-transform shrink-0"
+            aria-label={ctaText}
           >
             <Link to="/dashboard/checkout-/-payment">{ctaText}</Link>
           </Button>

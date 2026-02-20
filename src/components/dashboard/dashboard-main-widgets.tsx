@@ -169,9 +169,16 @@ export function DashboardMainWidgets({
                 ))}
               </div>
             ) : (
-              <p className="text-small text-muted-foreground">
-                {googleConnected ? 'No events today' : 'Connect Google Calendar'}
-              </p>
+              <div className="space-y-2" role="status" aria-label={googleConnected ? 'No events today' : 'Google Calendar not connected'}>
+                <p className="text-small text-muted-foreground">
+                  {googleConnected ? 'No events today' : 'Connect Google Calendar'}
+                </p>
+                {!googleConnected && (
+                  <Button variant="outline" size="sm" asChild aria-label="Connect Google Calendar in integrations">
+                    <Link to="/dashboard/integrations">Connect Google</Link>
+                  </Button>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -214,9 +221,16 @@ export function DashboardMainWidgets({
                 ))}
               </div>
             ) : (
-              <p className="text-small text-muted-foreground">
-                {googleConnected ? 'No flagged emails' : 'Connect Gmail'}
-              </p>
+              <div className="space-y-2" role="status" aria-label={googleConnected ? 'No flagged emails' : 'Gmail not connected'}>
+                <p className="text-small text-muted-foreground">
+                  {googleConnected ? 'No flagged emails' : 'Connect Gmail'}
+                </p>
+                {!googleConnected && (
+                  <Button variant="outline" size="sm" asChild aria-label="Connect Gmail in integrations">
+                    <Link to="/dashboard/integrations">Connect Gmail</Link>
+                  </Button>
+                )}
+              </div>
             )}
           </CardContent>
         </Card>
@@ -264,7 +278,7 @@ export function DashboardMainWidgets({
               ))}
             </div>
           ) : (
-            <div className="py-8 text-center">
+            <div className="py-8 text-center" role="status" aria-label="No scheduled posts">
               <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" aria-hidden />
               <p className="text-small text-muted-foreground">No scheduled posts</p>
               <Button variant="outline" size="sm" className="mt-2" asChild aria-label="Create new content">
@@ -315,7 +329,7 @@ export function DashboardMainWidgets({
                   </Link>
                 ))
               ) : (
-                <div className="py-8 text-center">
+                <div className="py-8 text-center" role="status" aria-label="No research yet">
                   <Search className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" aria-hidden />
                   <p className="text-small text-muted-foreground">No research yet</p>
                   <Button variant="outline" size="sm" className="mt-2" asChild aria-label="Start new research">
@@ -364,7 +378,7 @@ export function DashboardMainWidgets({
                   ))}
                 </div>
               ) : (
-                <div className="py-8 text-center">
+                <div className="py-8 text-center" role="status" aria-label="No assets yet">
                   <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" aria-hidden />
                   <p className="text-small text-muted-foreground">No assets yet</p>
                   <Button variant="outline" size="sm" className="mt-2" asChild aria-label="Upload assets to file library">

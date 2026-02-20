@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import {
   FileText,
   FolderOpen,
@@ -8,11 +9,13 @@ import {
   Bell,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorState } from '@/components/ui/error-state'
 import { useNotifications } from '@/hooks/use-notifications'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@/types/notifications'
+import { toast } from 'sonner'
 
 export interface ActivityItem {
   id: string
@@ -70,20 +73,26 @@ function ActivityFeedEmptyState() {
     <div
       role="status"
       aria-live="polite"
+      aria-label="No activity yet"
       className={cn(
         'flex flex-col items-center justify-center gap-6 rounded-xl',
         'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
         'animate-fade-in min-h-[200px] sm:min-h-[240px]'
       )}
     >
-      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
-        <Bell className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80" aria-hidden>
+        <Bell className="h-12 w-12 text-muted-foreground/70" />
       </div>
-      <div className="space-y-2 max-w-[280px]">
-        <h3 className="text-base font-semibold text-foreground">No activity yet</h3>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          Comments, mentions, and publish updates will appear here. Create content or invite collaborators to see activity.
-        </p>
+      <div className="space-y-4 max-w-[280px]">
+        <div className="space-y-2">
+          <h3 className="text-base font-semibold text-foreground">No activity yet</h3>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Comments, mentions, and publish updates will appear here. Create content or invite collaborators to see activity.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" asChild aria-label="Create content to see activity">
+          <Link to="/dashboard/content-editor/new">Create content</Link>
+        </Button>
       </div>
     </div>
   )
@@ -119,11 +128,23 @@ export function DashboardActivityFeed({ items: propItems }: DashboardActivityFee
 
   const isEmpty = activityItems.length === 0
 
+  const handleRetry = async () => {
+    const toastId = toast.loading('Retrying...')
+    try {
+      await refetch()
+      toast.dismiss(toastId)
+      toast.success('Activity feed loaded')
+    } catch {
+      toast.dismiss(toastId)
+      toast.error('Failed to load activity feed')
+    }
+  }
+
   return (
-    <Card className="transition-all duration-300 hover:shadow-card-hover">
+    <Card className="transition-all duration-300 hover:shadow-card-hover" aria-labelledby="activity-feed-title" aria-describedby="activity-feed-desc">
       <CardHeader>
-        <CardTitle>Activity Feed</CardTitle>
-        <CardDescription>Comments, mentions, publish status</CardDescription>
+        <CardTitle id="activity-feed-title">Activity Feed</CardTitle>
+        <CardDescription id="activity-feed-desc">Comments, mentions, publish status</CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -132,7 +153,7 @@ export function DashboardActivityFeed({ items: propItems }: DashboardActivityFee
           <ErrorState
             title="Failed to load activity"
             description="We couldn't load your activity feed. Please try again."
-            onRetry={refetch}
+            onRetry={handleRetry}
             retryLabel="Retry"
             buttonAriaLabel="Retry loading activity feed"
           />
