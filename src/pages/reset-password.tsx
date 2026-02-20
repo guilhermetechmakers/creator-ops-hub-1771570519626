@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { ArrowLeft, KeyRound, CheckCircle2, AlertCircle } from 'lucide-react'
+import { ArrowLeft, KeyRound, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,6 +30,36 @@ const schema = z
 
 type FormData = z.infer<typeof schema>
 
+/** Renders inline error message with consistent styling and accessibility. */
+function FieldError({ id, message }: { id: string; message: string }) {
+  return (
+    <p
+      id={id}
+      role="alert"
+      aria-live="polite"
+      className="flex items-center gap-1.5 text-small text-destructive animate-fade-in"
+    >
+      <AlertCircle className="h-4 w-4 shrink-0" aria-hidden />
+      <span>{message}</span>
+    </p>
+  )
+}
+
+/** Reserves space to prevent layout shift when validation errors appear. */
+function FieldErrorSlot({
+  id,
+  error,
+}: {
+  id: string
+  error?: { message?: string }
+}) {
+  return (
+    <div className="min-h-[1.5rem] mt-1" aria-live="polite" aria-atomic="true">
+      {error?.message ? <FieldError id={id} message={error.message} /> : null}
+    </div>
+  )
+}
+
 function parseHashParams(): Record<string, string> {
   const hash = window.location.hash?.slice(1)
   if (!hash) return {}
@@ -54,6 +84,7 @@ export function ResetPasswordPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [tokenError, setTokenError] = useState<string | null>(null)
+  const [apiError, setApiError] = useState<string | null>(null)
   const [isValidating, setIsValidating] = useState(true)
   const [hasValidationError, setHasValidationError] = useState(false)
   const [passwordUpdated, setPasswordUpdated] = useState(false)
@@ -121,17 +152,22 @@ export function ResetPasswordPage() {
   const onSubmit = async (data: FormData) => {
     if (!accessToken) return
     setHasValidationError(false)
+    setApiError(null)
     try {
       await updatePasswordWithToken(accessToken, data.password, refreshToken ?? undefined)
       setPasswordUpdated(true)
+      setApiError(null)
       toast.success('Password updated successfully!')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update password')
+      const message = err instanceof Error ? err.message : 'Failed to update password'
+      setApiError(message)
+      toast.error(message)
     }
   }
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     setHasValidationError(false)
+    setApiError(null)
     handleSubmit(
       onSubmit,
       () => {
@@ -170,8 +206,9 @@ export function ResetPasswordPage() {
               <Skeleton className="h-10 w-full" shimmer />
               <Skeleton className="h-11 w-full" shimmer />
             </div>
-            <p className="text-small text-muted-foreground text-center">
-              Validating reset link...
+            <p className="flex items-center justify-center gap-2 text-small text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+              <span>Validating reset link...</span>
             </p>
           </CardContent>
         </Card>
@@ -214,13 +251,69 @@ export function ResetPasswordPage() {
           </CardHeader>
           <CardContent className="relative space-y-4">
             <Link to="/forgot-password">
-              <Button className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+              <Button
+                className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                aria-label="Request new password reset link"
+              >
                 Request new reset link
               </Button>
             </Link>
             <Link
               to="/login-/-signup"
               className="block text-center text-small text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+              aria-label="Back to sign in"
+            >
+              Back to sign in
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!accessToken && !isValidating && !tokenError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4 relative overflow-hidden">
+        <Link
+          to="/"
+          className="absolute top-4 left-4 z-10 flex items-center gap-2 text-small text-muted-foreground hover:text-foreground transition-all duration-200 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg px-3 py-2"
+          aria-label="Back to home"
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden />
+          Back to home
+        </Link>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-accent/5 via-transparent to-transparent" />
+        </div>
+
+        <Card className="relative w-full max-w-md animate-fade-in shadow-card border-border overflow-hidden transition-all duration-300 hover:shadow-card-hover">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-50" />
+          <CardHeader className="relative text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-muted p-3">
+                <KeyRound className="h-10 w-10 text-muted-foreground" aria-hidden />
+              </div>
+            </div>
+            <CardTitle className="text-h2 font-bold">No reset link found</CardTitle>
+            <CardDescription className="text-body">
+              To reset your password, use the link sent to your email. If you don&apos;t have it, request a new one below.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="relative space-y-4">
+            <Link to="/forgot-password">
+              <Button
+                className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                aria-label="Request new password reset link"
+              >
+                Request reset link
+              </Button>
+            </Link>
+            <Link
+              to="/login-/-signup"
+              className="block text-center text-small text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+              aria-label="Back to sign in"
             >
               Back to sign in
             </Link>
@@ -271,6 +364,7 @@ export function ResetPasswordPage() {
             <Button
               className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               onClick={() => navigate('/login-/-signup', { replace: true })}
+              aria-label="Sign in with your new password"
             >
               Sign in
             </Button>
@@ -322,14 +416,38 @@ export function ResetPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="relative">
-          <form onSubmit={handleFormSubmit} className="space-y-4">
+          <form
+            onSubmit={handleFormSubmit}
+            className="space-y-4"
+            aria-labelledby="reset-form-heading"
+            noValidate
+          >
+            <h2 id="reset-form-heading" className="sr-only">
+              Set new password
+            </h2>
+
+            {apiError && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="flex items-start gap-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-small text-destructive animate-fade-in"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
+                <span>{apiError}</span>
+              </div>
+            )}
+
             <div className="space-y-2">
-              <Label htmlFor="password">New password</Label>
+              <Label htmlFor="password" id="password-label">
+                New password
+              </Label>
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 autoComplete="new-password"
+                aria-labelledby="password-label"
+                aria-required="true"
                 {...register('password')}
                 className={cn(
                   'transition-colors duration-200',
@@ -341,23 +459,23 @@ export function ResetPasswordPage() {
                 }
               />
               {showStrengthIndicator && (
-                <div id="password-strength">
-                  <PasswordStrengthIndicator strength={strength} className="mt-1" />
+                <div id="password-strength" className="mt-1">
+                  <PasswordStrengthIndicator strength={strength} />
                 </div>
               )}
-              {errors.password && (
-                <p id="password-error" className="text-small text-destructive">
-                  {errors.password.message}
-                </p>
-              )}
+              <FieldErrorSlot id="password-error" error={errors.password} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
+              <Label htmlFor="confirmPassword" id="confirm-password-label">
+                Confirm password
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 placeholder="••••••••"
                 autoComplete="new-password"
+                aria-labelledby="confirm-password-label"
+                aria-required="true"
                 {...register('confirmPassword')}
                 className={cn(
                   'transition-colors duration-200',
@@ -366,23 +484,33 @@ export function ResetPasswordPage() {
                 aria-invalid={!!errors.confirmPassword}
                 aria-describedby={errors.confirmPassword ? 'confirm-error' : undefined}
               />
-              {errors.confirmPassword && (
-                <p id="confirm-error" className="text-small text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
+              <FieldErrorSlot id="confirm-error" error={errors.confirmPassword} />
             </div>
             <Button
               type="submit"
-              className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className={cn(
+                'w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
+                isSubmitting &&
+                  'animate-pulse cursor-wait ring-2 ring-primary/40 ring-offset-2 disabled:opacity-90'
+              )}
               disabled={isSubmitting}
+              aria-busy={isSubmitting}
+              aria-label={isSubmitting ? 'Updating password, please wait' : 'Update password'}
             >
-              {isSubmitting ? 'Updating...' : 'Update password'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin shrink-0" aria-hidden />
+                  <span>Updating...</span>
+                </>
+              ) : (
+                'Update password'
+              )}
             </Button>
           </form>
           <Link
             to="/login-/-signup"
             className="block mt-4 text-center text-small text-primary hover:underline transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+            aria-label="Back to sign in"
           >
             Back to sign in
           </Link>
