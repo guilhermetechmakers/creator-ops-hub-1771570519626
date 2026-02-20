@@ -67,7 +67,7 @@ export function WorkspaceBilling({
             asChild
             className="transition-transform duration-200 hover:scale-[1.02]"
           >
-            <Link to="/dashboard/integrations">
+            <Link to="/dashboard/checkout-/-payment">
               Upgrade
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>

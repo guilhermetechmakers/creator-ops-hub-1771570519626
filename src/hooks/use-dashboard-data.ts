@@ -15,12 +15,118 @@ export interface GmailThread {
   snippet: string
 }
 
+export interface ScheduledPost {
+  id: string
+  title: string
+  scheduledTime?: string
+  dueDate?: string
+  platform?: string
+  channel?: string
+  status: string
+}
+
+export interface RecentAsset {
+  id: string
+  title: string
+  file_type?: string
+  updated_at: string
+}
+
 export function useDashboardData() {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([])
   const [gmailThreads, setGmailThreads] = useState<GmailThread[]>([])
+  const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([])
+  const [recentAssets, setRecentAssets] = useState<RecentAsset[]>([])
   const [googleConnected, setGoogleConnected] = useState(false)
   const [loadingCalendar, setLoadingCalendar] = useState(false)
   const [loadingGmail, setLoadingGmail] = useState(false)
+  const [loadingScheduled, setLoadingScheduled] = useState(false)
+  const [loadingAssets, setLoadingAssets] = useState(false)
+
+  const fetchScheduledPosts = useCallback(async () => {
+    setLoadingScheduled(true)
+    try {
+      const now = new Date().toISOString()
+      const weekFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
+      const [contentRes, queueRes] = await Promise.all([
+        supabase
+          .from('content_editor')
+          .select('id, title, due_date, channel, status')
+          .in('status', ['scheduled', 'review'])
+          .gte('due_date', now)
+          .lte('due_date', weekFromNow)
+          .order('due_date', { ascending: true })
+          .limit(5),
+        supabase
+          .from('publishing_queue_logs')
+          .select('id, title, scheduled_time, platform, status')
+          .eq('status', 'queued')
+          .gte('scheduled_time', now)
+          .order('scheduled_time', { ascending: true })
+          .limit(5),
+      ])
+
+      const posts: ScheduledPost[] = []
+      if (contentRes.data) {
+        posts.push(
+          ...contentRes.data.map((r) => ({
+            id: r.id,
+            title: r.title ?? '',
+            dueDate: r.due_date,
+            channel: r.channel,
+            status: r.status ?? '',
+          }))
+        )
+      }
+      if (queueRes.data) {
+        posts.push(
+          ...queueRes.data.map((r) => ({
+            id: r.id,
+            title: r.title ?? '',
+            scheduledTime: r.scheduled_time,
+            platform: r.platform,
+            status: r.status ?? '',
+          }))
+        )
+      }
+      posts.sort((a, b) => {
+        const aTime = (a.scheduledTime ?? a.dueDate) ?? ''
+        const bTime = (b.scheduledTime ?? b.dueDate) ?? ''
+        return aTime.localeCompare(bTime)
+      })
+      setScheduledPosts(posts.slice(0, 8))
+    } catch {
+      setScheduledPosts([])
+    } finally {
+      setLoadingScheduled(false)
+    }
+  }, [])
+
+  const fetchRecentAssets = useCallback(async () => {
+    setLoadingAssets(true)
+    try {
+      const { data } = await supabase
+        .from('file_library')
+        .select('id, title, file_type, updated_at')
+        .eq('status', 'active')
+        .order('updated_at', { ascending: false })
+        .limit(6)
+
+      setRecentAssets(
+        (data ?? []).map((r) => ({
+          id: r.id,
+          title: r.title ?? '',
+          file_type: r.file_type,
+          updated_at: r.updated_at ?? '',
+        }))
+      )
+    } catch {
+      setRecentAssets([])
+    } finally {
+      setLoadingAssets(false)
+    }
+  }, [])
 
   const fetchCalendar = useCallback(async () => {
     if (!SUPABASE_URL) return
@@ -75,17 +181,25 @@ export function useDashboardData() {
   useEffect(() => {
     fetchCalendar()
     fetchGmail()
-  }, [fetchCalendar, fetchGmail])
+    fetchScheduledPosts()
+    fetchRecentAssets()
+  }, [fetchCalendar, fetchGmail, fetchScheduledPosts, fetchRecentAssets])
 
   return {
     calendarEvents,
     gmailThreads,
+    scheduledPosts,
+    recentAssets,
     googleConnected,
     loadingCalendar,
     loadingGmail,
+    loadingScheduled,
+    loadingAssets,
     refetch: () => {
       fetchCalendar()
       fetchGmail()
+      fetchScheduledPosts()
+      fetchRecentAssets()
     },
   }
 }

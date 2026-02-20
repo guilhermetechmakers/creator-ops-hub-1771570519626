@@ -26,25 +26,59 @@ export interface GmailThread {
   snippet: string
 }
 
+export interface ScheduledPost {
+  id: string
+  title: string
+  scheduledTime?: string
+  dueDate?: string
+  platform?: string
+  channel?: string
+  status: string
+}
+
+export interface RecentAsset {
+  id: string
+  title: string
+  file_type?: string
+  updated_at: string
+}
+
 export interface MainWidgetsProps {
   calendarEvents?: CalendarEvent[]
   gmailThreads?: GmailThread[]
+  scheduledPosts?: ScheduledPost[]
+  recentAssets?: RecentAsset[]
   scheduledCount?: number
   researchSummaries?: { title: string; time: string; score: number }[]
   isLoadingCalendar?: boolean
   isLoadingGmail?: boolean
+  isLoadingScheduled?: boolean
+  isLoadingAssets?: boolean
   googleConnected?: boolean
+}
+
+function formatScheduledTime(d?: string) {
+  if (!d) return ''
+  const date = new Date(d)
+  const now = new Date()
+  const isToday = date.toDateString() === now.toDateString()
+  return isToday ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : date.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 export function DashboardMainWidgets({
   calendarEvents = [],
   gmailThreads = [],
-  scheduledCount = 0,
+  scheduledPosts = [],
+  recentAssets = [],
+  scheduledCount,
   researchSummaries = [],
   isLoadingCalendar = false,
   isLoadingGmail = false,
+  isLoadingScheduled = false,
+  isLoadingAssets = false,
   googleConnected = false,
 }: MainWidgetsProps) {
+  const displayScheduledCount = scheduledCount ?? scheduledPosts.length
   return (
     <div className="space-y-6">
       {/* Today + Scheduled + Quick stats row */}
@@ -79,7 +113,7 @@ export function DashboardMainWidgets({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-small font-medium flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -87,7 +121,7 @@ export function DashboardMainWidgets({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{scheduledCount}</p>
+            <p className="text-2xl font-bold">{displayScheduledCount}</p>
             <p className="text-small text-muted-foreground">upcoming this week</p>
             <Button variant="link" size="sm" className="p-0 h-auto mt-2" asChild>
               <Link to="/dashboard/calendar">
@@ -124,6 +158,58 @@ export function DashboardMainWidgets({
           </CardContent>
         </Card>
       </div>
+
+      {/* Scheduled posts list */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Scheduled Posts</CardTitle>
+            <CardDescription>Upcoming content and queue items</CardDescription>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/dashboard/calendar">
+              <Clock className="h-4 w-4 mr-2" />
+              View calendar
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {isLoadingScheduled ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
+          ) : scheduledPosts.length > 0 ? (
+            <div className="space-y-2">
+              {scheduledPosts.map((p) => (
+                <Link
+                  key={p.id}
+                  to={p.scheduledTime ? '/dashboard/publishing-queue-logs' : `/dashboard/content-editor/${p.id}`}
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 hover:shadow-sm transition-all duration-200 group"
+                >
+                  <div>
+                    <p className="font-medium group-hover:text-primary transition-colors">{p.title}</p>
+                    <p className="text-micro text-muted-foreground">
+                      {formatScheduledTime(p.scheduledTime ?? p.dueDate)}
+                      {(p.platform ?? p.channel) && ` · ${p.platform ?? p.channel}`}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <Clock className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-small text-muted-foreground">No scheduled posts</p>
+              <Button variant="outline" size="sm" className="mt-2" asChild>
+                <Link to="/dashboard/content-editor/new">Create content</Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Research */}
@@ -180,23 +266,41 @@ export function DashboardMainWidgets({
                 <CardDescription>Latest uploads to your library</CardDescription>
               </div>
               <Button variant="outline" size="sm" asChild>
-                <Link to="/dashboard/library">
+                <Link to="/dashboard/file-library">
                   <FolderOpen className="h-4 w-4 mr-2" />
                   View all
                 </Link>
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div
-                    key={i}
-                    className="aspect-square rounded-lg bg-muted flex items-center justify-center hover:ring-2 hover:ring-primary/50 transition-all duration-200 cursor-pointer"
-                  >
-                    <FolderOpen className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                ))}
-              </div>
+              {isLoadingAssets ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <Skeleton key={i} className="aspect-square rounded-lg" />
+                  ))}
+                </div>
+              ) : recentAssets.length > 0 ? (
+                <div className="grid grid-cols-3 gap-4">
+                  {recentAssets.map((a) => (
+                    <Link
+                      key={a.id}
+                      to={`/dashboard/file-library?highlight=${a.id}`}
+                      className="aspect-square rounded-lg bg-muted flex flex-col items-center justify-center hover:ring-2 hover:ring-primary/50 transition-all duration-200 cursor-pointer p-2"
+                    >
+                      <FolderOpen className="h-8 w-8 text-muted-foreground mb-1" />
+                      <span className="text-micro truncate w-full text-center">{a.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <FolderOpen className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+                  <p className="text-small text-muted-foreground">No assets yet</p>
+                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                    <Link to="/dashboard/file-library">Upload assets</Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -206,19 +310,19 @@ export function DashboardMainWidgets({
               <CardDescription>New brief, template, or content</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-4">
-              <Button asChild className="hover:scale-[1.02] transition-transform">
-                <Link to="/dashboard/studio/new">
+              <Button asChild className="hover:scale-[1.02] transition-transform duration-200">
+                <Link to="/dashboard/content-editor/new">
                   <FileText className="h-4 w-4 mr-2" />
                   New Brief
                 </Link>
               </Button>
-              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform">
-                <Link to="/dashboard/studio/new">
+              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform duration-200">
+                <Link to="/dashboard/content-editor/new">
                   <LayoutTemplate className="h-4 w-4 mr-2" />
                   New Template
                 </Link>
               </Button>
-              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform">
+              <Button variant="outline" asChild className="hover:scale-[1.02] transition-transform duration-200">
                 <Link to="/dashboard/research/new">
                   <Search className="h-4 w-4 mr-2" />
                   New Research

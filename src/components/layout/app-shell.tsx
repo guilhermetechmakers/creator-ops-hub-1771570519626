@@ -3,13 +3,11 @@ import { Outlet, Link, useLocation } from 'react-router-dom'
 import {
   Home,
   FolderOpen,
-  FileEdit,
-  FileText,
+  LayoutList,
   Search,
   Calendar,
   Plug,
   BarChart3,
-  Send,
   Settings,
   Menu,
   Bell,
@@ -18,8 +16,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { GlobalSearch } from '@/components/dashboard/global-search'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import {
   DropdownMenu,
@@ -32,21 +30,41 @@ import {
 
 const navItems = [
   { to: '/dashboard', icon: Home, label: 'Home' },
-  { to: '/dashboard/file-library', icon: FolderOpen, label: 'File Library' },
-  { to: '/dashboard/studio', icon: FileEdit, label: 'Content Studio' },
+  { to: '/dashboard/file-library', icon: FolderOpen, label: 'Library' },
+  { to: '/dashboard/content-studio', icon: LayoutList, label: 'Content Studio' },
   { to: '/dashboard/research', icon: Search, label: 'Research' },
-  { to: '/dashboard/calendar', icon: Calendar, label: 'Editorial Calendar' },
-  { to: '/dashboard/content-editor', icon: FileText, label: 'Content Editor' },
+  { to: '/dashboard/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
   { to: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-  { to: '/dashboard/publishing-queue-logs', icon: Send, label: 'Publishing Queue' },
-  { to: '/dashboard/settings', icon: Settings, label: 'Settings & Preferences' },
+  { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
 ]
 
+const SIDEBAR_COLLAPSED_KEY = 'creator-ops-sidebar-collapsed'
+
+function getInitialSidebarCollapsed(): boolean {
+  try {
+    return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export function AppShell() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(getInitialSidebarCollapsed)
   const [mobileOpen, setMobileOpen] = useState(false)
   const location = useLocation()
+
+  const handleSidebarToggle = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next))
+      } catch {
+        // ignore
+      }
+      return next
+    })
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -64,27 +82,31 @@ export function AppShell() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            onClick={handleSidebarToggle}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Menu className="h-5 w-5" />
           </Button>
         </div>
         <nav className="flex-1 space-y-1 p-4">
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {navItems.map(({ to, icon: Icon, label }) => {
+            const isActive =
+              location.pathname === to ||
+              (to !== '/dashboard' && location.pathname.startsWith(to + '/'))
+            return (
             <Link
               key={to}
               to={to}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary',
-                location.pathname === to && 'bg-primary/10 text-primary',
+                isActive && 'bg-primary/10 text-primary',
                 sidebarCollapsed && 'justify-center px-0'
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
               {!sidebarCollapsed && <span>{label}</span>}
             </Link>
-          ))}
+          )})}
         </nav>
       </aside>
 
@@ -130,14 +152,7 @@ export function AppShell() {
           </Button>
 
           <div className="flex-1 flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search..."
-                className="pl-9 bg-muted/50 focus:border-primary/50 transition-colors duration-200"
-                aria-label="Global search"
-              />
-            </div>
+            <GlobalSearch />
           </div>
 
           <div className="flex items-center gap-2">

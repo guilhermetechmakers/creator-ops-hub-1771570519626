@@ -21,6 +21,7 @@ import { OAuthGoogleCallbackPage } from '@/pages/oauth-google-callback'
 import { PublishingQueueLogsPage } from '@/pages/publishing-queue-logs'
 import { ContentEditorPage } from '@/pages/content-editor'
 import { ContentStudioListPage } from '@/pages/content-studio-list'
+import { PaymentPage } from '@/pages/Checkout/Payment'
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Route path="content-editor/new" element={<ContentEditorPage />} />
             <Route path="content-editor/:id" element={<ContentEditorPage />} />
             <Route path="settings" element={<SettingsPreferencesPage />} />
+            <Route path="checkout-/-payment" element={<PaymentPage />} />
           </Route>
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/terms" element={<TermsPage />} />

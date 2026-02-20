@@ -7,9 +7,13 @@ export function DashboardPage() {
   const {
     calendarEvents,
     gmailThreads,
+    scheduledPosts,
+    recentAssets,
     googleConnected,
     loadingCalendar,
     loadingGmail,
+    loadingScheduled,
+    loadingAssets,
   } = useDashboardData()
 
   return (
@@ -26,10 +30,13 @@ export function DashboardPage() {
       <DashboardMainWidgets
         calendarEvents={calendarEvents}
         gmailThreads={gmailThreads}
-        scheduledCount={12}
+        scheduledPosts={scheduledPosts}
+        recentAssets={recentAssets}
         googleConnected={googleConnected}
         isLoadingCalendar={loadingCalendar}
         isLoadingGmail={loadingGmail}
+        isLoadingScheduled={loadingScheduled}
+        isLoadingAssets={loadingAssets}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
