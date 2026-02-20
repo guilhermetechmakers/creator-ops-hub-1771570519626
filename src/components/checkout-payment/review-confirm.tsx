@@ -65,24 +65,35 @@ export function ReviewConfirm({
 
         <Button
           size="lg"
+          type="button"
           className={cn(
             'w-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]',
             'bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70',
-            'shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30'
+            'shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30',
+            isSubmitting &&
+              'cursor-wait ring-2 ring-primary/40 ring-offset-2 disabled:opacity-90'
           )}
           onClick={onSubmit}
           disabled={isSubmitting}
           aria-busy={isSubmitting}
+          aria-label={
+            isSubmitting
+              ? 'Processing payment, please wait'
+              : 'Confirm and subscribe to plan'
+          }
         >
           {isSubmitting ? (
             <>
-              <Loader2 className="h-5 w-5 animate-[spin_1s_linear_infinite]" />
-              Processing...
+              <Loader2
+                className="h-5 w-5 shrink-0 animate-spin"
+                aria-hidden
+              />
+              <span>Processing...</span>
             </>
           ) : (
             <>
-              <CheckCircle2 className="h-5 w-5" />
-              Confirm and subscribe
+              <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
+              <span>Confirm and subscribe</span>
             </>
           )}
         </Button>

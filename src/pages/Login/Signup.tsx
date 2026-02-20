@@ -20,9 +20,12 @@ export function LoginSignupPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const modeParam = searchParams.get('mode')
   const invitationParam = searchParams.get('invitation') ?? searchParams.get('invite')
-  const [mode, setMode] = useState<'login' | 'signup'>(
-    modeParam === 'signup' ? 'signup' : 'login'
-  )
+  const [mode, setMode] = useState<'login' | 'signup'>(() => {
+    if (modeParam === 'signup') return 'signup'
+    if (modeParam === 'login') return 'login'
+    if (invitationParam) return 'signup'
+    return 'login'
+  })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
