@@ -29,11 +29,15 @@ export function LoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await login({ email: data.email, password: data.password })
-      toast.success('Welcome back!')
+      await toast.promise(login({ email: data.email, password: data.password }), {
+        loading: 'Signing in...',
+        success: 'Welcome back!',
+        error: (err) =>
+          err instanceof Error ? err.message : 'Something went wrong. Please try again.',
+      })
       navigate('/dashboard', { replace: true })
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+    } catch {
+      /* Error handled by toast.promise */
     }
   }
 
@@ -48,14 +52,21 @@ export function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-4"
+              aria-label="Sign in form"
+              noValidate
+            >
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="you@example.com"
+                  autoComplete="email"
                   aria-label="Email address"
+                  aria-required
                   aria-invalid={!!errors.email}
                   aria-describedby={errors.email ? 'email-error' : undefined}
                   {...register('email')}
@@ -72,7 +83,10 @@ export function LoginPage() {
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
                   aria-label="Password"
+                  aria-required
                   aria-invalid={!!errors.password}
                   aria-describedby={errors.password ? 'password-error' : undefined}
                   {...register('password')}
