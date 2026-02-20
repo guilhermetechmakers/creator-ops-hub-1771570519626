@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Bell, Mail, Webhook, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -53,6 +53,10 @@ export function NotificationsPreferences({
   onRemoveWebhook,
 }: NotificationsPreferencesProps) {
   const [prefs, setPrefs] = useState(preferences)
+
+  useEffect(() => {
+    setPrefs(preferences)
+  }, [preferences.emailDigest, preferences.inAppNotifications, preferences.marketingEmails])
   const [webhookUrl, setWebhookUrl] = useState('')
   const [showWebhookForm, setShowWebhookForm] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -287,7 +291,7 @@ export function NotificationsPreferences({
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleRemoveWebhook}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="bg-destructive text-white hover:bg-destructive/90"
           >
             Remove
           </AlertDialogAction>

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { User, Camera, Loader2 } from 'lucide-react'
+import { PasswordStrengthIndicator, getPasswordStrength } from '@/components/login-signup/password-strength-indicator'
 import { toast } from 'sonner'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -54,6 +55,10 @@ export function AccountProfile({
     resolver: zodResolver(accountSchema),
     defaultValues: { name, email },
   })
+
+  useEffect(() => {
+    accountForm.reset({ name, email })
+  }, [name, email, accountForm])
 
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -241,6 +246,9 @@ export function AccountProfile({
                   placeholder="••••••••"
                   {...passwordForm.register('newPassword')}
                   className="focus:border-primary/50"
+                />
+                <PasswordStrengthIndicator
+                  strength={getPasswordStrength(passwordForm.watch('newPassword') ?? '')}
                 />
                 {passwordForm.formState.errors.newPassword && (
                   <p className="text-micro text-destructive">

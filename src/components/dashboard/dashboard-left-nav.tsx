@@ -80,7 +80,8 @@ export function DashboardLeftNav({
         {navItems.map(({ to, icon: Icon, label }) => {
           const isActive =
             location.pathname === to ||
-            (to !== '/dashboard' && location.pathname.startsWith(to + '/'))
+            (to !== '/dashboard' && location.pathname.startsWith(to + '/')) ||
+            (to === '/dashboard/settings' && location.pathname.includes('settings'))
           return (
             <Link
               key={to}

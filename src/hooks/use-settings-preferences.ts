@@ -9,6 +9,12 @@ import type {
   ApiKey,
 } from '@/types/settings-preferences'
 
+export interface NotificationPreferences {
+  emailDigest: boolean
+  inAppNotifications: boolean
+  marketingEmails: boolean
+}
+
 export interface AccountFormData {
   name: string
   email: string
@@ -36,7 +42,13 @@ export function useSettingsPreferences() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [sessions, setSessions] = useState<Session[]>([])
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>({
+    emailDigest: true,
+    inAppNotifications: true,
+    marketingEmails: false,
+  })
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [twoFactorEnabled] = useState(false)
   const [hasPremiumAccess, setHasPremiumAccess] = useState(false)
 
@@ -54,6 +66,28 @@ export function useSettingsPreferences() {
       }
     } catch {
       // Silent fail
+    }
+  }, [])
+
+  const fetchNotificationPrefs = useCallback(async () => {
+    if (!SUPABASE_URL) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('email_comments, in_app_comments')
+        .eq('user_id', user.id)
+        .single()
+      if (data) {
+        setNotificationPrefs({
+          emailDigest: data.email_comments ?? true,
+          inAppNotifications: data.in_app_comments ?? true,
+          marketingEmails: false,
+        })
+      }
+    } catch {
+      // Use defaults
     }
   }, [])
 
@@ -78,9 +112,13 @@ export function useSettingsPreferences() {
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true)
+    setHasError(false)
     try {
-      await fetchProfile()
-      const planData = await fetchPlan()
+      const [_, planData] = await Promise.all([
+        fetchProfile(),
+        fetchPlan(),
+      ])
+      await fetchNotificationPrefs()
       setPlan(planData)
       setMembers([])
       setSessions([
@@ -94,11 +132,12 @@ export function useSettingsPreferences() {
       ])
       setApiKeys([])
     } catch {
+      setHasError(true)
       setPlan(DEFAULT_PLAN)
     } finally {
       setIsLoading(false)
     }
-  }, [fetchProfile, fetchPlan])
+  }, [fetchProfile, fetchPlan, fetchNotificationPrefs])
 
   useEffect(() => {
     fetchAll()
@@ -119,6 +158,71 @@ export function useSettingsPreferences() {
     if (error) throw error
   }, [])
 
+  const onInvite = useCallback(async (_email: string, _role: string) => {
+    // Team invite requires Edge Function / workspace setup
+    throw new Error('Team invitations require workspace setup. Contact your administrator.')
+  }, [])
+
+  const onRemoveMember = useCallback(async (_id: string) => {
+    throw new Error('Member removal requires workspace setup. Contact your administrator.')
+  }, [])
+
+  const onUpdateRole = useCallback(async (_id: string, _role: string) => {
+    throw new Error('Role updates require workspace setup. Contact your administrator.')
+  }, [])
+
+  const onToggle2FA = useCallback(async (_enabled: boolean) => {
+    // 2FA setup requires Supabase MFA flow
+    throw new Error('Two-factor authentication setup is coming soon.')
+  }, [])
+
+  const onRevokeSession = useCallback(async (id: string) => {
+    // Session revocation would use Supabase auth admin or Edge Function
+    throw new Error(`Session revocation not yet implemented. Session ID: ${id}`)
+  }, [])
+
+  const onCreateApiKey = useCallback(async (_name: string) => {
+    throw new Error('API key creation requires backend setup. Contact your administrator.')
+  }, [])
+
+  const onRevokeApiKey = useCallback(async (_id: string) => {
+    throw new Error('API key revocation requires backend setup. Contact your administrator.')
+  }, [])
+
+  const onUpdatePreferences = useCallback(async (prefs: NotificationPreferences) => {
+    if (!SUPABASE_URL) throw new Error('Not configured')
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+    const { error } = await supabase.from('user_preferences').upsert(
+      {
+        user_id: user.id,
+        email_comments: prefs.emailDigest,
+        email_mentions: prefs.emailDigest,
+        in_app_comments: prefs.inAppNotifications,
+        in_app_mentions: prefs.inAppNotifications,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id' }
+    )
+    if (error) throw error
+  }, [])
+
+  const onAddWebhook = useCallback(async (_url: string) => {
+    throw new Error('Webhook endpoints require backend setup. Contact your administrator.')
+  }, [])
+
+  const onRemoveWebhook = useCallback(async (_id: string) => {
+    throw new Error('Webhook removal requires backend setup. Contact your administrator.')
+  }, [])
+
+  const onUpdateDataRetention = useCallback(async (_days: string) => {
+    throw new Error('Data retention updates require backend setup. Contact your administrator.')
+  }, [])
+
+  const onUpdateSnapshotRetention = useCallback(async (_days: string) => {
+    throw new Error('Snapshot retention updates require backend setup. Contact your administrator.')
+  }, [])
+
   return {
     profile,
     plan,
@@ -126,10 +230,24 @@ export function useSettingsPreferences() {
     sessions,
     apiKeys,
     isLoading,
+    hasError,
     twoFactorEnabled,
     hasPremiumAccess,
     refetch: fetchAll,
     onSaveAccount,
     onChangePassword,
+    onInvite,
+    onRemoveMember,
+    onUpdateRole,
+    onToggle2FA,
+    onRevokeSession,
+    onCreateApiKey,
+    onRevokeApiKey,
+    onUpdatePreferences,
+    onAddWebhook,
+    onRemoveWebhook,
+    onUpdateDataRetention,
+    onUpdateSnapshotRetention,
+    notificationPrefs,
   }
 }
