@@ -169,7 +169,7 @@ export function NotificationsDropdown() {
         </div>
         <div className="p-2 border-t">
           <Button variant="ghost" size="sm" className="w-full" asChild>
-            <Link to="/dashboard/settings" className="flex items-center justify-center gap-2">
+            <Link to="/dashboard/settings-&-preferences" className="flex items-center justify-center gap-2">
               <Settings className="h-4 w-4" />
               Notification settings
             </Link>

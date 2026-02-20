@@ -78,11 +78,12 @@ export function DashboardPage() {
                   ? 'bg-success/10 text-success'
                   : 'bg-muted text-muted-foreground'
               )}
-              title={`${cacheMeta.cacheStatus} · ${cacheMeta.responseTimeMs}ms`}
+              title={`${cacheMeta.cacheStatus} · ${cacheMeta.responseTimeMs}ms response`}
               aria-label={`Data ${cacheMeta.cacheStatus === 'HIT' ? 'cached' : 'fresh'}, loaded in ${cacheMeta.responseTimeMs}ms`}
             >
               <Zap className="h-3.5 w-3.5" />
               {cacheMeta.cacheStatus === 'HIT' ? 'Cached' : 'Fresh'}
+              <span className="opacity-80">· {cacheMeta.responseTimeMs}ms</span>
             </span>
           )}
           <Button

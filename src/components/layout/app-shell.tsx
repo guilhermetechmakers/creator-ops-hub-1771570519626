@@ -26,6 +26,7 @@ export function AppShell() {
       <DashboardLeftNav
         collapsed={sidebarCollapsed}
         onCollapseToggle={handleSidebarToggle}
+        onMobileMenuOpen={() => setMobileOpen(false)}
       />
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>

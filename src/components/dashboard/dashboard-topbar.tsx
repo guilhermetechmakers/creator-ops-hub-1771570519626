@@ -76,7 +76,7 @@ export function DashboardTopbar({ onMobileMenuOpen, className }: DashboardTopbar
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link
-                  to="/dashboard/settings"
+                  to="/dashboard/settings-&-preferences"
                   className="flex items-center gap-2 cursor-pointer"
                 >
                   <Settings className="h-4 w-4" />
