@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
-
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 
 export function OAuthGoogleCallbackPage() {
@@ -14,49 +13,62 @@ export function OAuthGoogleCallbackPage() {
   useEffect(() => {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
+    const errorParam = searchParams.get('error')
 
-    if (!code || !state) {
+    if (errorParam) {
       setStatus('error')
-      toast.error('Invalid OAuth callback - missing code or state')
-      navigate('/dashboard/integrations', { replace: true })
+      toast.error(searchParams.get('error_description') ?? 'OAuth failed')
+      navigate('/login-/-signup', { replace: true })
+      return
+    }
+
+    if (!code) {
+      setStatus('error')
+      toast.error('Invalid OAuth callback - missing code')
+      navigate('/login-/-signup', { replace: true })
       return
     }
 
     if (!SUPABASE_URL) {
       setStatus('error')
       toast.error('OAuth is not configured')
-      navigate('/dashboard/integrations', { replace: true })
+      navigate('/login-/-signup', { replace: true })
       return
     }
 
     const run = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) {
-          toast.error('Please sign in to complete the connection')
-          navigate('/login', { replace: true })
-          return
+
+        if (session?.access_token) {
+          if (state) {
+            const { data, error } = await supabase.functions.invoke('google-oauth-callback', {
+              body: { code, state },
+              headers: { Authorization: `Bearer ${session.access_token}` },
+            })
+            if (error) throw new Error(error.message)
+            setStatus('success')
+            toast.success('Google connected successfully')
+            navigate(data?.redirect ?? '/dashboard/integrations', { replace: true })
+            return
+          }
         }
 
-        const { data, error } = await supabase.functions.invoke('google-oauth-callback', {
-          body: { code, state },
-          headers: { Authorization: `Bearer ${session.access_token}` },
-        })
-
-        if (error) {
-          setStatus('error')
-          toast.error(error.message ?? 'Failed to connect Google')
-          navigate('/dashboard/integrations', { replace: true })
-          return
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (error) throw new Error(error.message)
+        if (data.session) {
+          localStorage.setItem('access_token', data.session.access_token)
+          if (data.session.refresh_token) {
+            localStorage.setItem('refresh_token', data.session.refresh_token)
+          }
         }
-
         setStatus('success')
-        toast.success('Google connected successfully')
-        navigate(data?.redirect ?? '/dashboard/integrations', { replace: true })
+        toast.success('Signed in with Google')
+        navigate('/dashboard', { replace: true })
       } catch (err) {
         setStatus('error')
         toast.error((err as Error).message ?? 'Connection failed')
-        navigate('/dashboard/integrations', { replace: true })
+        navigate('/login-/-signup', { replace: true })
       }
     }
 

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { Mail, Calendar } from 'lucide-react'
@@ -69,10 +70,16 @@ export function ContinueWithGoogle({
             : 'Continue with Google (Gmail + Calendar)'
         }
       >
-        <GoogleIcon className="h-5 w-5 mr-2" aria-hidden />
-        {showConsent
-          ? 'Confirm & continue with Google'
-          : 'Continue with Google (Gmail + Calendar)'}
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 mr-2 animate-spin" aria-hidden />
+        ) : (
+          <GoogleIcon className="h-5 w-5 mr-2" aria-hidden />
+        )}
+        {isLoading
+          ? 'Connecting...'
+          : showConsent
+            ? 'Confirm & continue with Google'
+            : 'Continue with Google (Gmail + Calendar)'}
       </Button>
     </div>
   )

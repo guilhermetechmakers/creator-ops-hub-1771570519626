@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -172,13 +173,14 @@ export function EmailPasswordForm({
         className="w-full h-11 font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
         disabled={isSubmitting}
       >
-        {isSubmitting
-          ? mode === 'login'
-            ? 'Signing in...'
-            : 'Creating account...'
-          : mode === 'login'
-            ? 'Sign in'
-            : 'Create account'}
+        {isSubmitting ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            {mode === 'login' ? 'Signing in...' : 'Creating account...'}
+          </>
+        ) : (
+          mode === 'login' ? 'Sign in' : 'Create account'
+        )}
       </Button>
     </form>
   )

@@ -118,6 +118,10 @@ export default {
           '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-4px)' },
           '20%, 40%, 60%, 80%': { transform: 'translateX(4px)' },
         },
+        'float-subtle': {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.3s ease-out',
@@ -130,6 +134,7 @@ export default {
         'animate-in': 'fade-in 0.2s ease-out, zoom-in-95 0.2s ease-out',
         'animate-out': 'fade-in 0.15s ease-out reverse, zoom-out-95 0.15s ease-out',
         shake: 'shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97)',
+        'float-subtle': 'float-subtle 4s ease-in-out infinite',
       },
       transitionDuration: {
         '200': '200ms',
