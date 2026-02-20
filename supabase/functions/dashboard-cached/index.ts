@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cache-bypass',
 }
 
-/** TTL in seconds for dashboard cache */
+/** TTL in seconds for dashboard cache (in-memory) */
 const DASHBOARD_CACHE_TTL = 60
 /** CDN cache max-age (seconds) - allows CDN to cache response */
 const CDN_CACHE_MAX_AGE = 60
@@ -337,16 +337,23 @@ serve(async (req) => {
     const responseTime = Math.round(performance.now() - startTime)
     const cacheControl = `public, max-age=${CDN_CACHE_MAX_AGE}, stale-while-revalidate=${CDN_STALE_WHILE_REVALIDATE}`
 
-    return new Response(JSON.stringify(payload), {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/json',
-        'Cache-Control': cacheControl,
-        'X-Cache-Status': cacheStatus,
-        'X-Request-Id': requestId,
-        'X-Response-Time-Ms': String(responseTime),
-      },
-    })
+    const obsHeaders: Record<string, string> = {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      'Cache-Control': cacheControl,
+      'X-Cache-Status': cacheStatus,
+      'X-Request-Id': requestId,
+      'X-Response-Time-Ms': String(responseTime),
+    }
+    if (cacheStatus === 'HIT' && payload?.cachedAt) {
+      const cached = memoryCache.get(cacheKey)
+      if (cached) {
+        obsHeaders['X-Cache-Hit-At'] = payload.cachedAt
+        obsHeaders['X-Cache-Expires-At'] = new Date(cached.expiresAt).toISOString()
+      }
+    }
+
+    return new Response(JSON.stringify(payload), { headers: obsHeaders })
   } catch (err) {
     const responseTime = Math.round(performance.now() - startTime)
     return new Response(

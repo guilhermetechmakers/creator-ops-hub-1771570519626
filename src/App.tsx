@@ -48,6 +48,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/verify-email" element={<EmailVerificationPage />} />
+          <Route path="/email-verification" element={<Navigate to="/verify-email" replace />} />
           <Route path="/oauth/google/callback" element={<OAuthGoogleCallbackPage />} />
           <Route path="/oauth/instagram/callback" element={<OAuthInstagramCallbackPage />} />
           <Route path="/dashboard" element={<AppShell />}>

@@ -6,8 +6,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-cache-bypass',
 }
 
+/** Search result cache TTL (seconds) - matches CACHE_TTL.SEARCH */
 const SEARCH_CACHE_TTL = 120
-const memoryCache = new Map<string, { data: SearchResult[]; expiresAt: number }>()
+const memoryCache = new Map<string, { data: SearchResult[]; expiresAt: number; cachedAt: string }>()
 
 interface SearchParams {
   query?: string
@@ -26,6 +27,9 @@ interface SearchResult {
 }
 
 serve(async (req) => {
+  const startTime = performance.now()
+  const requestId = crypto.randomUUID()
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -64,12 +68,16 @@ serve(async (req) => {
     if (!cacheBypass) {
       const cached = memoryCache.get(cacheKey)
       if (cached && cached.expiresAt > Date.now()) {
+        const responseTime = Math.round(performance.now() - startTime)
         return new Response(JSON.stringify({ results: cached.data }), {
           headers: {
             ...corsHeaders,
             'Content-Type': 'application/json',
             'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
             'X-Cache-Status': 'HIT',
+            'X-Request-Id': requestId,
+            'X-Response-Time-Ms': String(responseTime),
+            ...(cached.cachedAt ? { 'X-Cache-Hit-At': cached.cachedAt, 'X-Cache-Expires-At': new Date(cached.expiresAt).toISOString() } : {}),
           },
         })
       }
@@ -167,11 +175,11 @@ serve(async (req) => {
       })
       .slice(0, limit)
 
-    memoryCache.set(cacheKey, {
-      data: sorted,
-      expiresAt: Date.now() + SEARCH_CACHE_TTL * 1000,
-    })
+    const cachedAt = new Date().toISOString()
+    const expiresAt = Date.now() + SEARCH_CACHE_TTL * 1000
+    memoryCache.set(cacheKey, { data: sorted, expiresAt, cachedAt })
 
+    const responseTime = Math.round(performance.now() - startTime)
     return new Response(
       JSON.stringify({ results: sorted }),
       {
@@ -180,13 +188,25 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
           'X-Cache-Status': 'MISS',
+          'X-Request-Id': requestId,
+          'X-Response-Time-Ms': String(responseTime),
+          'X-Cache-Expires-At': new Date(expiresAt).toISOString(),
         },
       }
     )
   } catch (err) {
+    const responseTime = Math.round(performance.now() - startTime)
     return new Response(
       JSON.stringify({ error: (err as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+          'X-Request-Id': requestId,
+          'X-Response-Time-Ms': String(responseTime),
+        },
+      }
     )
   }
 })

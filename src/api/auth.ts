@@ -111,7 +111,10 @@ export async function signInWithGoogle(scopes?: string[]): Promise<AuthResponse>
   }
 }
 
-export function logout(): void {
+export async function logout(): Promise<void> {
+  if (SUPABASE_CONFIGURED) {
+    await supabase.auth.signOut()
+  }
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
 }

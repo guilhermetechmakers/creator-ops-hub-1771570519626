@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Menu, User, LogOut, Settings } from 'lucide-react'
+import { logout } from '@/api/auth'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { GlobalSearch } from '@/components/dashboard/global-search'
@@ -20,6 +21,13 @@ interface DashboardTopbarProps {
 }
 
 export function DashboardTopbar({ onMobileMenuOpen, className }: DashboardTopbarProps) {
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    await logout()
+    navigate('/login-/-signup', { replace: true })
+  }
+
   return (
     <header
       className={cn(
@@ -77,7 +85,7 @@ export function DashboardTopbar({ onMobileMenuOpen, className }: DashboardTopbar
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" className="cursor-pointer">
+            <DropdownMenuItem variant="destructive" className="cursor-pointer" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
               Sign out
             </DropdownMenuItem>

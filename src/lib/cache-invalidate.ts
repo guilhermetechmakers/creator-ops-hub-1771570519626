@@ -10,6 +10,18 @@ export function invalidateDashboardCache(queryClient: QueryClient): void {
 }
 
 /**
+ * Invalidates all caches that depend on content/research/files changes.
+ * Use after content_editor, file_library, research, or publishing_queue mutations.
+ */
+export function invalidateDashboardRelatedCaches(queryClient: QueryClient): void {
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dashboardCached })
+  queryClient.invalidateQueries({ predicate: (q) => (q.queryKey[0] as string) === 'file-library' })
+  queryClient.invalidateQueries({ predicate: (q) => (q.queryKey[0] as string) === 'content-studio' })
+  queryClient.invalidateQueries({ queryKey: QUERY_KEYS.research })
+  queryClient.invalidateQueries({ predicate: (q) => (q.queryKey[0] as string) === 'search' })
+}
+
+/**
  * Invalidates file library cache.
  */
 export function invalidateFileLibraryCache(

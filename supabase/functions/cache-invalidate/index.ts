@@ -54,25 +54,30 @@ serve(async (req) => {
       ? (await req.json().catch(() => ({}))) as Record<string, unknown>
       : {}
 
+    const validScopes = ['dashboard', 'file-library', 'content-studio', 'research', 'search'] as const
     const scope = (body.scope as string) ?? 'dashboard'
     const userId = (body.user_id as string) ?? user.id
 
-    if (scope !== 'dashboard') {
+    if (!validScopes.includes(scope as (typeof validScopes)[number])) {
       return new Response(
-        JSON.stringify({ error: 'Unknown scope', valid_scopes: ['dashboard'] }),
+        JSON.stringify({ error: 'Unknown scope', valid_scopes: validScopes }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // In-memory cache lives in dashboard-cached function - we cannot invalidate cross-instance.
-    // Return success; client should use x-cache-bypass: true on next dashboard-cached call
-    // when it knows data changed. For DB triggers, log invalidation event for observability.
+    // In-memory cache lives in dashboard-cached and global-search - we cannot invalidate cross-instance.
+    // Return success; client should use x-cache-bypass: true on next request when it knows data changed.
+    // For DB triggers, log invalidation event for observability.
+    const message = scope === 'dashboard'
+      ? 'Invalidation acknowledged. Use x-cache-bypass on next dashboard-cached request for fresh data.'
+      : `Invalidation acknowledged for ${scope}. Client should invalidate React Query cache and refetch.`
+
     return new Response(
       JSON.stringify({
         success: true,
         scope,
         user_id: userId,
-        message: 'Invalidation acknowledged. Use x-cache-bypass on next dashboard-cached request for fresh data.',
+        message,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
