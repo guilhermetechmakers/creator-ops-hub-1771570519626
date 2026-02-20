@@ -1,8 +1,36 @@
-import { GitBranch, CheckCircle } from 'lucide-react'
+import { GitBranch, CheckCircle, FileText } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { ChangelogEntry } from '@/types/help-and-about'
+
+function ChangelogEmptyState() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        'flex flex-col items-center justify-center gap-6 rounded-xl',
+        'border-2 border-dashed border-muted bg-muted/20 p-8 text-center',
+        'animate-fade-in min-h-[200px] sm:min-h-[240px]'
+      )}
+    >
+      <div className="rounded-2xl bg-muted/50 p-6 ring-1 ring-muted/80">
+        <FileText className="h-12 w-12 text-muted-foreground/70" aria-hidden />
+      </div>
+      <div className="space-y-2 max-w-[280px]">
+        <h3 className="text-base font-semibold text-foreground">
+          No release notes yet
+        </h3>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Changelog entries and release notes will appear here once they are
+          published. Check back soon for updates on new features and
+          improvements.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 const CHANGELOG_ENTRIES: ChangelogEntry[] = [
   {
@@ -66,7 +94,14 @@ const STATUS_OPTIONS: Record<string, { label: string; variant: 'default' | 'seco
   planned: { label: 'Planned', variant: 'outline' },
 }
 
-export function Changelog() {
+export interface ChangelogProps {
+  /** Override default entries. When empty, shows empty state. */
+  entries?: ChangelogEntry[]
+}
+
+export function Changelog({ entries = CHANGELOG_ENTRIES }: ChangelogProps) {
+  const isEmpty = entries.length === 0
+
   return (
     <Card className="animate-fade-in border-primary/10 bg-gradient-to-br from-card to-primary/5 transition-all duration-300 hover:shadow-card-hover hover:border-primary/20">
       <CardHeader>
@@ -81,8 +116,11 @@ export function Changelog() {
         </p>
       </CardHeader>
       <CardContent>
+        {isEmpty ? (
+          <ChangelogEmptyState />
+        ) : (
         <div className="space-y-0">
-          {CHANGELOG_ENTRIES.map((entry, i) => (
+          {entries.map((entry, i) => (
             <div
               key={entry.id}
               className={cn(
@@ -121,6 +159,7 @@ export function Changelog() {
             </div>
           ))}
         </div>
+        )}
       </CardContent>
     </Card>
   )
