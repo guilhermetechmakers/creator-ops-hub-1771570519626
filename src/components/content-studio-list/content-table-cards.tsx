@@ -78,6 +78,8 @@ export interface ContentTableCardsProps {
   hasActiveFilters?: boolean
   /** Callback for clearing filters when empty state is shown with active filters */
   onClearFilters?: () => void
+  /** Optional retry callback for QuickPreview error state (e.g. refetch content list) */
+  onPreviewRetry?: () => void
 }
 
 export function ContentTableCards({
@@ -90,6 +92,7 @@ export function ContentTableCards({
   emptyMessage = 'No content items yet',
   hasActiveFilters = false,
   onClearFilters,
+  onPreviewRetry,
 }: ContentTableCardsProps) {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
@@ -479,12 +482,13 @@ export function ContentTableCards({
       </Card>
       </section>
 
-      {previewItem && (
+      {(previewOpen || previewItem) && (
         <QuickPreview
           item={previewItem}
           open={previewOpen}
           onOpenChange={setPreviewOpen}
           searchQuery={searchQuery}
+          onRetry={onPreviewRetry}
         />
       )}
     </>

@@ -295,6 +295,7 @@ export function ContentStudioListPage() {
                     })
                 : undefined
             }
+            onPreviewRetry={refetch}
           />
 
           <ContentPagination
