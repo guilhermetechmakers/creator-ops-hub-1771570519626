@@ -56,9 +56,9 @@ export default {
         '2xl': 'var(--radius-2xl)',
       },
       boxShadow: {
-        card: '0 2px 8px rgba(0, 0, 0, 0.1)',
-        'card-hover': '0 4px 12px rgba(0, 0, 0, 0.15)',
-        'elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        elevated: 'var(--shadow-elevated)',
       },
       keyframes: {
         'fade-in': {

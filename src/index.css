@@ -29,6 +29,10 @@
     --radius-lg: 0.75rem;
     --radius-xl: 1rem;
     --radius-2xl: 1.25rem;
+    /* Shadow design tokens */
+    --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-card-hover: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-elevated: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
     /* Gradient design tokens - use CSS variables for consistent theming */
     --gradient-primary-accent: linear-gradient(to right, rgb(var(--primary) / 0.1), rgb(var(--accent) / 0.05));
     --gradient-accent-primary: linear-gradient(to right, rgb(var(--accent) / 0.1), rgb(var(--primary) / 0.05));
