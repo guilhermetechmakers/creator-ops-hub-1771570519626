@@ -1,17 +1,19 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PlanSelector } from '@/components/checkout-payment/plan-selector'
 import { PaymentForm } from '@/components/checkout-payment/payment-form'
 import { ReviewConfirm } from '@/components/checkout-payment/review-confirm'
 import { InvoiceHistoryLink } from '@/components/checkout-payment/invoice-history-link'
-import { useCheckoutPayment } from '@/hooks/use-checkout-payment'
+import { useStripeCheckout } from '@/hooks/use-stripe-checkout'
+import { createStripeCheckout } from '@/lib/stripe-ops'
 import { toast } from 'sonner'
 import type { PlanTier } from '@/types/checkout'
 
 export function PaymentPage() {
-  const { isLoading, error } = useCheckoutPayment()
+  const [searchParams] = useSearchParams()
+  const { currentPlanId, tiers, transactions, isLoading, error, refetch } = useStripeCheckout()
 
   useEffect(() => {
     document.title = 'Checkout & Payment | Creator Ops Hub'
@@ -19,11 +21,18 @@ export function PaymentPage() {
       document.title = 'Creator Ops Hub'
     }
   }, [])
+
+  useEffect(() => {
+    const checkoutSuccess = searchParams.get('checkout')
+    if (checkoutSuccess === 'success') {
+      toast.success('Subscription activated successfully')
+      refetch()
+    }
+  }, [searchParams, refetch])
+
   const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null)
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const currentPlanId = 'free'
 
   const handleSelectPlan = (tier: PlanTier) => {
     setSelectedPlan(tier)
@@ -35,13 +44,22 @@ export function PaymentPage() {
   }
 
   const handleSubmit = async () => {
+    if (!selectedPlan || selectedPlan.id === 'free') {
+      toast.error('Please select a plan to upgrade')
+      return
+    }
     setIsSubmitting(true)
     try {
-      await new Promise((r) => setTimeout(r, 1500))
-      toast.success('Subscription updated successfully')
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    } finally {
+      const siteUrl = window.location.origin
+      const { url } = await createStripeCheckout(
+        selectedPlan.id,
+        billingCycle,
+        `${siteUrl}/dashboard/settings?checkout=success`,
+        `${siteUrl}/dashboard/checkout-/-payment?canceled=1`
+      )
+      window.location.href = url
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -114,6 +132,7 @@ export function PaymentPage() {
       <section id="plans" className="scroll-mt-8">
       <PlanSelector
         currentPlanId={currentPlanId}
+        tiers={tiers}
         billingCycle={billingCycle}
         onSelectPlan={handleSelectPlan}
         isLoading={isLoading}
@@ -135,7 +154,10 @@ export function PaymentPage() {
 
       {/* Invoice history */}
       <div className="animate-slide-up">
-        <InvoiceHistoryLink isLoading={isLoading} />
+        <InvoiceHistoryLink
+          transactions={transactions}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

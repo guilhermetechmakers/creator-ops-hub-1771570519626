@@ -12,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { PremiumGate } from '@/components/premium-gate'
 import { useGoogleIntegration } from '@/hooks/use-google-integration'
 
 const otherIntegrations = [
@@ -21,6 +22,14 @@ const otherIntegrations = [
 ]
 
 export function IntegrationsPage() {
+  return (
+    <PremiumGate featureName="Integrations">
+      <IntegrationsPageContent />
+    </PremiumGate>
+  )
+}
+
+function IntegrationsPageContent() {
   const { connected, loading, connect, revoke } = useGoogleIntegration()
   const [revokeOpen, setRevokeOpen] = useState(false)
 

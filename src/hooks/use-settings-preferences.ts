@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { getStripeSubscription } from '@/lib/stripe-ops'
 import type {
   UserProfile,
   WorkspacePlan,
@@ -21,6 +22,14 @@ export interface PasswordFormData {
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? ''
 
+const DEFAULT_PLAN: WorkspacePlan = {
+  id: 'free',
+  name: 'Free',
+  seats: 3,
+  used_seats: 1,
+  usage_percent: 33,
+}
+
 export function useSettingsPreferences() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [plan, setPlan] = useState<WorkspacePlan | null>(null)
@@ -29,6 +38,7 @@ export function useSettingsPreferences() {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [twoFactorEnabled] = useState(false)
+  const [hasPremiumAccess, setHasPremiumAccess] = useState(false)
 
   const fetchProfile = useCallback(async () => {
     if (!SUPABASE_URL) return
@@ -47,18 +57,31 @@ export function useSettingsPreferences() {
     }
   }, [])
 
+  const fetchPlan = useCallback(async () => {
+    if (!SUPABASE_URL) return DEFAULT_PLAN
+    try {
+      const result = await getStripeSubscription()
+      setHasPremiumAccess(result.hasPremiumAccess)
+      return {
+        id: result.plan.id,
+        name: result.plan.name,
+        seats: result.plan.seats,
+        used_seats: result.plan.used_seats,
+        usage_percent: result.plan.usage_percent,
+        current_period_end: result.plan.current_period_end,
+        cancel_at_period_end: result.plan.cancel_at_period_end,
+      }
+    } catch {
+      return DEFAULT_PLAN
+    }
+  }, [])
+
   const fetchAll = useCallback(async () => {
     setIsLoading(true)
     try {
       await fetchProfile()
-      // Mock/placeholder data - replace with actual Supabase queries when tables exist
-      setPlan({
-        id: '1',
-        name: 'Free',
-        seats: 3,
-        used_seats: 1,
-        usage_percent: 33,
-      })
+      const planData = await fetchPlan()
+      setPlan(planData)
       setMembers([])
       setSessions([
         {
@@ -71,11 +94,11 @@ export function useSettingsPreferences() {
       ])
       setApiKeys([])
     } catch {
-      // Silent fail
+      setPlan(DEFAULT_PLAN)
     } finally {
       setIsLoading(false)
     }
-  }, [fetchProfile])
+  }, [fetchProfile, fetchPlan])
 
   useEffect(() => {
     fetchAll()
@@ -104,6 +127,7 @@ export function useSettingsPreferences() {
     apiKeys,
     isLoading,
     twoFactorEnabled,
+    hasPremiumAccess,
     refetch: fetchAll,
     onSaveAccount,
     onChangePassword,

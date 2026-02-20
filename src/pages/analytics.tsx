@@ -11,11 +11,20 @@ import { AnalyticsFiltersComponent } from '@/components/analytics/analytics-filt
 import { AnalyticsOverviewCards } from '@/components/analytics/analytics-overview-cards'
 import { AnalyticsCharts } from '@/components/analytics/analytics-charts'
 import { AnalyticsTopPosts } from '@/components/analytics/analytics-top-posts'
+import { PremiumGate } from '@/components/premium-gate'
 import { useAnalytics } from '@/hooks/use-analytics'
 import { exportAnalyticsToCsv, exportAnalyticsToPdf } from '@/lib/analytics-export'
 import { toast } from 'sonner'
 
 export function AnalyticsPage() {
+  return (
+    <PremiumGate featureName="Analytics">
+      <AnalyticsPageContent />
+    </PremiumGate>
+  )
+}
+
+function AnalyticsPageContent() {
   const { data, filters, updateFilters, isLoading, error, refetch } = useAnalytics()
 
   const handleExportCsv = useCallback(() => {

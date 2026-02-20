@@ -1,10 +1,13 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CreditCard, Users, BarChart3, ChevronRight } from 'lucide-react'
+import { CreditCard, Users, BarChart3, ChevronRight, ExternalLink, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { createStripeCustomerPortal } from '@/lib/stripe-ops'
+import { toast } from 'sonner'
 import type { WorkspacePlan } from '@/types/settings-preferences'
 
 export interface WorkspaceBillingProps {
@@ -14,7 +17,7 @@ export interface WorkspaceBillingProps {
 
 export function WorkspaceBilling({
   plan = {
-    id: '1',
+    id: 'free',
     name: 'Free',
     seats: 3,
     used_seats: 1,
@@ -22,6 +25,22 @@ export function WorkspaceBilling({
   },
   isLoading = false,
 }: WorkspaceBillingProps) {
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false)
+
+  const handleManageBilling = async () => {
+    setIsOpeningPortal(true)
+    try {
+      const { url } = await createStripeCustomerPortal(
+        `${window.location.origin}/dashboard/settings`
+      )
+      window.location.href = url
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to open billing portal')
+    } finally {
+      setIsOpeningPortal(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <Card className="overflow-hidden transition-all duration-300">
@@ -38,6 +57,7 @@ export function WorkspaceBilling({
   }
 
   const usagePercent = plan.usage_percent ?? (plan.seats ? Math.round((plan.used_seats / plan.seats) * 100) : 0)
+  const hasPaidPlan = ['pro', 'team', 'enterprise'].includes(plan.id)
 
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-card-hover bg-gradient-to-br from-primary/5 to-transparent border-primary/10">
@@ -59,19 +79,45 @@ export function WorkspaceBilling({
               <Badge variant="secondary" className="font-semibold">
                 {plan.name}
               </Badge>
+              {plan.cancel_at_period_end && (
+                <Badge variant="outline" className="text-warning">
+                  Cancels at period end
+                </Badge>
+              )}
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="transition-transform duration-200 hover:scale-[1.02]"
-          >
-            <Link to="/dashboard/checkout-/-payment">
-              Upgrade
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            {hasPaidPlan ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleManageBilling}
+                disabled={isOpeningPortal}
+                className="transition-transform duration-200 hover:scale-[1.02]"
+              >
+                {isOpeningPortal ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    Manage billing
+                    <ExternalLink className="h-4 w-4 ml-1" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="transition-transform duration-200 hover:scale-[1.02]"
+              >
+                <Link to="/dashboard/checkout-/-payment">
+                  Upgrade
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Seats */}

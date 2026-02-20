@@ -21,6 +21,8 @@ export interface WorkspacePlan {
   seats: number
   used_seats: number
   usage_percent?: number
+  current_period_end?: string
+  cancel_at_period_end?: boolean
 }
 
 export interface TeamMember {
