@@ -76,11 +76,14 @@ function AnalyticsPageContent() {
       return
     }
     setIsSyncingInstagram(true)
+    const toastId = toast.loading('Syncing Instagram engagement...')
     try {
       await fetchInstagramEngagement()
+      toast.dismiss(toastId)
       toast.success('Instagram engagement data synced')
       refetch()
     } catch (err) {
+      toast.dismiss(toastId)
       toast.error((err as Error).message ?? 'Failed to sync Instagram')
     } finally {
       setIsSyncingInstagram(false)
@@ -176,7 +179,15 @@ function AnalyticsPageContent() {
       </div>
 
       <AnalyticsOverviewCards
-        overview={data?.overview ?? null}
+        overview={
+          data?.overview &&
+          (data.overview.impressions > 0 ||
+            data.overview.engagement > 0 ||
+            data.overview.topPostsCount > 0 ||
+            data.overview.followerGrowth !== 0)
+            ? data.overview
+            : null
+        }
         isLoading={isLoading}
       />
 
