@@ -256,6 +256,7 @@ export function FileLibraryPage() {
           <AssetGridList
             items={items}
             isLoading={loading}
+            isActionLoading={isDeleting || isTagging || isMoving || isExporting}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
             searchQuery={filters.search ?? ''}

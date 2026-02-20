@@ -8,6 +8,8 @@ import {
   FolderSearch,
   ChevronUp,
   ChevronDown,
+  Loader2,
+  Upload,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -50,6 +52,8 @@ function getThumbnailIcon(item: FileLibrary) {
 export interface AssetGridListProps {
   items: FileLibrary[]
   isLoading?: boolean
+  /** When true, disables interactions and shows loading overlay during bulk actions */
+  isActionLoading?: boolean
   selectedIds: Set<string>
   onSelectionChange: (ids: Set<string>) => void
   searchQuery?: string
@@ -60,6 +64,7 @@ export interface AssetGridListProps {
 export function AssetGridList({
   items,
   isLoading,
+  isActionLoading = false,
   selectedIds,
   onSelectionChange,
   searchQuery = '',
@@ -79,7 +84,8 @@ export function AssetGridList({
     }
   }
 
-  const sortedItems = [...items].sort((a, b) => {
+  const safeItems = Array.isArray(items) ? items : []
+  const sortedItems = [...safeItems].sort((a, b) => {
     let aVal: string | number | null = null
     let bVal: string | number | null = null
     switch (sortKey) {
@@ -109,10 +115,10 @@ export function AssetGridList({
   })
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === items.length) {
+    if (selectedIds.size === safeItems.length) {
       onSelectionChange(new Set())
     } else {
-      onSelectionChange(new Set(items.map((i) => i.id)))
+      onSelectionChange(new Set(safeItems.map((i) => i.id)))
     }
   }
 
@@ -228,6 +234,7 @@ export function AssetGridList({
               key={i}
               className="aspect-square rounded-xl"
               shimmer
+              aria-hidden
             />
           ))}
         </div>
@@ -236,7 +243,11 @@ export function AssetGridList({
     return (
       <Card className="overflow-hidden transition-shadow duration-200">
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          <div
+            className="overflow-x-auto"
+            role="status"
+            aria-label="Loading assets"
+          >
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50 border-b">
@@ -286,26 +297,52 @@ export function AssetGridList({
       : 'Upload your first asset to get started. Drag and drop files above or click to browse.'
 
     return (
-      <Card
-        className="overflow-hidden border-dashed border-2 animate-fade-in"
-        role="status"
-        aria-live="polite"
-      >
-        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8 min-h-[280px]">
-          <div className="rounded-2xl bg-muted/50 p-8 ring-1 ring-muted/80">
-            <Icon
-              className="h-16 w-16 text-muted-foreground/70 mx-auto"
-              aria-hidden
-            />
-          </div>
-          <div className="text-center space-y-2 max-w-sm">
-            <p className="text-body font-semibold text-foreground">{title}</p>
-            <p className="text-small text-muted-foreground leading-relaxed">
-              {description}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+            size="icon-sm"
+            onClick={() => setViewMode('grid')}
+            aria-label="Grid view"
+          >
+            <Grid3X3 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+            size="icon-sm"
+            onClick={() => setViewMode('list')}
+            aria-label="List view"
+          >
+            <List className="h-4 w-4" />
+          </Button>
+        </div>
+        <Card
+          className="overflow-hidden border-dashed border-2 border-muted-foreground/30 animate-fade-in transition-shadow duration-200 hover:shadow-card"
+          role="status"
+          aria-live="polite"
+        >
+          <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8 min-h-[280px]">
+            <div className="rounded-2xl bg-muted/50 p-8 ring-1 ring-muted/80 flex items-center justify-center">
+              <Icon
+                className="h-16 w-16 text-muted-foreground/70"
+                aria-hidden
+              />
+            </div>
+            <div className="text-center space-y-2 max-w-sm">
+              <p className="text-body font-semibold text-foreground">{title}</p>
+              <p className="text-small text-muted-foreground leading-relaxed">
+                {description}
+              </p>
+            </div>
+            {!isFiltered && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Upload className="h-5 w-5" aria-hidden />
+                <span className="text-small">Use the upload area above to add files</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
@@ -339,26 +376,50 @@ export function AssetGridList({
     return renderEmptyState()
   }
 
+  const ViewToggleBar = () => (
+    <div className="flex items-center justify-end gap-2">
+      <Button
+        variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+        size="icon-sm"
+        onClick={() => setViewMode('grid')}
+        aria-label="Grid view"
+        disabled={isActionLoading}
+      >
+        <Grid3X3 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+        size="icon-sm"
+        onClick={() => setViewMode('list')}
+        aria-label="List view"
+        disabled={isActionLoading}
+      >
+        <List className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-          size="icon-sm"
-          onClick={() => setViewMode('grid')}
-          aria-label="Grid view"
-        >
-          <Grid3X3 className="h-4 w-4" />
-        </Button>
-        <Button
-          variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-          size="icon-sm"
-          onClick={() => setViewMode('list')}
-          aria-label="List view"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="space-y-4 relative">
+      <ViewToggleBar />
+
+      <div className={cn('relative', isActionLoading && 'pointer-events-none opacity-60')}>
+        {isActionLoading && (
+          <div
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-xl bg-background/60 backdrop-blur-[2px]"
+            role="status"
+            aria-live="polite"
+            aria-label="Processing bulk action"
+          >
+            <Loader2
+              className="h-10 w-10 animate-spin text-primary"
+              aria-hidden
+            />
+            <p className="mt-2 text-small font-medium text-muted-foreground">
+              Processing...
+            </p>
+          </div>
+        )}
 
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -374,7 +435,7 @@ export function AssetGridList({
                     <TableHead className="w-12">
                       <Checkbox
                         checked={
-                          items.length > 0 && selectedIds.size === items.length
+                          safeItems.length > 0 && selectedIds.size === safeItems.length
                         }
                         onCheckedChange={toggleSelectAll}
                         aria-label="Select all"
@@ -433,6 +494,7 @@ export function AssetGridList({
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   )
 }
