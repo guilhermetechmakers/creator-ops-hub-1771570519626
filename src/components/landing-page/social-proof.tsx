@@ -72,6 +72,11 @@ function MetricsEmptyState() {
             We&apos;re tracking our growth and impact. Check back soon to see how creators are succeeding with Creator Ops Hub.
           </p>
         </div>
+        <Button asChild size="lg" className="mt-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+          <Link to="/login-/-signup?mode=signup" aria-label="Get started with Creator Ops Hub to see metrics">
+            Get started
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   )
@@ -90,6 +95,11 @@ function TestimonialsEmptyState() {
             We&apos;re collecting testimonials from our community. Be the first to share your experience and help others discover Creator Ops Hub.
           </p>
         </div>
+        <Button asChild size="lg" className="mt-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+          <Link to="/login-/-signup?mode=signup" aria-label="Share your experience with Creator Ops Hub">
+            Share your experience
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   )
@@ -118,51 +128,55 @@ function LogosEmptyState() {
   )
 }
 
-function MetricsSkeleton() {
+function SocialProofSectionSkeleton() {
   return (
-    <div className="col-span-full grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6 md:gap-8">
-      {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="p-6 sm:p-8">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="mt-2 h-4 w-32" />
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-function TestimonialsSkeleton() {
-  return (
-    <div className="col-span-full grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-      {[1, 2, 3].map((i) => (
-        <Card key={i}>
-          <CardContent className="pt-6">
-            <Skeleton className="h-6 w-8" />
-            <Skeleton className="mt-4 h-4 w-full" />
-            <Skeleton className="mt-2 h-4 w-3/4" />
-            <Skeleton className="mt-2 h-4 w-1/2" />
-            <div className="mt-6 flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-16" />
+    <div
+      className="space-y-12 sm:space-y-16 md:space-y-20"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading social proof section"
+    >
+      <div className="text-center space-y-4">
+        <Skeleton className="h-8 w-48 mx-auto" />
+        <Skeleton className="h-4 w-96 max-w-full mx-auto" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6 sm:p-8">
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="mt-2 h-4 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="pt-6">
+              <Skeleton className="h-6 w-8" />
+              <Skeleton className="mt-4 h-4 w-full" />
+              <Skeleton className="mt-2 h-4 w-3/4" />
+              <Skeleton className="mt-2 h-4 w-1/2" />
+              <div className="mt-6 flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-}
-
-function LogosSkeleton() {
-  return (
-    <div className="flex flex-wrap justify-center gap-6 md:gap-12">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Skeleton key={i} className="h-6 w-24" />
-      ))}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="border-t border-border pt-8 sm:pt-12">
+        <Skeleton className="h-3 w-32 mx-auto mb-6 sm:mb-8" />
+        <div className="flex flex-wrap justify-center gap-6 md:gap-12">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={i} className="h-6 w-24" />
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -201,7 +215,11 @@ export function SocialProof({
   }
 
   return (
-    <section className="container mx-auto px-4 py-16 sm:py-20 md:py-24" aria-labelledby="social-proof-heading">
+    <section
+      className="container mx-auto px-4 py-16 sm:py-20 md:py-24"
+      aria-labelledby="social-proof-heading"
+      aria-busy={isLoading}
+    >
       <h2 id="social-proof-heading" className="text-h2 font-bold text-center mb-4 animate-slide-up text-foreground">
         Loved by creators
       </h2>
@@ -212,97 +230,112 @@ export function SocialProof({
         Join thousands of creators and teams who ship content faster with Creator Ops Hub.
       </p>
 
-      {/* Metrics row - card-based layout */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
-        {isLoading ? (
-          <MetricsSkeleton />
-        ) : hasMetrics ? (
-          metrics.map(({ value, label }, i) => (
-            <Card
-              key={label}
-              className={cn(
-                'text-center transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]',
-                !isLoading && 'animate-slide-up opacity-0'
-              )}
-              style={!isLoading ? { animationDelay: `${(i + 1) * 80}ms`, animationFillMode: 'forwards' } : undefined}
-            >
-              <CardContent className="p-6 sm:p-8">
-                <div className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  {value}
-                </div>
-                <div className="text-small text-muted-foreground mt-1">{label}</div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <MetricsEmptyState />
-        )}
-      </div>
+      {isLoading ? (
+        <SocialProofSectionSkeleton />
+      ) : (
+        <>
+          {/* Metrics row - card-based layout */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
+            {hasMetrics ? (
+              metrics.map(({ value, label }, i) => (
+                <Card
+                  key={label}
+                  className={cn(
+                    'text-center transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]',
+                    'animate-slide-up opacity-0'
+                  )}
+                  style={{ animationDelay: `${(i + 1) * 80}ms`, animationFillMode: 'forwards' }}
+                  aria-label={`${value} ${label}`}
+                >
+                  <CardContent className="p-6 sm:p-8">
+                    <div className="text-h1 font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                      {value}
+                    </div>
+                    <div className="text-small text-muted-foreground mt-1">{label}</div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <MetricsEmptyState />
+            )}
+          </div>
 
-      {/* Testimonials */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
-        {isLoading ? (
-          <TestimonialsSkeleton />
-        ) : hasTestimonials ? (
-          testimonials.map(({ quote, author, role, avatar }, i) => (
-            <Card
-              key={author}
-              className={cn(
-                'transition-all duration-300 hover:scale-[1.02] hover:shadow-card-hover',
-                !isLoading && 'animate-slide-up opacity-0'
-              )}
-              style={!isLoading ? { animationDelay: `${(i + 1) * 100}ms`, animationFillMode: 'forwards' } : undefined}
-            >
-              <CardContent className="pt-6">
-                <Quote className="h-8 w-8 text-primary/30 mb-4" aria-hidden />
-                <p className="text-body text-foreground mb-6 leading-relaxed">&ldquo;{quote}&rdquo;</p>
-                <div className="flex items-center gap-2 mb-2" aria-hidden>
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star key={s} className="h-4 w-4 fill-warning text-warning" />
-                  ))}
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-small">
-                    {avatar}
-                  </div>
-                  <div>
-                    <div className="font-medium text-small text-foreground">{author}</div>
-                    <div className="text-micro text-muted-foreground">{role}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <TestimonialsEmptyState />
-        )}
-      </div>
+          {/* Testimonials */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-12 sm:mb-16 md:mb-20">
+            {hasTestimonials ? (
+              testimonials.map(({ quote, author, role, avatar }, i) => (
+                <Card
+                  key={author}
+                  className={cn(
+                    'transition-all duration-300 hover:scale-[1.02] hover:shadow-card-hover',
+                    'animate-slide-up opacity-0'
+                  )}
+                  style={{ animationDelay: `${(i + 1) * 100}ms`, animationFillMode: 'forwards' }}
+                  aria-labelledby={`testimonial-${i}-author`}
+                >
+                  <CardContent className="pt-6">
+                    <Quote className="h-8 w-8 text-primary/30 mb-4" aria-hidden />
+                    <p className="text-body text-foreground mb-6 leading-relaxed">&ldquo;{quote}&rdquo;</p>
+                    <div className="flex items-center gap-2 mb-2" aria-hidden>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star key={s} className="h-4 w-4 fill-warning text-warning" aria-hidden />
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold text-small"
+                        aria-hidden
+                      >
+                        {avatar}
+                      </div>
+                      <div>
+                        <div id={`testimonial-${i}-author`} className="font-medium text-small text-foreground">
+                          {author}
+                        </div>
+                        <div className="text-micro text-muted-foreground">{role}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <TestimonialsEmptyState />
+            )}
+          </div>
 
-      {/* Logo row */}
-      <div className="border-t border-border pt-8 sm:pt-12">
-        <p className="text-center text-micro text-muted-foreground mb-6 sm:mb-8 uppercase tracking-wider">
-          Trusted by teams at
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-12">
-          {isLoading ? (
-            <LogosSkeleton />
-          ) : hasLogos ? (
-            logos.map((name, i) => (
-              <div
-                key={name}
-                className="text-muted-foreground font-semibold text-h3 transition-colors animate-fade-in opacity-0 hover:text-foreground"
-                style={{ animationDelay: `${(i + 1) * 50}ms`, animationFillMode: 'forwards' }}
-              >
-                {name}
-              </div>
-            ))
-          ) : (
-            <div className="w-full">
-              <LogosEmptyState />
+          {/* Logo row */}
+          <div className="border-t border-border pt-8 sm:pt-12">
+            <p
+              id="trusted-by-label"
+              className="text-center text-micro text-muted-foreground mb-6 sm:mb-8 uppercase tracking-wider"
+            >
+              Trusted by teams at
+            </p>
+            <div
+              className="flex flex-wrap justify-center items-center gap-6 sm:gap-8 md:gap-12"
+              aria-labelledby="trusted-by-label"
+              role={hasLogos ? 'list' : undefined}
+            >
+              {hasLogos ? (
+                logos.map((name, i) => (
+                  <div
+                    key={name}
+                    className="text-muted-foreground font-semibold text-h3 transition-colors animate-fade-in opacity-0 hover:text-foreground"
+                    style={{ animationDelay: `${(i + 1) * 50}ms`, animationFillMode: 'forwards' }}
+                    role="listitem"
+                  >
+                    {name}
+                  </div>
+                ))
+              ) : (
+                <div className="w-full">
+                  <LogosEmptyState />
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </section>
   )
 }
