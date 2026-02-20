@@ -37,6 +37,7 @@ export interface ContentStudioToolbarProps {
   selectedCount: number
   onBulkDelete?: () => void
   onBulkStatusChange?: (status: string) => void
+  isBulkUpdating?: boolean
   onNewContent?: () => void
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -49,6 +50,7 @@ export function ContentStudioToolbar({
   selectedCount,
   onBulkDelete,
   onBulkStatusChange,
+  isBulkUpdating = false,
   searchValue = '',
   onSearchChange,
   className,
@@ -102,9 +104,9 @@ export function ContentStudioToolbar({
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" disabled={isBulkUpdating}>
                     <MoreHorizontal className="h-4 w-4 mr-1" />
-                    Bulk actions
+                    {isBulkUpdating ? 'Updating...' : 'Bulk actions'}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="min-w-[180px]">

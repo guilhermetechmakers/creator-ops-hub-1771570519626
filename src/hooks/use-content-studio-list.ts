@@ -133,3 +133,59 @@ export function highlightSearchText(text: string, search: string): string {
   const regex = new RegExp(`(${escaped})`, 'gi')
   return text.replace(regex, '<mark class="bg-primary/20 text-primary rounded px-0.5">$1</mark>')
 }
+
+export interface ContentStudioStats {
+  pendingReview: number
+  draft: number
+  scheduled: number
+  total: number
+}
+
+export function useContentStudioStats(): {
+  stats: ContentStudioStats
+  loading: boolean
+  refetch: () => Promise<void>
+} {
+  const [stats, setStats] = useState<ContentStudioStats>({
+    pendingReview: 0,
+    draft: 0,
+    scheduled: 0,
+    total: 0,
+  })
+  const [loading, setLoading] = useState(true)
+
+  const fetchStats = useCallback(async () => {
+    if (!SUPABASE_URL) {
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        setLoading(false)
+        return
+      }
+      const { data, error } = await supabase
+        .from('content_editor')
+        .select('status')
+        .eq('user_id', session.user.id)
+      if (error) return
+      const items = (data ?? []) as { status: string }[]
+      setStats({
+        pendingReview: items.filter((i) => i.status === 'review').length,
+        draft: items.filter((i) => i.status === 'draft').length,
+        scheduled: items.filter((i) => i.status === 'scheduled').length,
+        total: items.length,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
+
+  return { stats, loading, refetch: fetchStats }
+}

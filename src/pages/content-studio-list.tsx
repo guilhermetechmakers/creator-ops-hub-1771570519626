@@ -1,8 +1,15 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import { useContentStudioList } from '@/hooks/use-content-studio-list'
-import { deleteContentEditor } from '@/lib/content-editor-ops'
+import { FileEdit, ClipboardCheck, Clock, BarChart3 } from 'lucide-react'
+import {
+  useContentStudioList,
+  useContentStudioStats,
+} from '@/hooks/use-content-studio-list'
+import {
+  deleteContentEditor,
+  bulkUpdateContentEditorStatus,
+} from '@/lib/content-editor-ops'
 import { ContentStudioToolbar } from '@/components/content-studio-list/content-studio-toolbar'
 import { ContentTableCards } from '@/components/content-studio-list/content-table-cards'
 import { ContentPagination } from '@/components/content-studio-list/content-pagination'
@@ -16,23 +23,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Card, CardContent } from '@/components/ui/card'
 import type { ContentEditor } from '@/types/content-editor'
 import type { ContentStudioListFilters } from '@/types/content-editor'
 
-const PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 10
 
 export function ContentStudioListPage() {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<ContentStudioListFilters>({
     page: 1,
-    limit: PAGE_SIZE,
+    limit: DEFAULT_PAGE_SIZE,
   })
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false)
 
   const { items, loading, error, refetch, totalCount, page, totalPages } =
     useContentStudioList(filters)
+  const { stats, refetch: refetchStats } = useContentStudioStats()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
 
@@ -46,6 +56,10 @@ export function ContentStudioListPage() {
 
   const handlePageChange = useCallback((newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }))
+  }, [])
+
+  const handlePageSizeChange = useCallback((limit: number) => {
+    setFilters((prev) => ({ ...prev, limit, page: 1 }))
   }, [])
 
   const handleBulkDelete = useCallback(() => {
@@ -63,6 +77,7 @@ export function ContentStudioListPage() {
       setSelectedIds(new Set())
       setDeleteConfirmOpen(false)
       refetch()
+      refetchStats()
     } catch (e) {
       toast.error((e as Error).message)
     } finally {
@@ -71,10 +86,25 @@ export function ContentStudioListPage() {
   }, [selectedItems, refetch])
 
   const handleBulkStatusChange = useCallback(
-    async (_status: string) => {
-      toast.info('Bulk status update coming soon')
+    async (status: string) => {
+      if (selectedItems.length === 0) return
+      setIsBulkUpdating(true)
+      try {
+        await bulkUpdateContentEditorStatus(
+          selectedItems.map((i) => i.id),
+          status
+        )
+        toast.success(`${selectedItems.length} item(s) marked as ${status}`)
+        setSelectedIds(new Set())
+        refetch()
+        refetchStats()
+      } catch (e) {
+        toast.error((e as Error).message)
+      } finally {
+        setIsBulkUpdating(false)
+      }
     },
-    []
+    [selectedItems, refetch]
   )
 
   const handleItemClick = useCallback(
@@ -95,12 +125,60 @@ export function ContentStudioListPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="rounded-lg bg-primary/10 p-3">
+              <ClipboardCheck className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <p className="text-micro text-muted-foreground font-medium">Pending review</p>
+              <p className="text-h3 font-bold">{stats.pendingReview}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="rounded-lg bg-muted p-3">
+              <FileEdit className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-micro text-muted-foreground font-medium">Drafts</p>
+              <p className="text-h3 font-bold">{stats.draft}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="rounded-lg bg-muted p-3">
+              <Clock className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-micro text-muted-foreground font-medium">Scheduled</p>
+              <p className="text-h3 font-bold">{stats.scheduled}</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="overflow-hidden transition-all duration-200 hover:shadow-card-hover">
+          <CardContent className="p-4 flex items-center gap-4">
+            <div className="rounded-lg bg-muted p-3">
+              <BarChart3 className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-micro text-muted-foreground font-medium">Total items</p>
+              <p className="text-h3 font-bold">{stats.total}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <ContentStudioToolbar
         filters={filters}
         onFiltersChange={setFilters}
         selectedCount={selectedIds.size}
         onBulkDelete={selectedIds.size > 0 ? handleBulkDelete : undefined}
         onBulkStatusChange={handleBulkStatusChange}
+        isBulkUpdating={isBulkUpdating}
         searchValue={filters.search ?? ''}
         onSearchChange={handleSearchChange}
       />
@@ -134,8 +212,9 @@ export function ContentStudioListPage() {
         page={page}
         totalPages={totalPages}
         totalCount={totalCount}
-        pageSize={PAGE_SIZE}
+        pageSize={filters.limit ?? DEFAULT_PAGE_SIZE}
         onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
       />
 
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>

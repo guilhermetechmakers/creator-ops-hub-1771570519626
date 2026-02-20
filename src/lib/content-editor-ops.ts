@@ -76,3 +76,20 @@ export async function deleteContentEditor(id: string): Promise<void> {
     .eq('user_id', session.user.id)
   if (error) throw error
 }
+
+export async function bulkUpdateContentEditorStatus(
+  ids: string[],
+  status: string
+): Promise<void> {
+  const session = await getSession()
+  if (ids.length === 0) return
+  const { error } = await supabase
+    .from('content_editor')
+    .update({
+      status,
+      updated_at: new Date().toISOString(),
+    })
+    .in('id', ids)
+    .eq('user_id', session.user.id)
+  if (error) throw error
+}

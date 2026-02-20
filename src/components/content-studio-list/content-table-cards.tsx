@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronUp, ChevronDown, Sparkles } from 'lucide-react'
+import { ChevronUp, ChevronDown, Sparkles, Eye, FileEdit } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
   Table,
@@ -111,14 +112,14 @@ export function ContentTableCards({
     onSelectionChange(next)
   }
 
-  const handleRowHover = (item: ContentEditor | null) => {
-    setPreviewItem(item)
+  const handleRowClick = (item: ContentEditor) => {
+    onItemClick?.(item)
   }
 
-  const handleRowClick = (item: ContentEditor) => {
+  const handlePreviewClick = (e: React.MouseEvent, item: ContentEditor) => {
+    e.stopPropagation()
     setPreviewItem(item)
     setPreviewOpen(true)
-    onItemClick?.(item)
   }
 
   const SortHeader = ({
@@ -194,6 +195,16 @@ export function ContentTableCards({
               Due: {formatDueDate(item.due_date)} · {item.assignee_id ? 'Assigned' : 'Unassigned'}
             </p>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={(e) => handlePreviewClick(e, item)}
+            className="shrink-0"
+            aria-label="Quick preview"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -211,16 +222,22 @@ export function ContentTableCards({
 
   if (sortedItems.length === 0) {
     return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
-          <p className="text-body text-muted-foreground">{emptyMessage}</p>
-          <p className="text-small text-muted-foreground">
-            Create your first content item to get started
-          </p>
+      <Card className="overflow-hidden border-dashed">
+        <CardContent className="flex flex-col items-center justify-center gap-6 py-16 px-8">
+          <div className="rounded-2xl bg-muted/50 p-8">
+            <FileEdit className="h-16 w-16 text-muted-foreground/70 mx-auto" />
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-body font-medium">{emptyMessage}</p>
+            <p className="text-small text-muted-foreground max-w-sm">
+              Create your first content item to get started. Use the editor to draft posts, scripts, and outlines with templates and AI assistance.
+            </p>
+          </div>
           <Link
             to="/dashboard/content-editor/new"
-            className="text-primary hover:underline font-medium"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-primary-foreground font-medium text-small transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
           >
+            <FileEdit className="h-4 w-4" />
             New Content
           </Link>
         </CardContent>
@@ -266,8 +283,6 @@ export function ContentTableCards({
                         'hover:bg-muted/30 hover:shadow-sm'
                       )}
                       onClick={() => handleRowClick(item)}
-                      onMouseEnter={() => handleRowHover(item)}
-                      onMouseLeave={() => handleRowHover(null)}
                       data-state={selectedIds.has(item.id) ? 'selected' : undefined}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -304,16 +319,30 @@ export function ContentTableCards({
                       <TableCell className="text-muted-foreground text-small">
                         {item.assignee_id ? 'Assigned' : '—'}
                       </TableCell>
-                      <TableCell>
-                        {item.is_ai_generated && (
-                          <Badge
-                            variant="outline"
-                            className="gap-1 border-primary/30 text-primary"
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePreviewClick(e, item)
+                            }}
+                            aria-label="Quick preview"
                           >
-                            <Sparkles className="h-3 w-3" />
-                            OpenClaw
-                          </Badge>
-                        )}
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {item.is_ai_generated && (
+                            <Badge
+                              variant="outline"
+                              className="gap-1 border-primary/30 text-primary"
+                            >
+                              <Sparkles className="h-3 w-3" />
+                              OpenClaw
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
