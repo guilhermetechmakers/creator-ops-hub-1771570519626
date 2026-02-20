@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -56,6 +56,7 @@ export function ContentStudioListPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [isBulkUpdating, setIsBulkUpdating] = useState(false)
+  const [isClearingFilters, setIsClearingFilters] = useState(false)
   const [bulkError, setBulkError] = useState<string | undefined>()
   const [useInfiniteScroll, setUseInfiniteScroll] = useState(false)
 
@@ -82,6 +83,12 @@ export function ContentStudioListPage() {
   const { stats, loading: statsLoading, refetch: refetchStats } = useContentStudioStats()
 
   const selectedItems = items.filter((i) => selectedIds.has(i.id))
+
+  useEffect(() => {
+    if (!loading && isClearingFilters) {
+      setIsClearingFilters(false)
+    }
+  }, [loading, isClearingFilters])
 
   const emptyMessage = useMemo(
     () =>
@@ -283,7 +290,8 @@ export function ContentStudioListPage() {
             hasActiveFilters={hasActiveFilters(filters)}
             onClearFilters={
               hasActiveFilters(filters)
-                ? () =>
+                ? () => {
+                    setIsClearingFilters(true)
                     setFilters({
                       page: 1,
                       limit: filters.limit ?? DEFAULT_PAGE_SIZE,
@@ -293,8 +301,10 @@ export function ContentStudioListPage() {
                       assignee: undefined,
                       tags: undefined,
                     })
+                  }
                 : undefined
             }
+            isClearingFilters={isClearingFilters}
             onPreviewRetry={refetch}
           />
 

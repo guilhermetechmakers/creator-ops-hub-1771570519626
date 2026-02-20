@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronUp, ChevronDown, Sparkles, Eye, FileText, Plus, FilterX } from 'lucide-react'
+import { ChevronUp, ChevronDown, Sparkles, Eye, Plus, FilterX, Loader2, FileStack } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -78,6 +78,8 @@ export interface ContentTableCardsProps {
   hasActiveFilters?: boolean
   /** Callback for clearing filters when empty state is shown with active filters */
   onClearFilters?: () => void
+  /** When true, shows loading state on Clear Filters button during async action */
+  isClearingFilters?: boolean
   /** Optional retry callback for QuickPreview error state (e.g. refetch content list) */
   onPreviewRetry?: () => void
 }
@@ -92,12 +94,15 @@ export function ContentTableCards({
   emptyMessage = 'No content items yet',
   hasActiveFilters = false,
   onClearFilters,
+  isClearingFilters = false,
   onPreviewRetry,
 }: ContentTableCardsProps) {
   const [sortKey, setSortKey] = useState<SortKey>('updated_at')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [previewItem, setPreviewItem] = useState<ContentEditor | null>(null)
   const [previewOpen, setPreviewOpen] = useState(false)
+
+  const safeItems = items ?? []
 
   const toggleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -108,7 +113,7 @@ export function ContentTableCards({
     }
   }
 
-  const sortedItems = [...items].sort((a, b) => {
+  const sortedItems = [...safeItems].sort((a, b) => {
     let aVal: string | number | null = null
     let bVal: string | number | null = null
     switch (sortKey) {
@@ -138,10 +143,10 @@ export function ContentTableCards({
   })
 
   const toggleSelectAll = () => {
-    if (selectedIds.size === items.length) {
+    if (selectedIds.size === safeItems.length) {
       onSelectionChange(new Set())
     } else {
-      onSelectionChange(new Set(items.map((i) => i.id)))
+      onSelectionChange(new Set(safeItems.map((i) => i.id)))
     }
   }
 
@@ -232,8 +237,9 @@ export function ContentTableCards({
       <section
         className="space-y-4"
         role="status"
-        aria-label="Loading content"
+        aria-label="Loading content list"
         aria-busy="true"
+        aria-live="polite"
       >
         {/* Mobile: card skeletons */}
         <div className="block lg:hidden space-y-4">
@@ -313,11 +319,12 @@ export function ContentTableCards({
       >
         <Card className="overflow-hidden border-dashed border-2 border-muted min-h-[320px] flex flex-col">
           <CardContent className="flex flex-1 flex-col items-center justify-center gap-6 py-16 px-6 sm:px-8">
+            {/* Prominent empty state illustration - Design Ref: illustrations or icons */}
             <div
-              className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5"
+              className="flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 shadow-sm border border-primary/10"
               aria-hidden
             >
-              <FileText className="h-12 w-12 text-primary/80" aria-hidden />
+              <FileStack className="h-14 w-14 text-primary/90" aria-hidden />
             </div>
             <div className="text-center space-y-2 max-w-sm">
               <h2
@@ -332,12 +339,12 @@ export function ContentTableCards({
                   : 'Create your first content item to get started. Use the editor to draft posts, scripts, and outlines with templates and AI assistance.'}
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto sm:items-center">
               <Button
                 asChild
                 size="lg"
-                className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                aria-label="Create new content"
+                className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg"
+                aria-label="Create new content and open editor"
               >
                 <Link to="/dashboard/content-editor/new" className="inline-flex items-center gap-2">
                   <Plus className="h-4 w-4" aria-hidden />
@@ -349,11 +356,22 @@ export function ContentTableCards({
                   variant="outline"
                   size="lg"
                   onClick={onClearFilters}
+                  disabled={isClearingFilters}
                   className="w-full sm:w-auto transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                  aria-label="Clear filters to show all content"
+                  aria-label={isClearingFilters ? 'Clearing filters' : 'Clear filters to show all content'}
+                  aria-busy={isClearingFilters}
                 >
-                  <FilterX className="h-4 w-4 mr-2" aria-hidden />
-                  Clear Filters
+                  {isClearingFilters ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden />
+                      Clearing...
+                    </>
+                  ) : (
+                    <>
+                      <FilterX className="h-4 w-4 mr-2" aria-hidden />
+                      Clear Filters
+                    </>
+                  )}
                 </Button>
               )}
             </div>
@@ -387,17 +405,17 @@ export function ContentTableCards({
                 <TableRow className="bg-muted/50 hover:bg-muted/50 border-b sticky top-0 z-10">
                   <TableHead className="w-12">
                     <Checkbox
-                      checked={items.length > 0 && selectedIds.size === items.length}
+                      checked={safeItems.length > 0 && selectedIds.size === safeItems.length}
                       onCheckedChange={toggleSelectAll}
-                      aria-label="Select all"
+                      aria-label="Select all content items"
                     />
                   </TableHead>
                   <SortHeader label="Title" sortKey="title" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Channel" sortKey="channel" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Due Date" sortKey="due_date" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
                   <SortHeader label="Status" sortKey="status" currentSortKey={sortKey} sortDir={sortDir} onSort={toggleSort} />
-                  <TableHead>Assigned</TableHead>
-                  <TableHead className="w-24" />
+                  <TableHead scope="col">Assigned</TableHead>
+                  <TableHead className="w-24" scope="col" aria-label="Row actions" />
                 </TableRow>
               </TableHeader>
               <TableBody>
